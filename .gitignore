@@ -28,3 +28,11 @@ Manifest.toml
 
 # ignore vscode meta data
 .vscode
+
+# ignore models downloaded for testing
+*.json
+*.xml
+*.mat
+
+# ignore develop/testing script
+temp.jl
