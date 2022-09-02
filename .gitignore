@@ -25,3 +25,6 @@ Manifest.toml
 
 # vim
 .*.swp
+
+# ignore vscode meta data
+.vscode
