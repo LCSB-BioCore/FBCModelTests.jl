@@ -16,7 +16,7 @@ function generate_frog_report(
     report_dir::String,
     optimizer,
     workers = [Distributed.myid()],
-    basename::String = filename,
+    basefilename::String = basename(filename),
 )
     @info "Generating FROG report for $filename..."
     mkpath(report_dir)
@@ -32,7 +32,7 @@ function generate_frog_report(
             f,
             [
                 "model" "objective" "status" "value"
-                filename "obj" objstatus(obj) objvalue(obj)
+                basefilename "obj" objstatus(obj) objvalue(obj)
             ],
         )
     end
@@ -53,7 +53,7 @@ function generate_frog_report(
             [
                 "model" "objective" "reaction" "flux" "status" "minimum" "maximum"
                 hcat(
-                    fill(filename, n),
+                    fill(basefilename, n),
                     fill("obj", n),
                     reactions(model),
                     objvalue.(flux_vector(model, solved_model)),
@@ -82,7 +82,7 @@ function generate_frog_report(
             [
                 "model" "objective" "gene" "status" "value"
                 hcat(
-                    fill(filename, ng),
+                    fill(basefilename, ng),
                     fill("obj", ng),
                     genes(model),
                     objstatus.(gs),
@@ -112,7 +112,7 @@ function generate_frog_report(
             [
                 "model" "objective" "reaction" "status" "value"
                 hcat(
-                    fill(filename, n),
+                    fill(basefilename, n),
                     fill("obj", n),
                     reactions(model),
                     objstatus.(rs),
@@ -135,7 +135,7 @@ function generate_frog_report(
                     InteractiveUtils.versioninfo(x)
                     replace(String(take!(x)), r"\n *" => " ")
                 end,
-                "model.filename" => filename,
+                "model.filename" => basefilename,
                 "model.md5" => bytes2hex(open(f -> md5(f), filename, "r")),
                 "solver.name" => "COBREXA.jl $COBREXA_VERSION ($(COBREXA.JuMP.MOI.get(optimizer(), COBREXA.JuMP.MOI.SolverName())))",
             ),
