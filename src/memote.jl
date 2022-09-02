@@ -10,10 +10,10 @@ $(TYPEDSIGNATURES)
 
 Iterates through all the reactions in `model` and checks if the charges across
 each reaction balance. Returns a list of reaction IDs that are charge
-unbalanced, which is empty if the test passes. 
+unbalanced, which is empty if the test passes.
 
 Optionally, pass a list of reactions to ignore in this process through
-`ignored_reactions`. It makes sense to include the biomass and 
+`ignored_reactions`. It makes sense to include the biomass and
 exchange reactions in this list (default).
 """
 function is_model_charge_balanced(
@@ -49,7 +49,7 @@ reaction balances. Returns a list of reaction IDs that are mass unbalanced, whic
 is empty if the test passes.
 
 Optionally, pass a list of reactions to ignore in this process through
-`ignored_reactions`. It makes sense to include the biomass and 
+`ignored_reactions`. It makes sense to include the biomass and
 exchange reactions in this list (default).
 """
 function is_model_mass_balanced(
