@@ -1,0 +1,14 @@
+name = "FBCModelTests"
+uuid = "1060cd45-1c33-4a14-be81-8fa38fdd82bf"
+authors = ["Mirek Kratochvil <miroslav.kratochvil@uni.lu>"]
+version = "0.1.0"
+
+[deps]
+COBREXA = "babc4406-5200-4a30-9033-bf5ae714c842"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+MD5 = "6ac74813-4b46-53a4-afec-0b5dc9d7885c"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
