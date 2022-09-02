@@ -3,7 +3,7 @@
     # use default conditions to exclude biomass and exchanges
     cbal = is_model_charge_balanced(model)
     mbal = is_model_mass_balanced(model)
-    @test isemtpy(cbal)
+    @test isempty(cbal)
     @test isempty(mbal)
 
     # test if biomass and exchanges are identified
