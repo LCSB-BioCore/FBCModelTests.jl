@@ -108,7 +108,7 @@ Additional energy dissipating reactions can be directly specified through
 `additional_energy_generating_reactions`, which should be vector of COBREXA
 `Reaction`s using the same metabolite name space as the `model`. Internally, the
 `model` is converted to a COBREXA `StandardModel`, so ensure that the
-appropriate accessors are defined for it. 
+appropriate accessors are defined for it.
 
 Since models use different name spaces, `energy_dissipating_metabolites` is used
 to create the energy dissipating reactions. By default it uses the BiGG name
@@ -267,6 +267,7 @@ function has_erroneous_energy_generating_cycles(
                 modifications = [modifications; change_objective(objective_ids)],
             ),
         ),
-        0; atol=1e-6,
+        0;
+        atol = 1e-6,
     )
 end
