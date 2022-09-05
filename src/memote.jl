@@ -274,3 +274,47 @@ function has_erroneous_energy_generating_cycles(
         atol = 1e-6,
     )
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Determines if the model is stiochiometrically consistent. This is fully
+equivalent to determining whether each reaction has an elemental balance.
+However, some reactions do not have molecular formulae, making mass balance
+checks ineffective. This method can be used instead. 
+
+Based on Gevorgyan, Albert, Mark G. Poolman, and David A. Fell. "Detection of
+stoichiometric inconsistencies in biomolecular models." Bioinformatics (2008).
+"""
+function is_consistent(
+    model,
+    optimizer;
+    boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
+    ignored_reactions = find_biomass_reaction_ids(model),
+)
+    #=
+    Note, there is a MILP method that can be used to find the unconserved metabolite,
+    but the problem is a MILP (and probably why the original MEMOTE takes so long to run).
+    Not  
+    =#
+
+    # need to remove reactions, only implemented for Core and StdModel
+    if model isa StandardModel
+        _model = deepcopy(model) # copy because will add stuff to it
+    else
+        _model = convert(StandardModel, model)
+    end
+
+    remove_reactions!(_model, [boundary_reactions; ignored_reactions])
+
+    N = stoichiometry(_model)
+    n_mets, _ = size(N)
+
+    opt_model = Model(optimizer)
+    m = @variable(opt_model, 1 <= m[1:n_mets])
+    @constraint(opt_model, N' * m .== 0)
+    @objective(opt_model, Min, sum(m))
+    optimize!(opt_model)
+    value.(m)
+    termination_status(opt_model) == OPTIMAL
+end
