@@ -23,3 +23,12 @@ end
         ignore_reactions = ["BIOMASS_KT_TEMP"],
     )
 end
+
+@testset "Consistency" begin
+    @test is_consistent(model, Tulip.Optimizer)
+    
+    # make a model inconsistent
+    temp_model = convert(StandardModel, model)
+    temp_model.reactions["PFL"].metabolites["for_c"] = 2.0
+    @test !is_consistent(temp_model, Tulip.Optimizer)
+end
