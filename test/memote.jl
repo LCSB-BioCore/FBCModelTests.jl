@@ -19,4 +19,3 @@ end
     @test !has_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
     @test has_erroneous_energy_generating_cycles(iJN746, Tulip.Optimizer; ignore_reactions=["BIOMASS_KT_TEMP",])
 end
-
