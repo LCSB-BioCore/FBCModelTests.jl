@@ -112,9 +112,12 @@ appropriate accessors are defined for it.
 
 Since models use different name spaces, `energy_dissipating_metabolites` is used
 to create the energy dissipating reactions. By default it uses the BiGG name
-space, but this will be changed to ChEBI in due course. Any `modifications` to
-the solver are passed directly through to COBREXA's `flux_balance_analysis`
-function. All `exchange_reactions` and `ignore_reactions` are deleted from an
+space, but this will be changed to ChEBI in due course. If your model uses a
+different name space, then you have to change the values (NOT the keys) of
+`energy_dissipating_metabolites`. Each energy dissipating reaction is added to
+the test only if all its associated metabolites are present. Any `modifications`
+to the solver are passed directly through to COBREXA's `flux_balance_analysis`
+function. All `boundary_reactions` and `ignore_reactions` are deleted from an
 internal copy of `model`; this internal copy is used for analysis.
 
 Returns `true` if the model has energy generating cycles.
@@ -161,7 +164,7 @@ function has_erroneous_energy_generating_cycles(
     additional_energy_generating_reactions = [],
     ignore_reactions = ["ATPM"],
     modifications = [],
-    exchange_reactions = find_exchange_reaction_ids(model),
+    boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
 )
     # need to add reactions, only implemented for Core and StdModel
     if model isa StandardModel
@@ -254,7 +257,7 @@ function has_erroneous_energy_generating_cycles(
     end
 
     # ignore reactions by just removing them
-    for rxn in [ignore_reactions; exchange_reactions]
+    for rxn in [ignore_reactions; boundary_reactions]
         remove_reaction!(_model, rxn)
     end
 
