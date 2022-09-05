@@ -106,9 +106,18 @@ H[external] --> H
 ```
 Additional energy dissipating reactions can be directly specified through
 `additional_energy_generating_reactions`, which should be vector of COBREXA
-`Reaction`s using the same name space as the `model`.
+`Reaction`s using the same metabolite name space as the `model`. Internally, the
+`model` is converted to a COBREXA `StandardModel`, so ensure that the
+appropriate accessors are defined for it. 
 
-Since models use differnt name spaces, 
+Since models use different name spaces, `energy_dissipating_metabolites` is used
+to create the energy dissipating reactions. By default it uses the BiGG name
+space, but this will be changed to ChEBI in due course. Any `modifications` to
+the solver are passed directly through to COBREXA's `flux_balance_analysis`
+function. All `exchange_reactions` and `ignore_reactions` are deleted from an
+internal copy of `model`; this internal copy is used for analysis.
+
+Returns `true` if the model has energy generating cycles.
 """
 function has_erroneous_energy_generating_cycles(
     model,
@@ -136,8 +145,8 @@ function has_erroneous_energy_generating_cycles(
         "Ubiquinone-8" => "q8_c",
         "Menaquinol-8" => "mql8_c",
         "Menaquinone-8" => "mqn8_c",
-        "2-Demethylmenaquinol" => "2dmmql8_c",
-        "2-Demethylmenaquinol" => "2dmmq8_c",
+        "2-Demethylmenaquinol-8" => "2dmmql8_c",
+        "2-Demethylmenaquinone-8" => "2dmmq8_c",
         "ACCOA" => "accoa_c",
         "COA" => "coa_c",
         "L-Glutamate" => "glu__L_c",
@@ -152,6 +161,7 @@ function has_erroneous_energy_generating_cycles(
     additional_energy_generating_reactions = [],
     ignore_reactions = ["ATPM"],
     modifications = [],
+    exchange_reactions = find_exchange_reaction_ids(model),
 )
     # need to add reactions, only implemented for Core and StdModel
     if model isa StandardModel
@@ -172,8 +182,9 @@ function has_erroneous_energy_generating_cycles(
                 Ref(metabolites(_model)),
             ),
         )
+            _mets = Dict(energy_dissipating_metabolites[k] => v for (k, v) in mets)
             rid = "MEMOTE_TEMP_RXN_$id"
-            add_reaction!(_model, Reaction(rid, mets, :forward))
+            add_reaction!(_model, Reaction(rid, _mets, :forward))
             push!(objective_ids, rid)
         end
     end
@@ -234,7 +245,7 @@ function has_erroneous_energy_generating_cycles(
         "GLU",
     )
 
-    maybe_add_energy_reaction(Dict("H[external" => -1, "H" => 1), "PROTON")
+    maybe_add_energy_reaction(Dict("H[external]" => -1, "H" => 1), "PROTON")
 
     # add user specified reactions
     for rxn in additional_energy_generating_reactions
@@ -243,12 +254,19 @@ function has_erroneous_energy_generating_cycles(
     end
 
     # ignore reactions by just removing them
-    for rxn in ignore_reactions
+    for rxn in [ignore_reactions; exchange_reactions]
         remove_reaction!(_model, rxn)
     end
 
     # if objective is approximately 0 then no energy generating cycles present
     !isapprox(
-        solve_objective_value(flux_balance_analysis(_model, optimizer; modifications = [modifications; change_objective(objective_ids)])),
+        solved_objective_value(
+            flux_balance_analysis(
+                _model,
+                optimizer;
+                modifications = [modifications; change_objective(objective_ids)],
+            ),
+        ),
+        0,
     )
 end

@@ -23,6 +23,7 @@ MD5 = "0.2"
 [extras]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Tulip = "6dd1b50a-3aae-11e9-10b5-ef983d2400fa"
 
 [targets]
 test = ["Downloads", "Test"]

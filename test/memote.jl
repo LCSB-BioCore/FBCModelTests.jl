@@ -14,3 +14,9 @@
     @test all(startswith(rid, "EX") for rid in cbal if rid != "BIOMASS_Ecoli_core_w_GAM")
     @test all(startswith(rid, "EX") for rid in mbal if rid != "BIOMASS_Ecoli_core_w_GAM")
 end
+
+@testset "Erroneous energy generation" begin
+    # need to find a bad model that has an energy generating cycle
+    @test !has_erroneous_energy_generating_cycles(model, Gurobi.Optimizer)
+end
+
