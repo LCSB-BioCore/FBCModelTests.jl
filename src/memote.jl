@@ -267,6 +267,6 @@ function has_erroneous_energy_generating_cycles(
                 modifications = [modifications; change_objective(objective_ids)],
             ),
         ),
-        0,
+        0; atol=1e-6,
     )
 end

@@ -17,6 +17,6 @@ end
 
 @testset "Erroneous energy generation" begin
     # need to find a bad model that has an energy generating cycle
-    @test !has_erroneous_energy_generating_cycles(model, Gurobi.Optimizer)
+    @test !has_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
 end
 

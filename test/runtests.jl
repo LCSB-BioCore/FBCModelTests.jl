@@ -3,7 +3,7 @@ using Test
 using FBCModelTests
 
 using Downloads
-using COBREXA
+using COBREXA, Tulip
 
 isfile("e_coli_core.json") || Downloads.download(
     "http://bigg.ucsd.edu/static/models/e_coli_core.json",
