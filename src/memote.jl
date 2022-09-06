@@ -302,7 +302,7 @@ function is_consistent(
     if model isa StandardModel
         _model = deepcopy(model) # copy because will add stuff to it
     else
-        _model = convert(StandardModel, model)
+        _model = convert(StandardModel, deepcopy(model))
     end
 
     remove_reactions!(_model, [boundary_reactions; ignored_reactions])
