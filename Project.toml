@@ -13,7 +13,6 @@ JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 MD5 = "6ac74813-4b46-53a4-afec-0b5dc9d7885c"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-Tulip = "6dd1b50a-3aae-11e9-10b5-ef983d2400fa"
 
 [compat]
 COBREXA = "1"
@@ -27,4 +26,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Tulip = "6dd1b50a-3aae-11e9-10b5-ef983d2400fa"
 
 [targets]
-test = ["Downloads", "Test"]
+test = ["Downloads", "Test", "Tulip"]
