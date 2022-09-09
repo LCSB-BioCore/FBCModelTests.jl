@@ -23,3 +23,16 @@ end
         ignore_reactions = ["BIOMASS_KT_TEMP"],
     )
 end
+
+@testset "Consistency" begin
+    @test is_consistent(model, Tulip.Optimizer)
+
+    temp_model = convert(StandardModel, model)
+    temp_model.reactions["PFK"].metabolites["fdp_c"] = 2
+    is_consistent(temp_model, Tulip.Optimizer)
+
+    # This test shows how consistency is strictly worse than checking mass balance
+    # temp_model = convert(StandardModel, model)
+    # temp_model.reactions["PFL"].metabolites["for_c"] = 2.0
+    # @test !is_consistent(temp_model, Tulip.Optimizer)
+end
