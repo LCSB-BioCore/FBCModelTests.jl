@@ -295,8 +295,8 @@ function is_consistent(
     #=
     Note, there is a MILP method that can be used to find the unconserved metabolite,
     but the problem is a MILP (and probably why the original MEMOTE takes so long to run).
-    
-    Note, it may be better to add additional constraints on the model to ensure that mass 
+
+    Note, it may be better to add additional constraints on the model to ensure that mass
     cannot be create (through lower and upper bounds on m). This is to prevent things like:
     A -> x*B -> C where x can be anything. This test will not catch these kinds of errors.
     =#
