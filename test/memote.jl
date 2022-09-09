@@ -14,3 +14,12 @@
     @test all(startswith(rid, "EX") for rid in cbal if rid != "BIOMASS_Ecoli_core_w_GAM")
     @test all(startswith(rid, "EX") for rid in mbal if rid != "BIOMASS_Ecoli_core_w_GAM")
 end
+
+@testset "Erroneous energy generation" begin
+    @test !has_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
+    @test has_erroneous_energy_generating_cycles(
+        iJN746,
+        Tulip.Optimizer;
+        ignore_reactions = ["BIOMASS_KT_TEMP"],
+    )
+end
