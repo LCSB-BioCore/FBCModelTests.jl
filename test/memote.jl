@@ -58,6 +58,31 @@ end
     test_metabolites(model)
 end
 
+@testset "Metabolite Annotations" begin
+    #test all_unannotated_metabolites()
+    all_m = all_unannotated_metabolites(model)
+    @test isempty(all_m)
+
+    #test unannotated_metabolites()
+    u_m = unannotated_metabolites(model)
+    @test u_m["kegg.compound"] == ["q8h2_c"]
+    @test u_m["biocyc"] == ["icit_c", "fdp_c"]
+    @test u_m["hmdb"] == ["q8_c", "r5p_c", "fdp_c"]
+    for db in ["seed.compound", "inchi_key", "chebi", "metanetx.chemical", "bigg.metabolite"]
+        @test isempty(u_m[db])
+    end
+    for db2 in ["pubchem.compound", "inchi", "reactome"]
+        @test length(u_m[db2]) == 72
+    end
+
+    #test metabolite_annotation_conformity()
+    c_m = metabolite_annotation_conformity(model)
+    @test length(c_m) == 8
+    for db in [ "chebi", "metanetx.chemical", "inchi_key", "hmdb", "bigg.metabolite", "biocyc", "seed.compound"]
+        @test isempty(c_m[db])
+    end
+end
+
 @testset "Basic" begin
     # these tests are too basic to split out into multiple subtests
     test_basic(model)
