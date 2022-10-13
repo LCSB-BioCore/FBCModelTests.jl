@@ -7,7 +7,20 @@ const ObjectiveValue = Maybe{Float64}
 """
 $(TYPEDEF)
 """
-const ObjectiveValues = Vector{ObjectiveValue}
+const FROGMetadata = Dict{String,String}
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct FROGReactionReport
+    flux::ObjectiveValue
+    variability_min::ObjectiveValue
+    variability_max::ObjectiveValue
+    deletion::ObjectiveValue
+end
 
 """
 $(TYPEDEF)
@@ -17,22 +30,11 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct FROGObjectiveReport
     optimum::ObjectiveValue
-    flux::ObjectiveValues = []
-    variabilities_min::ObjectiveValues = []
-    variabilities_max::ObjectiveValues = []
-    reaction_knockouts::ObjectiveValues = []
-    gene_knockouts::ObjectiveValues = []
+    reactions::Dict{String,FROGReactionReport}
+    gene_deletions::Dict{String,ObjectiveValue}
 end
-
 
 """
 $(TYPEDEF)
-
-# Fields
-$(TYPEDFIELDS)
 """
-Base.@kwdef struct FROGReportData
-    reactions::Vector{String}
-    genes::Vector{String}
-    objectives::Dict{String,FROGObjectiveReport}
-end
+const FROGReportData = Dict{String,FROGObjectiveReport}

@@ -6,6 +6,8 @@ objstatus(::Any) = "optimal"
 objvalue(::Nothing) = ""
 objvalue(x::Number) = string(x)
 
+parse_objvalue(x::String) = x == "" ? nothing : parse(Float64, x)
+
 """
 $(TYPEDEF)
 
@@ -32,7 +34,6 @@ function frog_objective_report(
     optimizer,
     workers,
 )::FROGObjectiveReport
-
     @info "Creating report for objective $objective ..."
     # this prevents the default SBMLModel fireworks in case there's multiple objectives
     model = ResetObjective(sbml_model, SBML.fbc_flux_objective(sbml_model.sbml, objective))
@@ -58,9 +59,10 @@ function frog_objective_report(
     end
 
     @info "Calculating gene knockouts ..."
+    gids = genes(model)
     gs = screen(
         model,
-        args = tuple.(genes(model)),
+        args = tuple.(gids),
         analysis = (m, gene) -> solved_objective_value(
             flux_balance_analysis(m, optimizer, modifications = [knockout(gene)]),
         ),
@@ -68,9 +70,10 @@ function frog_objective_report(
     )
 
     @info "Calculating reaction knockouts ..."
+    rids = reactions(model)
     rs = screen(
         model,
-        args = tuple.(reactions(model)),
+        args = tuple.(rids),
         analysis = (m, rid) -> solved_objective_value(
             flux_balance_analysis(
                 m,
@@ -84,11 +87,16 @@ function frog_objective_report(
     @info "Objective $objective done."
     return FROGObjectiveReport(
         optimum = obj,
-        flux = flux_vector(model, solved_model),
-        variabilities_min = fvas[:, 1],
-        variabilities_max = fvas[:, 2],
-        reaction_knockouts = rs,
-        gene_knockouts = gs,
+        reactions = Dict(
+            rid => FROGReactionReport(
+                flux = flx,
+                variability_min = vmin,
+                variability_max = vmax,
+                deletion = ko,
+            ) for (rid, flx, vmin, vmax, ko) in
+            zip(rids, flux_vector(model, solved_model), fvas[:, 1], fvas[:, 2], rs)
+        ),
+        gene_deletions = Dict(gids .=> gs),
     )
 end
 
@@ -97,109 +105,78 @@ $(TYPEDSIGNATURES)
 
 Generate [`FROGReportData`](@ref) for a model.
 """
-frog_model_report(model::SBMLModel; optimizer, workers = [Distributed.myid()]) =
-    FROGReportData(
-        reactions = reactions(model),
-        genes = genes(model),
-        objectives = Dict(
-            objective => frog_objective_report(model, objective; optimizer, workers) for
-            (objective, _) in model.sbml.objectives
-        ),
-    )
+frog_model_report(model::SBMLModel; optimizer, workers = [Distributed.myid()]) = Dict([
+    objective => frog_objective_report(model, objective; optimizer, workers) for
+    (objective, _) in model.sbml.objectives
+])
 
 """
 $(TYPEDSIGNATURES)
-
-Write the contents of [`FROGReportData`](@ref) to the 4 TSV files as specified
-by FROG standard, and additionally write the metadata into the JSON file.
 """
-function frog_write_to_directory(
-    r::FROGReportData,
-    metadata::Dict;
-    report_dir::String,
-    basefilename::String,
+function frog_test_report_equality(
+    a::FROGReportData,
+    b::FROGReportData;
+    absolute_tolerance = 1e-6,
+    relative_tolerance = 1e-4,
 )
-    outname(x) = joinpath(report_dir, x)
-    writeto(x::Function, fn) = open(x, outname(fn), "w")
-    squash(x) = permutedims(hcat(x...), (2, 1))
+    test_dicts(match::Function, a::Dict, b::Dict) =
+        for k in union(keys(a), keys(b))
+            @testset "$k" begin
+                @test haskey(a, k) && haskey(b, k)
+                if haskey(a, k) && haskey(b, k)
+                    match(k, a[k], b[k])
+                end
+            end
+        end
 
-    mkpath(report_dir)
+    intol(a, b) =
+        (isnothing(a) && isnothing(b)) || (
+            !isnothing(a) &&
+            !isnothing(b) &&
+            abs(a - b) <= absolute_tolerance &&
+            (
+                (a * b > 0) && abs(a * (1 + relative_tolerance)) >= abs(b) ||
+                abs(b * (1 + relative_tolerance)) >= abs(a)
+            )
+        )
 
-    writeto("01_objective.tsv") do f
-        writedlm(
-            f,
-            [
-                "model" "objective" "status" "value"
-                squash(
-                    [basefilename, obj, objstatus(o.optimum), objvalue(o.optimum)] for
-                    (obj, o) in r.objectives
-                )
-            ],
+    @testset "Comparing objectives" begin
+        test_dicts(
+            (k, a, b) -> begin
+                @test intol(a.optimum, b.optimum)
+                @testset "Reactions" begin
+                    test_dicts(
+                        (k, a, b) -> begin
+                            @test intol(a.flux, b.flux)
+                            @test intol(a.variability_min, b.variability_min)
+                            @test intol(a.variability_max, b.variability_max)
+                            @test intol(a.deletion, b.deletion)
+                        end,
+                        a.reactions,
+                        b.reactions,
+                    )
+                end
+                @testset "Gene deletions" begin
+                    test_dicts(
+                        (k, a, b) -> begin
+                            @test intol(a, b)
+                        end,
+                        a.gene_deletions,
+                        b.gene_deletions,
+                    )
+                end
+            end,
+            a,
+            b,
         )
     end
-
-    writeto("02_fva.tsv") do f
-        writedlm(
-            f,
-            [
-                "model" "objective" "reaction" "flux" "status" "minimum" "maximum"
-                squash(
-                    [
-                        basefilename,
-                        obj,
-                        rxn,
-                        objvalue(flx),
-                        objstatus(varmin),
-                        objvalue(varmin),
-                        objvalue(varmax),
-                    ] for (obj, o) = r.objectives if !isnothing(o.optimum) for
-                    (rxn, flx, varmin, varmax) in
-                    zip(r.reactions, o.flux, o.variabilities_min, o.variabilities_max)
-                )
-            ],
-        )
-    end
-
-    writeto("03_gene_deletion.tsv") do f
-        writedlm(
-            f,
-            [
-                "model" "objective" "gene" "status" "value"
-                squash(
-                    [basefilename, obj, gene, objstatus(geneval), objvalue(geneval)] for
-                    (obj, o) in r.objectives for
-                    (gene, geneval) in zip(r.genes, o.gene_knockouts)
-                )
-            ],
-        )
-    end
-
-    writeto("04_reaction_deletion.tsv") do f
-        writedlm(
-            f,
-            [
-                "model" "objective" "reaction" "status" "value"
-                squash(
-                    [basefilename, obj, rxn, objstatus(rxnval), objvalue(rxnval)] for
-                    (obj, o) in r.objectives for
-                    (rxn, rxnval) in zip(r.reactions, o.reaction_knockouts)
-                )
-            ],
-        )
-    end
-
-    writeto("00_metadata.json") do f
-        JSON.print(f, metadata, 2)
-    end
-
-    nothing
 end
 
 """
 $(TYPEDSIGNATURES)
 """
 frog_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
-    Dict(
+    FROGMetadata(
         "software.name" => "FBCModelTests.jl",
         "software.version" => string(FBCMT_VERSION),
         "software.url" => "https://github.com/LCSB-BioCore/FBCModelTests.jl/",
@@ -216,6 +193,213 @@ frog_metadata(filename::String; optimizer, basefilename::String = basename(filen
 
 """
 $(TYPEDSIGNATURES)
+"""
+function frog_test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
+    for k in ["model.filename", "model.md5"]
+        @testset "$k is present" begin
+            @test haskey(a, k)
+            @test haskey(b, k)
+        end
+    end
+
+    for k in ["model.filename", "model.md5", "model.sha256"]
+        if haskey(a, k) && haskey(b, k)
+            @testset "$k matches" begin
+                @test a[k] == b[k]
+            end
+        end
+    end
+end
+
+const frog_headers = Dict(
+    :objective => ["model" "objective" "status" "value"],
+    :fva => ["model" "objective" "reaction" "flux" "status" "minimum" "maximum"],
+    :gene_deletion => ["model" "objective" "gene" "status" "value"],
+    :reaction_deletion => ["model" "objective" "reaction" "status" "value"],
+)
+
+"""
+$(TYPEDSIGNATURES)
+
+Write the contents of [`FROGReportData`](@ref) to the 4 TSV files as specified
+by FROG standard, and additionally write the metadata into the JSON file.
+"""
+function frog_write_to_directory(
+    r::FROGReportData,
+    metadata::FROGMetadata;
+    report_dir::String,
+    basefilename::String,
+)
+    outname(x) = joinpath(report_dir, x)
+    writeto(x::Function, fn) = open(x, outname(fn), "w")
+    squash(x) = permutedims(hcat(x...), (2, 1))
+
+    mkpath(report_dir)
+
+    writeto("01_objective.tsv") do f
+        writedlm(
+            f,
+            [
+                frog_headers[:objective]
+                squash(
+                    [basefilename, obj, objstatus(o.optimum), objvalue(o.optimum)] for
+                    (obj, o) in r
+                )
+            ],
+            '\t',
+        )
+    end
+
+    writeto("02_fva.tsv") do f
+        writedlm(
+            f,
+            [
+                frog_headers[:fva]
+                squash(
+                    [
+                        basefilename,
+                        obj,
+                        rxn,
+                        objvalue(r.flux),
+                        objstatus(r.variability_min),
+                        objvalue(r.variability_min),
+                        objvalue(r.variability_max),
+                    ] for (obj, o) = r if !isnothing(o.optimum) for (rxn, r) in o.reactions
+                )
+            ],
+            '\t',
+        )
+    end
+
+    writeto("03_gene_deletion.tsv") do f
+        writedlm(
+            f,
+            [
+                frog_headers[:gene_deletion]
+                squash(
+                    [basefilename, obj, gene, objstatus(geneval), objvalue(geneval)] for
+                    (obj, o) in r for (gene, geneval) in o.gene_deletions
+                )
+            ],
+            '\t',
+        )
+    end
+
+    writeto("04_reaction_deletion.tsv") do f
+        writedlm(
+            f,
+            [
+                frog_headers[:reaction_deletion]
+                squash(
+                    [basefilename, obj, rxn, objstatus(r.deletion), objvalue(r.deletion)]
+                    for (obj, o) in r for (rxn, r) in o.reactions
+                )
+            ],
+            '\t',
+        )
+    end
+
+    writeto("00_metadata.json") do f
+        JSON.print(f, metadata, 2)
+    end
+
+    nothing
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Reverse of [`frog_write_to_directory`](@ref).
+"""
+function frog_read_from_directory(report_dir::String)
+    outname(x) = joinpath(report_dir, x)
+    readfrom(x::Function, fn) = open(x, outname(fn), "r")
+
+    metadata = readfrom("00_metadata.json") do f
+        FROGMetadata(JSON.parse(f))
+    end
+
+    basefilename = metadata["model.filename"]
+
+    # objectives
+    objdata = readfrom("01_objective.tsv") do f
+        readdlm(f, '\t', String)
+    end
+    @assert objdata[1, :] == frog_headers[:objective][1, :]
+    obj_vals = Dict(
+        o => parse_objvalue(v) for
+        (m, o, _, v) = eachrow(objdata[2:end, :]) if m == basefilename
+    )
+
+    # FVA
+    fvadata = readfrom("02_fva.tsv") do f
+        readdlm(f, '\t', String)
+    end
+    @assert fvadata[1, :] == frog_headers[:fva][1, :]
+    fva_vals = Dict(
+        obj => Dict(
+            r => parse_objvalue.((flx, min, max)) for
+            (m, o, r, flx, _, min, max) = eachrow(fvadata[2:end, :]) if
+            m == basefilename && o == obj
+        ) for obj in keys(obj_vals)
+    )
+
+    # gene deletions
+    gdata = readfrom("03_gene_deletion.tsv") do f
+        readdlm(f, '\t', String)
+    end
+    @assert gdata[1, :] == frog_headers[:gene_deletion][1, :]
+    gene_vals = Dict(
+        obj => Dict(
+            g => parse_objvalue(v) for (m, o, g, _, v) = eachrow(gdata[2:end, :]) if
+            m == basefilename && o == obj
+        ) for obj in keys(obj_vals)
+    )
+
+    # reaction deletions
+    rdata = readfrom("04_reaction_deletion.tsv") do f
+        readdlm(f, '\t', String)
+    end
+    @assert rdata[1, :] == frog_headers[:reaction_deletion][1, :]
+    rxn_vals = Dict(
+        obj => Dict(
+            r => parse_objvalue(v) for (m, o, r, _, v) = eachrow(rdata[2:end, :]) if
+            m == basefilename && o == obj
+        ) for obj in keys(obj_vals)
+    )
+
+    all_rxns = unique(
+        vcat(
+            [rxn for (_, o) in fva_vals for (rxn, _) in o],
+            [rxn for (_, o) in rxn_vals for (rxn, _) in o],
+        ),
+    )
+
+    return (
+        metadata = metadata,
+        report = Dict(
+            obj => FROGObjectiveReport(
+                optimum = opt,
+                reactions = Dict(
+                    rxn => FROGReactionReport(
+                        flux = gets(fva_vals, nothing, obj, rxn, 1),
+                        variability_min = gets(fva_vals, nothing, obj, rxn, 2),
+                        variability_max = gets(fva_vals, nothing, obj, rxn, 3),
+                        deletion = gets(rxn_vals, nothing, obj, rxn),
+                    ) for rxn in all_rxns
+                ),
+                gene_deletions = gets(gene_vals, Dict(), obj),
+            ) for (obj, opt) in obj_vals
+        ),
+    )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+A complete function for one-shot generation of FROG reports. Use
+[`frog_model_report`](@ref), [`frog_metadata`](@ref) and
+[`frog_write_to_directory`](@ref) for finer control of the process.
 """
 function frog_generate_report(
     filename::String;
@@ -235,4 +419,24 @@ function frog_generate_report(
     frog_write_to_directory(r, metadata; report_dir, basefilename)
 
     @info "FROG report done for $filename."
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+A simple wrapper for comparing 2 previously generated reports in their
+respective directories.
+"""
+function frog_compare_reports(report_dir_a::String, report_dir_b::String)
+    a = frog_read_from_directory(report_dir_a)
+    b = frog_read_from_directory(report_dir_b)
+
+    @testset "Comparing FROG reports in $report_dir_a and $report_dir_b" begin
+        @testset "Metadata" begin
+            frog_test_metadata_compatibility(a.metadata, b.metadata)
+        end
+        @testset "Objectives and solution values" begin
+            frog_test_report_equality(a.report, b.report)
+        end
+    end
 end

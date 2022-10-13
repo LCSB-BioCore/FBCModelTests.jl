@@ -12,6 +12,7 @@ using JSON
 using MD5
 using SBML
 using SHA
+using Test
 
 include("version.jl")
 include("common.jl")
