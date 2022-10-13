@@ -119,16 +119,6 @@ function frog_test_report_equality(
     absolute_tolerance = 1e-6,
     relative_tolerance = 1e-4,
 )
-    test_dicts(match::Function, a::Dict, b::Dict) =
-        for k in union(keys(a), keys(b))
-            @testset "$k" begin
-                @test haskey(a, k) && haskey(b, k)
-                if haskey(a, k) && haskey(b, k)
-                    match(k, a[k], b[k])
-                end
-            end
-        end
-
     intol(a, b) =
         (isnothing(a) && isnothing(b)) || (
             !isnothing(a) &&
