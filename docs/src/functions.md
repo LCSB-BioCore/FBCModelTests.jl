@@ -12,3 +12,10 @@ Pages = ["frog.jl"]
 Modules = [FBCModelTests]
 Pages = ["memote.jl"]
 ```
+
+# Types and utilities
+
+```@autodocs
+Modules = [FBCModelTests]
+Pages = ["structs.jl", "common.jl"]
+```
