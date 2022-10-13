@@ -132,11 +132,11 @@ function frog_test_report_equality(
 
     @testset "Comparing objectives" begin
         test_dicts(
-            (k, a, b) -> begin
+            (_, a, b) -> begin
                 @test intol(a.optimum, b.optimum)
                 @testset "Reactions" begin
                     test_dicts(
-                        (k, a, b) -> begin
+                        (_, a, b) -> begin
                             @test intol(a.flux, b.flux)
                             @test intol(a.variability_min, b.variability_min)
                             @test intol(a.variability_max, b.variability_max)
@@ -148,7 +148,7 @@ function frog_test_report_equality(
                 end
                 @testset "Gene deletions" begin
                     test_dicts(
-                        (k, a, b) -> begin
+                        (_, a, b) -> begin
                             @test intol(a, b)
                         end,
                         a.gene_deletions,
