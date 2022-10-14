@@ -57,3 +57,8 @@ end
     memote_config.metabolite.medium_only_imported = false
     test_metabolites(model)
 end
+
+@testset "Basic" begin
+    # these tests are too basic to split out into multiple subtests
+    test_basic(model)
+end

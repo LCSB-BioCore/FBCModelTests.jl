@@ -56,6 +56,11 @@ test_metabolites(model)
 test_consistency(model, Tulip.Optimizer)
 ```
 You can set the configuration parameter set through adjusting `MemoteConfig`.
+Note, some of the original Memote tests involve solving MILPs, these tests are
+not included in this package as the issues they identify are often easier to
+identify using simpler means. For example, find the stoichiometrically
+inconsistent metabolites is simpler done by just checking the mass balance
+around each reaction.
 
 # Acknowledgements
 
