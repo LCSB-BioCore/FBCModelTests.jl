@@ -59,8 +59,7 @@ function reactions_mass_unbalanced(model; config = memote_config)
     ]
 
     for rid in reactions(model)
-        rid in [ignored_reactions; config.consistency.charge_ignored_reactions] &&
-            continue
+        rid in [ignored_reactions; config.consistency.charge_ignored_reactions] && continue
         try
             _rbal = reaction_atom_balance(model, rid)
             all(values(_rbal) .== 0) || push!(unbalanced_rxns, rid)
@@ -143,10 +142,7 @@ function model_has_no_erroneous_energy_generating_cycles(
     function maybe_add_energy_reaction(mets, id)
         if all(
             in.(
-                [
-                    config.consistency.energy_dissipating_metabolites[x] for
-                    x in keys(mets)
-                ],
+                [config.consistency.energy_dissipating_metabolites[x] for x in keys(mets)],
                 Ref(metabolites(_model)),
             ),
         )
@@ -238,18 +234,14 @@ function model_has_no_erroneous_energy_generating_cycles(
             optimizer;
             modifications = [
                 # config.consistency.optimizer_modifications
-                change_objective(objective_ids)
+                change_objective(objective_ids),
             ],
         ),
     )
     # if problem does not solve then also fail
     isnothing(objval) && return false
     # if objective is approximately 0 then no energy generating cycles present
-    isapprox(
-        objval,
-        0;
-        atol = 1e-6,
-    )
+    isapprox(objval, 0; atol = 1e-6)
 end
 
 """

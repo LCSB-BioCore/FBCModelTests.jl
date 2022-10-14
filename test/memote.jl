@@ -20,7 +20,7 @@
     wrong_model.metabolites["pyr_c"].formula = "C2H3X"
     @test !isempty(reactions_charge_unbalanced(wrong_model))
     @test !isempty(reactions_mass_unbalanced(wrong_model))
-    
+
     # test all 
     test_consistency(model, Tulip.Optimizer)
 end
@@ -45,8 +45,10 @@ end
     @test !isempty(metabolites_no_charge(wrong_model))
 
     @test length(metabolites_unique(model)) == 54
-    wrong_model.metabolites["pyr_c"].annotations["inchi_key"] = wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
-    wrong_model.metabolites["pyr_e"].annotations["inchi_key"] = wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
+    wrong_model.metabolites["pyr_c"].annotations["inchi_key"] =
+        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
+    wrong_model.metabolites["pyr_e"].annotations["inchi_key"] =
+        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
     @test length(metabolites_unique(wrong_model)) == 53
 
     @test isempty(metabolites_duplicated_in_compartment(model))

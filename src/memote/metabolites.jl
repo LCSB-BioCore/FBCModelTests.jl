@@ -19,10 +19,7 @@ function metabolites_medium_components(model; config = memote_config)
     for (rid, lb, ub) in zip(reactions(model), bounds(model)...)
         if is_boundary(model, rid)
             mid = first(keys(reaction_stoichiometry(model, rid)))
-            config.metabolite.medium_only_imported &&
-                lb < 0 &&
-                ub <= 0 &&
-                push!(mets, mid)
+            config.metabolite.medium_only_imported && lb < 0 && ub <= 0 && push!(mets, mid)
             !config.metabolite.medium_only_imported && lb < 0 && push!(mets, mid)
         end
     end
@@ -37,8 +34,14 @@ List all metabolites without a formula. Use
 formula's that are not properly assigned.
 """
 metabolites_no_formula(model; config = memote_config) = [
-    mid for mid in metabolites(model) if isnothing(metabolite_formula(model, mid)) || isempty(metabolite_formula(model, mid)) ||
-    any(in.(keys(metabolite_formula(model, mid)), Ref(config.metabolite.formula_corner_cases)))
+    mid for mid in metabolites(model) if isnothing(metabolite_formula(model, mid)) ||
+    isempty(metabolite_formula(model, mid)) ||
+    any(
+        in.(
+            keys(metabolite_formula(model, mid)),
+            Ref(config.metabolite.formula_corner_cases),
+        ),
+    )
 ]
 
 """
@@ -62,11 +65,9 @@ metabolite. Note, if no annotations are present for one or both of the
 metabolites, then return `true`. 
 """
 function metabolites_are_duplicated(model, m1, m2; config = memote_config)
-    k1s =
-        get(metabolite_annotations(model, m1), config.metabolite.test_annotation, nothing)
+    k1s = get(metabolite_annotations(model, m1), config.metabolite.test_annotation, nothing)
     isnothing(k1s) && return true
-    k2s =
-        get(metabolite_annotations(model, m2), config.metabolite.test_annotation, nothing)
+    k2s = get(metabolite_annotations(model, m2), config.metabolite.test_annotation, nothing)
     isnothing(k2s) && return true
     any(in.(k1s, Ref(k2s)))
 end
@@ -98,7 +99,7 @@ $(TYPEDSIGNATURES)
 Return a dictionary of metabolites that are duplicated in their compartment. 
 """
 function metabolites_duplicated_in_compartment(model; config = memote_config)
-    unique_metabolites = Dict{String, Set{String}}()
+    unique_metabolites = Dict{String,Set{String}}()
     for m1 in metabolites(model)
         c1 = metabolite_compartment(model, m1)
         for m2 in metabolites(model)
