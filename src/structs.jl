@@ -41,7 +41,7 @@ const FROGReportData = Dict{String,FROGObjectiveReport}
 
 #=
 Use these structs to set the default parameters used in the metabolic tests.
-Each subtest has its own struct, which is grouped together by `MemoteDefaults`.
+Each subtest has its own struct, which is grouped together by `MemoteConfig`.
 =#
 
 """
@@ -52,14 +52,14 @@ Parameters used by the metabolite tests.
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct MetaboliteDefaults
+mutable struct MetaboliteConfig
     formula_corner_cases::Vector{String}
     charge_corner_cases::Vector{Int64}
     medium_only_imported::Bool
     test_annotation::String
 end
 
-metabolite_defaults = MetaboliteDefaults(["X", "x", ""], Int64[], true, "inchi_key")
+metabolite_config = MetaboliteConfig(["X", "x", ""], Int64[], true, "inchi_key")
 
 """
 $(TYPEDEF)
@@ -69,7 +69,7 @@ Parameters used by the consistency tests.
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct ConsistencyDefaults
+mutable struct ConsistencyConfig
     mass_ignored_reactions::Vector{String}
     charge_ignored_reactions::Vector{String}
     consistency_ignored_reactions::Vector{String}
@@ -79,7 +79,7 @@ mutable struct ConsistencyDefaults
     optimizer_modifications::Vector{Function}
 end
 
-consistency_defaults = ConsistencyDefaults(
+consistency_config = ConsistencyConfig(
     String[],
     String[],
     String[],
@@ -132,9 +132,9 @@ A grouping of parameters used by the metabolic testing infrastructure.
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct MemoteDefaults
-    metabolite::MetaboliteDefaults
-    consistency::ConsistencyDefaults
+mutable struct MemoteConfig
+    metabolite::MetaboliteConfig
+    consistency::ConsistencyConfig
 end
 
-memote_defaults = MemoteDefaults(metabolite_defaults, consistency_defaults)
+memote_config = MemoteConfig(metabolite_config, consistency_config)

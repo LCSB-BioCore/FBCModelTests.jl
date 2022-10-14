@@ -7,7 +7,7 @@
 
     # energy cycles
     @test model_has_no_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
-    memote_defaults.consistency.ignored_energy_reactions = ["BIOMASS_KT_TEMP"]
+    memote_config.consistency.ignored_energy_reactions = ["BIOMASS_KT_TEMP", "ATPM"]
     @test !model_has_no_erroneous_energy_generating_cycles(iJN746, Tulip.Optimizer)
 
     # use default conditions to exclude biomass and exchanges
@@ -26,10 +26,10 @@
 end
 
 @testset "Metabolite" begin
-    memote_defaults.metabolite.medium_only_imported = false
+    memote_config.metabolite.medium_only_imported = false
     @test "glc__D_e" in metabolites_medium_components(model)
 
-    memote_defaults.metabolite.medium_only_imported = true
+    memote_config.metabolite.medium_only_imported = true
     wrong_model = convert(StandardModel, model)
     wrong_model.reactions["EX_h2o_e"].ub = 0
     @test first(metabolites_medium_components(wrong_model)) == "h2o_e"
@@ -52,6 +52,6 @@ end
     @test isempty(metabolites_duplicated_in_compartment(model))
     @test !isempty(metabolites_duplicated_in_compartment(wrong_model))
 
-    memote_defaults.metabolite.medium_only_imported = false
+    memote_config.metabolite.medium_only_imported = false
     test_metabolites(model)
 end

@@ -12,11 +12,11 @@ Iterates through all the reactions in `model` and checks if the charges across
 each reaction balance. Returns a list of reaction IDs that are charge
 unbalanced, which is empty if the test passes.
 
-Optionally, use `defaults.consistency.mass_ignored_reactions` to pass a vector
+Optionally, use `config.consistency.mass_ignored_reactions` to pass a vector
 of reaction ids to ignore in this process. Internally biomass and exchang
 reactions are ignored.
 """
-function reactions_charge_unbalanced(model; defaults = memote_defaults)
+function reactions_charge_unbalanced(model; config = memote_config)
     unbalanced_rxns = String[]
     ignored_reactions = [
         find_biomass_reaction_ids(model)
@@ -24,7 +24,7 @@ function reactions_charge_unbalanced(model; defaults = memote_defaults)
     ]
 
     for rid in reactions(model)
-        rid in [ignored_reactions; defaults.consistency.mass_ignored_reactions] && continue
+        rid in [ignored_reactions; config.consistency.mass_ignored_reactions] && continue
         _rbal = 0
         for (mid, stoich) in reaction_stoichiometry(model, rid)
             try
@@ -47,11 +47,11 @@ Iterates through all the reactions in `model` and checks if the mass across each
 reaction balances. Returns a list of reaction IDs that are mass unbalanced,
 which is empty if the test passes.
 
-Optionally, use `defaults.consistency.charge_ignored_reactions` to pass a vector
+Optionally, use `config.consistency.charge_ignored_reactions` to pass a vector
 of reaction ids to ignore in this process. Internally biomass and exchang
 reactions are ignored.
 """
-function reactions_mass_unbalanced(model; defaults = memote_defaults)
+function reactions_mass_unbalanced(model; config = memote_config)
     unbalanced_rxns = String[]
     ignored_reactions = [
         find_biomass_reaction_ids(model)
@@ -59,7 +59,7 @@ function reactions_mass_unbalanced(model; defaults = memote_defaults)
     ]
 
     for rid in reactions(model)
-        rid in [ignored_reactions; defaults.consistency.charge_ignored_reactions] &&
+        rid in [ignored_reactions; config.consistency.charge_ignored_reactions] &&
             continue
         try
             _rbal = reaction_atom_balance(model, rid)
@@ -103,22 +103,22 @@ L-Glutamate + H2O --> 2-Oxoglutarate + Ammonium + 2 H
 H[external] --> H
 ```
 Additional energy dissipating reactions can be directly specified through
-`defaults.consistency.additional_energy_generating_reactions`, which should be
+`config.consistency.additional_energy_generating_reactions`, which should be
 vector of COBREXA `Reaction`s using the same metabolite name space as the
 `model`. Internally, the `model` is converted to a COBREXA `StandardModel`, so
 ensure that the appropriate accessors are defined for it.
 
 Since models use different name spaces,
-`defaults.consistency.energy_dissipating_metabolites` is used to create the
+`config.consistency.energy_dissipating_metabolites` is used to create the
 energy dissipating reactions. By default it uses the BiGG name space, but this
 will be changed to ChEBI in due course. If your model uses a different name
 space, then you have to change the values (NOT the keys) of
-`defaults.consistency.energy_dissipating_metabolites`. Each energy dissipating
+`config.consistency.energy_dissipating_metabolites`. Each energy dissipating
 reaction is added to the test only if all its associated metabolites are
-present. Any `defaults.consistency.optimizer_modifications` to the solver are
+present. Any `config.consistency.optimizer_modifications` to the solver are
 passed directly through to COBREXA's `flux_balance_analysis` function. All
-`defaults.consistency.boundary_reactions` and
-`defaults.consistency.ignored_energy_reactions` are deleted from an internal
+`config.consistency.boundary_reactions` and
+`config.consistency.ignored_energy_reactions` are deleted from an internal
 copy of `model`; this internal copy is used for analysis.
 
 Returns `true` if the model has no energy generating cycles.
@@ -126,7 +126,7 @@ Returns `true` if the model has no energy generating cycles.
 function model_has_no_erroneous_energy_generating_cycles(
     model,
     optimizer;
-    defaults = memote_defaults,
+    config = memote_config,
 )
     # need to add reactions, only implemented for Core and StdModel
     if model isa StandardModel
@@ -144,14 +144,14 @@ function model_has_no_erroneous_energy_generating_cycles(
         if all(
             in.(
                 [
-                    defaults.consistency.energy_dissipating_metabolites[x] for
+                    config.consistency.energy_dissipating_metabolites[x] for
                     x in keys(mets)
                 ],
                 Ref(metabolites(_model)),
             ),
         )
             _mets = Dict(
-                defaults.consistency.energy_dissipating_metabolites[k] => v for
+                config.consistency.energy_dissipating_metabolites[k] => v for
                 (k, v) in mets
             )
             rid = "MEMOTE_TEMP_RXN_$id"
@@ -219,44 +219,38 @@ function model_has_no_erroneous_energy_generating_cycles(
     maybe_add_energy_reaction(Dict("H[external]" => -1, "H" => 1), "PROTON")
 
     # add user specified reactions
-    for rxn in defaults.consistency.additional_energy_generating_reactions
+    for rxn in config.consistency.additional_energy_generating_reactions
         push!(objective_ids, rxn.id)
         add_reaction!(_model, rxn)
     end
 
     # ignore reactions by just removing them
     for rid in [
-        defaults.consistency.ignored_energy_reactions
+        config.consistency.ignored_energy_reactions
         [rid for rid in reactions(_model) if is_boundary(_model, rid)]
     ]
         rid in reactions(_model) && remove_reaction!(_model, rid)
     end
 
+    objval = solved_objective_value(
+        flux_balance_analysis(
+            _model,
+            optimizer;
+            modifications = [
+                # config.consistency.optimizer_modifications
+                change_objective(objective_ids)
+            ],
+        ),
+    )
+    # if problem does not solve then also fail
+    isnothing(objval) && return false
     # if objective is approximately 0 then no energy generating cycles present
     isapprox(
-        solved_objective_value(
-            flux_balance_analysis(
-                _model,
-                optimizer;
-                modifications = [
-                    # defaults.consistency.optimizer_modifications
-                    change_objective(objective_ids)
-                ],
-            ),
-        ),
+        objval,
         0;
         atol = 1e-6,
     )
 end
-
-m = flux_balance_analysis(
-    _model,
-    optimizer;
-    modifications = [
-        # defaults.consistency.optimizer_modifications
-        change_objective(objective_ids)
-    ],
-)
 
 """
 $(TYPEDSIGNATURES)
@@ -270,9 +264,9 @@ Based on Gevorgyan, Albert, Mark G. Poolman, and David A. Fell. "Detection of
 stoichiometric inconsistencies in biomolecular models." Bioinformatics (2008).
 
 Optionally ignore some reactions in this analysis by adding reaction IDs to
-`defaults.consistency.consistency_ignored_reactions`.
+`config.consistency.consistency_ignored_reactions`.
 """
-function model_is_consistent(model, optimizer; defaults = memote_defaults)
+function model_is_consistent(model, optimizer; config = memote_config)
     #=
     Note, there is a MILP method that can be used to find the unconserved metabolite,
     but the problem is a MILP (and probably why the original MEMOTE takes so long to run).
@@ -294,7 +288,7 @@ function model_is_consistent(model, optimizer; defaults = memote_defaults)
         [
             [rid for rid in reactions(model) if is_boundary(model, rid)]
             find_biomass_reaction_ids(model)
-            defaults.consistency.consistency_ignored_reactions
+            config.consistency.consistency_ignored_reactions
         ],
     )
 
@@ -324,11 +318,11 @@ Test if model is consistent by checking that:
 Each function called in this test function can be called individually. The
 kwargs are forwarded as indicated by the prefix.
 """
-function test_consistency(model, optimizer; defaults = memote_defaults)
+function test_consistency(model, optimizer; config = memote_config)
     @testset "Consistency" begin
-        @test model_is_consistent(model, optimizer; defaults)
-        # @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; defaults)
-        @test isempty(reactions_mass_unbalanced(model; defaults))
-        @test isempty(reactions_charge_unbalanced(model; defaults))
+        @test model_is_consistent(model, optimizer; config)
+        # @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; config)
+        @test isempty(reactions_mass_unbalanced(model; config))
+        @test isempty(reactions_charge_unbalanced(model; config))
     end
 end

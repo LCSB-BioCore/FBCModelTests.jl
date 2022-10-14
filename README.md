@@ -42,7 +42,20 @@ St Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
 ## Memote-style tests
 
-This part is currently under construction.
+This package exposes a number of tests aimed at quickly checking if certain
+basic quality characteristics of a constraint-based metabolic model are
+satisfied. Assuming your model will work with the default configuration
+arguments of the test functions (see their docstrings), then you can test your
+model with:
+
+```
+using FBCModelTests
+using COBREXA, Tulip
+model = load_model("e_coli_core.json")
+test_metabolites(model)
+test_consistency(model, Tulip.Optimizer)
+```
+You can set the configuration parameter set through adjusting `MemoteConfig`.
 
 # Acknowledgements
 
