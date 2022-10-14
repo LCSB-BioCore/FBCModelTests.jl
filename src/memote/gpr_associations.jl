@@ -11,8 +11,8 @@ $(TYPEDSIGNATURES)
 Return a list of reaction ids that do not have gene reaction rules (aka gene
 protein reaction associations).
 """
-n_reactions_without_gpr(model) = [rid for rid in reactions(model) if !_has_sensible_gpr(model, rid)]
+reactions_without_gpr(model) = [rid for rid in reactions(model) if !_has_sensible_gpr(model, rid) && !is_boundary(model, rid)]
 
-n_reactions_with_complexes(model) = [rid for rid in reactions(model) if _has_sensible_gpr(model, rid) && any(length(grr) > 1 for grr in reaction_gene_association(model, rid))]
+reactions_with_complexes(model) = [rid for rid in reactions(model) if _has_sensible_gpr(model, rid) && any(length(grr) > 1 for grr in reaction_gene_association(model, rid))]
 
-n_reactions_transport_no_gpr(model) = []
+reactions_transport_no_gpr(model; config = memote_config) = [rid for rid in reactions(model) if !_has_sensible_gpr(model, rid) && _probably_transport_reaction(model, rid, config.metabolite.test_annotation)]
