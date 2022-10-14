@@ -127,6 +127,26 @@ consistency_config = ConsistencyConfig(
 """
 $(TYPEDEF)
 
+Parameters used by the biomass tests.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+mutable struct BiomassConfig
+    biomass_terms :: Vector{String}
+    atpm_strings :: Vector{String}
+    growth_metabolites :: Dict{String, String}
+end
+
+biomass_config = BiomassConfig(
+    ["BIOMASS", "biomass", "Biomass"],
+    ["ATPM", "Maintenance", "maintenance"],
+    Dict("atp" => "atp_c", "adp" => "adp_c", "h2o" => "h2o_c", "pi" => "pi_c")
+)
+
+"""
+$(TYPEDEF)
+
 A grouping of parameters used by the metabolic testing infrastructure.
 
 # Fields
@@ -135,6 +155,7 @@ $(TYPEDFIELDS)
 mutable struct MemoteConfig
     metabolite::MetaboliteConfig
     consistency::ConsistencyConfig
+    biomass::BiomassConfig
 end
 
-memote_config = MemoteConfig(metabolite_config, consistency_config)
+memote_config = MemoteConfig(metabolite_config, consistency_config, biomass_config)

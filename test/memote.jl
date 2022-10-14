@@ -70,3 +70,12 @@ end
 
     @test length(reactions_transport_no_gpr(model; config = memote_config)) == 4
 end
+
+@testset "Biomass" begin
+    @test model_has_atpm_reaction(model)
+    wrong_model = convert(StandardModel, model)
+    remove_reaction!(wrong_model, "ATPM")
+    @test !model_has_atpm_reaction(wrong_model)
+   
+    
+end
