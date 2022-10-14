@@ -16,8 +16,8 @@ Optionally, pass a list of reactions to ignore in this process through
 `ignored_reactions`. It makes sense to include the biomass and
 exchange reactions in this list (default).
 """
-function is_model_charge_balanced(
-    model::COBREXA.MetabolicModel;
+function reaction_charge_unbalanced(
+    model;
     ignored_reactions = [
         find_biomass_reaction_ids(model)
         find_exchange_reaction_ids(model)
@@ -52,8 +52,8 @@ Optionally, pass a list of reactions to ignore in this process through
 `ignored_reactions`. It makes sense to include the biomass and
 exchange reactions in this list (default).
 """
-function is_model_mass_balanced(
-    model::COBREXA.MetabolicModel;
+function reaction_mass_unbalanced(
+    model;
     ignored_reactions = [
         find_biomass_reaction_ids(model)
         find_exchange_reaction_ids(model)
@@ -162,7 +162,7 @@ function has_erroneous_energy_generating_cycles(
         "Acetate" => "ac_c",
     ),
     additional_energy_generating_reactions = [],
-    ignore_reactions = ["ATPM"],
+    ignored_reactions = ["ATPM"],
     modifications = [],
     boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
 )
@@ -257,7 +257,7 @@ function has_erroneous_energy_generating_cycles(
     end
 
     # ignore reactions by just removing them
-    for rxn in [ignore_reactions; boundary_reactions]
+    for rxn in [ignored_reactions; boundary_reactions]
         remove_reaction!(_model, rxn)
     end
 
@@ -278,7 +278,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Determines if the model is stiochiometrically consistent. Note, stoichiometric
+Determines if the model is stoichiometrically consistent. Note, stoichiometric
 consistency does not guarantee that mass balances must hold in the model. A more
 robust check is [`is_model_mass_balanced`](@ref), but this works if not all
 metabolites have mass assigned to them.
@@ -325,93 +325,88 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Return a list of all boundary reactions that allow flux into the model and
-create a metabolite. Assume that boundary reactions only create a single
-metabolite. Set the kwarg `only_into=false` to also return metabolites that can
-be produced by the model under default conditions.
+Test if model is consistent by checking that:
+1. the model is stoichiometrically consistent, tested with
+   [`is_consistent`](@ref)
+2. there are no energy generating cycles, tested with
+   [`has_erroneous_energy_generating_cycles`](@ref)
+3. the model is both mass and charge balanced, tested with
+   [`reaction_charge_unbalanced`](@ref) and [`reaction_mass_unbalanced`]
+
+Each function called in this test function can be called individually. The
+kwargs are forwarded as indicated by the prefix.
 """
-function metabolites_medium_components(model; only_into=true)
-    mets = String[]
-    for (rid, lb, ub) in zip(reactions(model), bounds(model)...)
-        if is_boundary(model, rid)
-            mid = first(keys(reaction_stoichiometry(model, rid))) 
-            only_into && lb < 0 && ub <= 0 && push!(mets, mid)
-            !only_into && lb < 0 && push!(mets, mid)
-        end
+function test_consistency(
+    model,
+    optimizer;
+    consistency_boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
+    consistency_ignored_reactions = find_biomass_reaction_ids(model),
+    energy_dissipating_energy_dissipating_metabolites = Dict(
+        "ATP" => "atp_c",
+        "CTP" => "ctp_c",
+        "GTP" => "gtp_c",
+        "UTP" => "utp_c",
+        "ITP" => "itp_c",
+        "ADP" => "adp_c",
+        "CDP" => "cdp_c",
+        "GDP" => "gdp_c",
+        "UDP" => "udp_c",
+        "IDP" => "idp_c",
+        "NADH" => "nadh_c",
+        "NAD" => "nad_c",
+        "NADPH" => "nadph_c",
+        "NADP" => "nadp_c",
+        "FADH2" => "fadh2_c",
+        "FAD" => "fad_c",
+        "FMNH2" => "fmn_c",
+        "FMN" => "fmnh2_c",
+        "Ubiquinol-8" => "q8h2_c",
+        "Ubiquinone-8" => "q8_c",
+        "Menaquinol-8" => "mql8_c",
+        "Menaquinone-8" => "mqn8_c",
+        "2-Demethylmenaquinol-8" => "2dmmql8_c",
+        "2-Demethylmenaquinone-8" => "2dmmq8_c",
+        "ACCOA" => "accoa_c",
+        "COA" => "coa_c",
+        "L-Glutamate" => "glu__L_c",
+        "2-Oxoglutarate" => "akg_c",
+        "Ammonium" => "nh4_c",
+        "H" => "h_c",
+        "H[external]" => "h_e",
+        "H2O" => "h2o_c",
+        "Phosphate" => "pi_c",
+        "Acetate" => "ac_c",
+    ),
+    energy_dissipating_additional_energy_generating_reactions = [],
+    energy_dissipating_ignored_reactions = ["ATPM"],
+    energy_dissipating_modifications = [],
+    energy_dissipating_boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
+    mass_ignored_reactions = [
+        find_biomass_reaction_ids(model)
+        find_exchange_reaction_ids(model)
+    ],
+    charge_ignored_reactions = [
+        find_biomass_reaction_ids(model)
+        find_exchange_reaction_ids(model)
+    ],
+)
+    @testset "Consistency" begin 
+        @test is_consistent(
+            model, 
+            optimizer; 
+            boundary_reactions = consistency_boundary_reactions, 
+            ignored_reactions = consistency_ignored_reactions
+        )
+        @test !has_erroneous_energy_generating_cycles(
+            model,
+            optimizer;
+            energy_dissipating_metabolites = energy_dissipating_energy_dissipating_metabolites,
+            additional_energy_generating_reactions = energy_dissipating_additional_energy_generating_reactions,
+            modifications = energy_dissipating_modifications,
+            ignored_reactions = energy_dissipating_ignored_reactions,
+            boundary_reactions = energy_dissipating_boundary_reactions,
+        )
+        @test isempty(reaction_mass_unbalanced(model; ignored_reactions = mass_ignored_reactions))
+        @test isempty(reaction_mass_unbalanced(model; ignored_reactions = charge_ignored_reactions))
     end
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-List all metabolites without a formula. Use `corner_cases` to specify an extra
-case to check for formula's that are not properly assigned.
-"""
-metabolites_no_formula(model; corner_cases = ["X", "x", ""]) = [mid for mid in metabolites(model) if isnothing(metabolite_formula(model, mid)) || metabolite_formula(model, mid) in corner_cases]
-
-"""
-$(TYPEDSIGNATURES)
-
-List all metabolites without a charge. Use `corner_cases` to specify an extra
-case to check for charge's that are not properly assigned.
-"""
-metabolites_no_charge(model; corner_cases = []) = [mid for mid in metabolites(model) if isnothing(metabolite_charge(model, mid)) || metabolite_charge(model, mid) in corner_cases]
-
-"""
-$(TYPEDSIGNATURES)
-
-Test if metabolites `m1` and `m2` are different by comparing their
-`test_annotation` fields in the annotations of each metabolite. Note, if no
-annotations are present for one or both of the metabolites, then return `true`. 
-"""
-function metabolites_are_duplicated(model, m1, m2, test_annotation = "inchi_key")
-    k1s = get(metabolite_annotations(model, m1), test_annotation, nothing)
-    isnothing(k1s) && return true
-    k2s = get(metabolite_annotations(model, m2), test_annotation, nothing)
-    isnothing(k2s) && return true
-    any(in.(k1s, Ref(k2s)))
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Return a list of unique metabolites in model. Uses
-[`metabolites_are_duplicated`](@ref) internally and forwards `test_annotation`
-to it. The latter argument is used to determine if two metabolites are the same
-by checking for any correspondence.
-"""
-function metabolites_unique(model, test_annotation = "inchi_key")
-    unique_metabolites = String[]
-    for m1 in metabolites(model)
-        duplicate = false
-        for m2 in unique_metabolites
-            duplicate = metabolites_are_duplicated(model, m1, m2, test_annotation)
-            duplicate && break
-        end
-        !duplicate && push!(unique_metabolites, m1)
-    end
-    return unique_metabolites
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Return a dictionary of metabolites that are duplicated in their compartment. 
-"""
-function metabolites_duplicated_in_compartment(model, test_annotation = "inchi_key")
-    unique_metabolites = Dict{String, Vector{String}}()
-    for m1 in metabolites(model)
-        c1 = metabolite_compartment(model, m1)
-        for m2 in metabolites(model)
-            c2 = metabolite_compartment(model, m2)
-            if c1 == c2 && m1 !=  m2 && metabolites_are_duplicated(model, m1, m2, test_annotation) 
-                if haskey(unique_metabolites, c1)
-                    push!(unique_metabolites[c1], m1) 
-                else
-                    unique_metabolites[c1] = [m1]
-                end
-            end
-        end  
-    end
-    return unique_metabolites
 end

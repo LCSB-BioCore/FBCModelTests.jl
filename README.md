@@ -1,5 +1,6 @@
 # FBCModelTests.jl
 
+<<<<<<< HEAD
 | Build status | Documentation |
 |:---:|:---:|
 | ![CI status](https://github.com/LCSB-BioCore/FBCModelTests.jl/workflows/CI/badge.svg?branch=master) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/FBCModelTests.jl/) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://lcsb-biocore.github.io/FBCModelTests.jl/dev) |
@@ -54,3 +55,20 @@ Institute for Quantitative and Theoretical Biology
 at the
 Heinrich Heine University in Düsseldorf
 ([qtb.hhu.de](https://www.qtb.hhu.de/)).
+=======
+This repository is currently a work in progress.
+
+### Metabolic Model Tests
+This package exposes a number of tests aimed at quickly checking of certain
+basic characteristics of a constraint-based metabolic are satisfied. Assuming
+your model will work with the default arguments of the test functions (see their
+docstrings), then you can test your model with:
+```
+using FBCModelTests
+using COBREXA, Tulip
+
+model = load_model("e_coli_core.json")
+test_metabolites(model)
+test_consistency(model, Tulip.Optimizer)
+```
+>>>>>>> 6b2ca76 (neaten tests and add metabolite tests)
