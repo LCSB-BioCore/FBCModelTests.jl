@@ -80,7 +80,7 @@ to it. The latter argument is used to determine if two metabolites are the same
 by checking for any correspondence.
 """
 function metabolites_unique(model; defaults = memote_defaults)
-    unique_metabolites = String[]
+    unique_metabolites = Set[]
     for m1 in metabolites(model)
         duplicate = false
         for m2 in unique_metabolites
@@ -98,7 +98,7 @@ $(TYPEDSIGNATURES)
 Return a dictionary of metabolites that are duplicated in their compartment. 
 """
 function metabolites_duplicated_in_compartment(model; defaults = memote_defaults)
-    unique_metabolites = Dict{String,Vector{String}}()
+    unique_metabolites = Dict{String,Set{String}}()
     for m1 in metabolites(model)
         c1 = metabolite_compartment(model, m1)
         for m2 in metabolites(model)
