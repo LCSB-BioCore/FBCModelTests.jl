@@ -62,7 +62,7 @@ $(TYPEDSIGNATURES)
 Test if metabolites `m1` and `m2` are different by comparing their
 `config.metabolite.test_annotation` field in the annotations of each
 metabolite. Note, if no annotations are present for one or both of the
-metabolites, then return `true`. 
+metabolites, then return `true`.
 """
 function metabolites_are_duplicated(model, m1, m2; config = memote_config)
     k1s = get(metabolite_annotations(model, m1), config.metabolite.test_annotation, nothing)
@@ -96,7 +96,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Return a dictionary of metabolites that are duplicated in their compartment. 
+Return a dictionary of metabolites that are duplicated in their compartment.
 """
 function metabolites_duplicated_in_compartment(model; config = memote_config)
     unique_metabolites = Dict{String,Set{String}}()

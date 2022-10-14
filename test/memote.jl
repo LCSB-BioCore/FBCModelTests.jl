@@ -21,7 +21,7 @@
     @test !isempty(reactions_charge_unbalanced(wrong_model))
     @test !isempty(reactions_mass_unbalanced(wrong_model))
 
-    # test all 
+    # test all
     test_consistency(model, Tulip.Optimizer)
 end
 
