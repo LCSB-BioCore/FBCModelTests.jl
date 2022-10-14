@@ -50,10 +50,17 @@ model with:
 
 ```
 using FBCModelTests
-using COBREXA, Tulip
+using COBREXA, Tulip, Test
+
 model = load_model("e_coli_core.json")
-test_metabolites(model)
-test_consistency(model, Tulip.Optimizer)
+
+memote_config.metabolite.medium_only_imported = false # both imported and exported metabolite visible
+
+@testset "Test model" begin
+  test_basic(model)
+  test_metabolites(model)
+  test_consistency(model, Tulip.Optimizer)
+end
 ```
 You can set the configuration parameter set through adjusting `MemoteConfig`.
 Note, some of the original Memote tests involve solving MILPs, these tests are
