@@ -67,6 +67,6 @@ end
     @test length(reactions_without_gpr(model)) == 6
 
     @test length(reactions_with_complexes(model)) == 15
-    
+
     @test length(reactions_transport_no_gpr(model; config = memote_config)) == 4
 end
