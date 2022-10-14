@@ -42,7 +42,32 @@ St Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
 ## Memote-style tests
 
-This part is currently under construction.
+This package exposes a number of tests aimed at quickly checking if certain
+basic quality characteristics of a constraint-based metabolic model are
+satisfied. Assuming your model will work with the default configuration
+arguments of the test functions (see their docstrings), then you can test your
+model with:
+
+```
+using FBCModelTests
+using COBREXA, Tulip, Test
+
+model = load_model("e_coli_core.json")
+
+memote_config.metabolite.medium_only_imported = false # both imported and exported metabolite visible
+
+@testset "Test model" begin
+  test_basic(model)
+  test_metabolites(model)
+  test_consistency(model, Tulip.Optimizer)
+end
+```
+You can set the configuration parameter set through adjusting `MemoteConfig`.
+Note, some of the original Memote tests involve solving MILPs, these tests are
+not included in this package as the issues they identify are often easier to
+identify using simpler means. For example, find the stoichiometrically
+inconsistent metabolites is simpler done by just checking the mass balance
+around each reaction.
 
 # Acknowledgements
 
