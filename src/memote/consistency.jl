@@ -12,25 +12,24 @@ Iterates through all the reactions in `model` and checks if the charges across
 each reaction balance. Returns a list of reaction IDs that are charge
 unbalanced, which is empty if the test passes.
 
-Optionally, pass a list of reactions to ignore in this process through
-`ignored_reactions`. It makes sense to include the biomass and
-exchange reactions in this list (default).
+Optionally, use `defaults.consistency.mass_ignored_reactions` to pass a vector
+of reaction ids to ignore in this process. Internally biomass and exchang
+reactions are ignored.
 """
-function reaction_charge_unbalanced(
-    model;
+function reactions_charge_unbalanced(model; defaults = memote_defaults)
+    unbalanced_rxns = String[]
     ignored_reactions = [
         find_biomass_reaction_ids(model)
         find_exchange_reaction_ids(model)
-    ],
-)
-    unbalanced_rxns = String[]
+    ]
 
     for rid in reactions(model)
-        rid in ignored_reactions && continue
+        rid in [ignored_reactions; defaults.consistency.mass_ignored_reactions] && continue
         _rbal = 0
         for (mid, stoich) in reaction_stoichiometry(model, rid)
             try
-                _rbal += metabolite_charge(model, mid) * stoich
+                mc = metabolite_charge(model, mid)
+                _rbal += isnothing(mc) ? Inf : mc * stoich
             catch
                 throw(error("Something is wrong with reaction $rid."))
             end
@@ -45,24 +44,23 @@ end
 $(TYPEDSIGNATURES)
 
 Iterates through all the reactions in `model` and checks if the mass across each
-reaction balances. Returns a list of reaction IDs that are mass unbalanced, which
-is empty if the test passes.
+reaction balances. Returns a list of reaction IDs that are mass unbalanced,
+which is empty if the test passes.
 
-Optionally, pass a list of reactions to ignore in this process through
-`ignored_reactions`. It makes sense to include the biomass and
-exchange reactions in this list (default).
+Optionally, use `defaults.consistency.charge_ignored_reactions` to pass a vector
+of reaction ids to ignore in this process. Internally biomass and exchang
+reactions are ignored.
 """
-function reaction_mass_unbalanced(
-    model;
+function reactions_mass_unbalanced(model; defaults = memote_defaults)
+    unbalanced_rxns = String[]
     ignored_reactions = [
         find_biomass_reaction_ids(model)
         find_exchange_reaction_ids(model)
-    ],
-)
-    unbalanced_rxns = String[]
+    ]
 
     for rid in reactions(model)
-        rid in ignored_reactions && continue
+        rid in [ignored_reactions; defaults.consistency.charge_ignored_reactions] &&
+            continue
         try
             _rbal = reaction_atom_balance(model, rid)
             all(values(_rbal) .== 0) || push!(unbalanced_rxns, rid)
@@ -105,66 +103,30 @@ L-Glutamate + H2O --> 2-Oxoglutarate + Ammonium + 2 H
 H[external] --> H
 ```
 Additional energy dissipating reactions can be directly specified through
-`additional_energy_generating_reactions`, which should be vector of COBREXA
-`Reaction`s using the same metabolite name space as the `model`. Internally, the
-`model` is converted to a COBREXA `StandardModel`, so ensure that the
-appropriate accessors are defined for it.
+`defaults.consistency.additional_energy_generating_reactions`, which should be
+vector of COBREXA `Reaction`s using the same metabolite name space as the
+`model`. Internally, the `model` is converted to a COBREXA `StandardModel`, so
+ensure that the appropriate accessors are defined for it.
 
-Since models use different name spaces, `energy_dissipating_metabolites` is used
-to create the energy dissipating reactions. By default it uses the BiGG name
-space, but this will be changed to ChEBI in due course. If your model uses a
-different name space, then you have to change the values (NOT the keys) of
-`energy_dissipating_metabolites`. Each energy dissipating reaction is added to
-the test only if all its associated metabolites are present. Any `modifications`
-to the solver are passed directly through to COBREXA's `flux_balance_analysis`
-function. All `boundary_reactions` and `ignore_reactions` are deleted from an
-internal copy of `model`; this internal copy is used for analysis.
+Since models use different name spaces,
+`defaults.consistency.energy_dissipating_metabolites` is used to create the
+energy dissipating reactions. By default it uses the BiGG name space, but this
+will be changed to ChEBI in due course. If your model uses a different name
+space, then you have to change the values (NOT the keys) of
+`defaults.consistency.energy_dissipating_metabolites`. Each energy dissipating
+reaction is added to the test only if all its associated metabolites are
+present. Any `defaults.consistency.optimizer_modifications` to the solver are
+passed directly through to COBREXA's `flux_balance_analysis` function. All
+`defaults.consistency.boundary_reactions` and
+`defaults.consistency.ignored_energy_reactions` are deleted from an internal
+copy of `model`; this internal copy is used for analysis.
 
-Returns `true` if the model has energy generating cycles.
+Returns `true` if the model has no energy generating cycles.
 """
-function has_erroneous_energy_generating_cycles(
+function model_has_no_erroneous_energy_generating_cycles(
     model,
     optimizer;
-    energy_dissipating_metabolites = Dict(
-        "ATP" => "atp_c",
-        "CTP" => "ctp_c",
-        "GTP" => "gtp_c",
-        "UTP" => "utp_c",
-        "ITP" => "itp_c",
-        "ADP" => "adp_c",
-        "CDP" => "cdp_c",
-        "GDP" => "gdp_c",
-        "UDP" => "udp_c",
-        "IDP" => "idp_c",
-        "NADH" => "nadh_c",
-        "NAD" => "nad_c",
-        "NADPH" => "nadph_c",
-        "NADP" => "nadp_c",
-        "FADH2" => "fadh2_c",
-        "FAD" => "fad_c",
-        "FMNH2" => "fmn_c",
-        "FMN" => "fmnh2_c",
-        "Ubiquinol-8" => "q8h2_c",
-        "Ubiquinone-8" => "q8_c",
-        "Menaquinol-8" => "mql8_c",
-        "Menaquinone-8" => "mqn8_c",
-        "2-Demethylmenaquinol-8" => "2dmmql8_c",
-        "2-Demethylmenaquinone-8" => "2dmmq8_c",
-        "ACCOA" => "accoa_c",
-        "COA" => "coa_c",
-        "L-Glutamate" => "glu__L_c",
-        "2-Oxoglutarate" => "akg_c",
-        "Ammonium" => "nh4_c",
-        "H" => "h_c",
-        "H[external]" => "h_e",
-        "H2O" => "h2o_c",
-        "Phosphate" => "pi_c",
-        "Acetate" => "ac_c",
-    ),
-    additional_energy_generating_reactions = [],
-    ignored_reactions = ["ATPM"],
-    modifications = [],
-    boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
+    defaults = memote_defaults,
 )
     # need to add reactions, only implemented for Core and StdModel
     if model isa StandardModel
@@ -181,11 +143,17 @@ function has_erroneous_energy_generating_cycles(
     function maybe_add_energy_reaction(mets, id)
         if all(
             in.(
-                [energy_dissipating_metabolites[x] for x in keys(mets)],
+                [
+                    defaults.consistency.energy_dissipating_metabolites[x] for
+                    x in keys(mets)
+                ],
                 Ref(metabolites(_model)),
             ),
         )
-            _mets = Dict(energy_dissipating_metabolites[k] => v for (k, v) in mets)
+            _mets = Dict(
+                defaults.consistency.energy_dissipating_metabolites[k] => v for
+                (k, v) in mets
+            )
             rid = "MEMOTE_TEMP_RXN_$id"
             add_reaction!(_model, Reaction(rid, _mets, :forward))
             push!(objective_ids, rid)
@@ -251,29 +219,44 @@ function has_erroneous_energy_generating_cycles(
     maybe_add_energy_reaction(Dict("H[external]" => -1, "H" => 1), "PROTON")
 
     # add user specified reactions
-    for rxn in additional_energy_generating_reactions
+    for rxn in defaults.consistency.additional_energy_generating_reactions
         push!(objective_ids, rxn.id)
         add_reaction!(_model, rxn)
     end
 
     # ignore reactions by just removing them
-    for rxn in [ignored_reactions; boundary_reactions]
-        remove_reaction!(_model, rxn)
+    for rid in [
+        defaults.consistency.ignored_energy_reactions
+        [rid for rid in reactions(_model) if is_boundary(_model, rid)]
+    ]
+        rid in reactions(_model) && remove_reaction!(_model, rid)
     end
 
     # if objective is approximately 0 then no energy generating cycles present
-    !isapprox(
+    isapprox(
         solved_objective_value(
             flux_balance_analysis(
                 _model,
                 optimizer;
-                modifications = [modifications; change_objective(objective_ids)],
+                modifications = [
+                    # defaults.consistency.optimizer_modifications
+                    change_objective(objective_ids)
+                ],
             ),
         ),
         0;
         atol = 1e-6,
     )
 end
+
+m = flux_balance_analysis(
+    _model,
+    optimizer;
+    modifications = [
+        # defaults.consistency.optimizer_modifications
+        change_objective(objective_ids)
+    ],
+)
 
 """
 $(TYPEDSIGNATURES)
@@ -285,13 +268,11 @@ metabolites have mass assigned to them.
 
 Based on Gevorgyan, Albert, Mark G. Poolman, and David A. Fell. "Detection of
 stoichiometric inconsistencies in biomolecular models." Bioinformatics (2008).
+
+Optionally ignore some reactions in this analysis by adding reaction IDs to
+`defaults.consistency.consistency_ignored_reactions`.
 """
-function is_consistent(
-    model,
-    optimizer;
-    boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
-    ignored_reactions = find_biomass_reaction_ids(model),
-)
+function model_is_consistent(model, optimizer; defaults = memote_defaults)
     #=
     Note, there is a MILP method that can be used to find the unconserved metabolite,
     but the problem is a MILP (and probably why the original MEMOTE takes so long to run).
@@ -308,7 +289,14 @@ function is_consistent(
         _model = convert(StandardModel, deepcopy(model))
     end
 
-    remove_reactions!(_model, [boundary_reactions; ignored_reactions])
+    remove_reactions!(
+        _model,
+        [
+            [rid for rid in reactions(model) if is_boundary(model, rid)]
+            find_biomass_reaction_ids(model)
+            defaults.consistency.consistency_ignored_reactions
+        ],
+    )
 
     N = stoichiometry(_model)
     n_mets, _ = size(N)
@@ -327,86 +315,20 @@ $(TYPEDSIGNATURES)
 
 Test if model is consistent by checking that:
 1. the model is stoichiometrically consistent, tested with
-   [`is_consistent`](@ref)
+   [`model_is_consistent`](@ref)
 2. there are no energy generating cycles, tested with
-   [`has_erroneous_energy_generating_cycles`](@ref)
+   [`model_has_no_erroneous_energy_generating_cycles`](@ref)
 3. the model is both mass and charge balanced, tested with
    [`reaction_charge_unbalanced`](@ref) and [`reaction_mass_unbalanced`]
 
 Each function called in this test function can be called individually. The
 kwargs are forwarded as indicated by the prefix.
 """
-function test_consistency(
-    model,
-    optimizer;
-    consistency_boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
-    consistency_ignored_reactions = find_biomass_reaction_ids(model),
-    energy_dissipating_energy_dissipating_metabolites = Dict(
-        "ATP" => "atp_c",
-        "CTP" => "ctp_c",
-        "GTP" => "gtp_c",
-        "UTP" => "utp_c",
-        "ITP" => "itp_c",
-        "ADP" => "adp_c",
-        "CDP" => "cdp_c",
-        "GDP" => "gdp_c",
-        "UDP" => "udp_c",
-        "IDP" => "idp_c",
-        "NADH" => "nadh_c",
-        "NAD" => "nad_c",
-        "NADPH" => "nadph_c",
-        "NADP" => "nadp_c",
-        "FADH2" => "fadh2_c",
-        "FAD" => "fad_c",
-        "FMNH2" => "fmn_c",
-        "FMN" => "fmnh2_c",
-        "Ubiquinol-8" => "q8h2_c",
-        "Ubiquinone-8" => "q8_c",
-        "Menaquinol-8" => "mql8_c",
-        "Menaquinone-8" => "mqn8_c",
-        "2-Demethylmenaquinol-8" => "2dmmql8_c",
-        "2-Demethylmenaquinone-8" => "2dmmq8_c",
-        "ACCOA" => "accoa_c",
-        "COA" => "coa_c",
-        "L-Glutamate" => "glu__L_c",
-        "2-Oxoglutarate" => "akg_c",
-        "Ammonium" => "nh4_c",
-        "H" => "h_c",
-        "H[external]" => "h_e",
-        "H2O" => "h2o_c",
-        "Phosphate" => "pi_c",
-        "Acetate" => "ac_c",
-    ),
-    energy_dissipating_additional_energy_generating_reactions = [],
-    energy_dissipating_ignored_reactions = ["ATPM"],
-    energy_dissipating_modifications = [],
-    energy_dissipating_boundary_reactions = [rid for rid in reactions(model) if is_boundary(model, rid)],
-    mass_ignored_reactions = [
-        find_biomass_reaction_ids(model)
-        find_exchange_reaction_ids(model)
-    ],
-    charge_ignored_reactions = [
-        find_biomass_reaction_ids(model)
-        find_exchange_reaction_ids(model)
-    ],
-)
-    @testset "Consistency" begin 
-        @test is_consistent(
-            model, 
-            optimizer; 
-            boundary_reactions = consistency_boundary_reactions, 
-            ignored_reactions = consistency_ignored_reactions
-        )
-        @test !has_erroneous_energy_generating_cycles(
-            model,
-            optimizer;
-            energy_dissipating_metabolites = energy_dissipating_energy_dissipating_metabolites,
-            additional_energy_generating_reactions = energy_dissipating_additional_energy_generating_reactions,
-            modifications = energy_dissipating_modifications,
-            ignored_reactions = energy_dissipating_ignored_reactions,
-            boundary_reactions = energy_dissipating_boundary_reactions,
-        )
-        @test isempty(reaction_mass_unbalanced(model; ignored_reactions = mass_ignored_reactions))
-        @test isempty(reaction_mass_unbalanced(model; ignored_reactions = charge_ignored_reactions))
+function test_consistency(model, optimizer; defaults = memote_defaults)
+    @testset "Consistency" begin
+        @test model_is_consistent(model, optimizer; defaults)
+        # @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; defaults)
+        @test isempty(reactions_mass_unbalanced(model; defaults))
+        @test isempty(reactions_charge_unbalanced(model; defaults))
     end
 end
