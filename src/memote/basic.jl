@@ -18,7 +18,8 @@ model_has_genes(model) = n_genes(model) > 0
 
 model_metabolite_coverage(model) = n_reactions(model) / n_genes(model)
 
-model_compartments(model) = Set(metabolite_compartment(model, mid) for mid in metabolites(model))
+model_compartments(model) =
+    Set(metabolite_compartment(model, mid) for mid in metabolites(model))
 
 model_has_compartments(model) = length(model_compartments(model)) > 0
 
