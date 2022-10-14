@@ -249,7 +249,7 @@ $(TYPEDSIGNATURES)
 
 Determines if the model is stoichiometrically consistent. Note, stoichiometric
 consistency does not guarantee that mass balances must hold in the model. A more
-robust check is [`is_model_mass_balanced`](@ref), but this works if not all
+robust check is [`reactions_mass_unbalanced`](@ref), but this works if not all
 metabolites have mass assigned to them.
 
 Based on Gevorgyan, Albert, Mark G. Poolman, and David A. Fell. "Detection of
@@ -305,7 +305,7 @@ Test if model is consistent by checking that:
 2. there are no energy generating cycles, tested with
    [`model_has_no_erroneous_energy_generating_cycles`](@ref)
 3. the model is both mass and charge balanced, tested with
-   [`reaction_charge_unbalanced`](@ref) and [`reaction_mass_unbalanced`]
+   [`reactions_charge_unbalanced`](@ref) and [`reactions_mass_unbalanced`]
 
 Each function called in this test function can be called individually. The
 kwargs are forwarded as indicated by the prefix.

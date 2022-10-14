@@ -10,7 +10,8 @@ Pages = ["frog.jl"]
 
 ```@autodocs
 Modules = [FBCModelTests]
-Pages = ["memote.jl"]
+Pages = ["src/memote/basic.jl", "src/memote/consistency.jl", "src/memote/metabolites.jl", "src/memote/reactions.jl"]
+
 ```
 
 # Types and utilities
