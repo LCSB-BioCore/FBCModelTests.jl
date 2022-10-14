@@ -32,13 +32,13 @@ The supposed workflow with FROG reports is the following:
 The implementation is based off the description of the [EBI's FBC curation
 site](https://www.ebi.ac.uk/biomodels/curation/fbc), with some details
 following the decisions in the [`fbc_curation` Python
-tool](https://github.com/matthiaskoenig/fbc_curation) (working with COBRApy) by
-Matthias König (@matthiaskoenig).
+tool](https://github.com/matthiaskoenig/fbc_curation) (working with [COBRApy](https://github.com/opencobra/cobrapy/)) by
+Matthias König ([@matthiaskoenig](https://github.com/matthiaskoenig)).
 
 The implementation in FBCModelTests.jl is mostly authored by
-Mirek Kratochvíl (@exaexa)
+Mirek Kratochvíl ([@exaexa](https://github.com/exaexa))
 with parts contributed by
-St Elmo Wilken (@stelmo).
+St Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
 ## Memote-style tests
 
