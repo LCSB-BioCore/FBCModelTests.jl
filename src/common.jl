@@ -35,7 +35,7 @@ end
 $(TYPEDSIGNATURES)
 
 Determine if a reaction is probably a transport reaction by checking if:
-1. it has sbo annotations corresponding to a transport reaction   
+1. it has sbo annotations corresponding to a transport reaction
 2. the reaction contains metabolites from at least 2 different compartments
 3. if at least 1 metabolite does not undergo a chemical transformation (via
    formula or annotation checks)
@@ -46,8 +46,8 @@ annotations. This test may yield false negatives.
 function _probably_transport_reaction(model, rid, test_annotation)
     is_transport_reaction(model, rid) && return true
     length(Set([metabolite_compartment(model, mid) for mid in metabolites(model)])) == 1 && return false
-    
-    comp_mid = Dict{String, Set{String}}()
+
+    comp_mid = Dict{String,Set{String}}()
     for mid in keys(reaction_stoichiometry(model, rid))
         comp = metabolite_compartment(model, mid)
         if haskey(comp_mid, comp)
@@ -56,20 +56,36 @@ function _probably_transport_reaction(model, rid, test_annotation)
             comp_mid[comp] = Set([mid])
         end
     end
-    
+
     # must have annotations for all metabolites
-    any(!haskey(metabolite_annotations(model, mid), test_annotation) for mid in keys(reaction_stoichiometry(model, rid))) && return false
+    any(
+        !haskey(metabolite_annotations(model, mid), test_annotation) for
+        mid in keys(reaction_stoichiometry(model, rid))
+    ) && return false
     # must have formula for all metabolites
-    any(isnothing(metabolite_formula(model, mid)) for mid in keys(reaction_stoichiometry(model, rid))) && return false
+    any(
+        isnothing(metabolite_formula(model, mid)) for
+        mid in keys(reaction_stoichiometry(model, rid))
+    ) && return false
 
     get_annotation(mid) = metabolite_annotations(model, mid)[test_annotation]
-    get_formula(mid) = [join(k*string(v) for (k, v) in metabolite_formula(model, mid))]
-    
+    get_formula(mid) = [join(k * string(v) for (k, v) in metabolite_formula(model, mid))]
+
     for (k1, v1) in comp_mid
         for (k2, v2) in comp_mid
             k1 == k2 && continue
-            any(in.(reduce(vcat, get_formula(x) for x in v1), Ref(reduce(vcat, get_formula(x) for x in v2)))) && return true
-            any(in.(reduce(vcat, get_annotation(x) for x in v1), Ref(reduce(vcat, get_annotation(x) for x in v2)))) && return true
+            any(
+                in.(
+                    reduce(vcat, get_formula(x) for x in v1),
+                    Ref(reduce(vcat, get_formula(x) for x in v2)),
+                ),
+            ) && return true
+            any(
+                in.(
+                    reduce(vcat, get_annotation(x) for x in v1),
+                    Ref(reduce(vcat, get_annotation(x) for x in v2)),
+                ),
+            ) && return true
         end
     end
 
