@@ -14,3 +14,30 @@ test_dicts(match::Function, a::Dict, b::Dict) =
             end
         end
     end
+
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper function that determines if a reaction has a gene reaction rule
+and that each gene in the rule is contained in the model.
+"""
+function _has_sensible_gpr(model, rid)
+    grrs = reaction_gene_association(model, rid)
+    isnothing(grrs) && return false
+    isempty(grrs) && return false
+    any("" in grr for grr in grrs) && return false
+
+    gids = Set(reduce(vcat, grrs))
+    all(in.(gids, Ref(genes(model))))
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Determine if a reaction is probably a transport reaction by checking if:
+1. the reaction contains metabolites from at least 2 different compartments
+2. if at least 1 metabolite does not undergo a chemical transformation
+"""
+function _resembles_transport_reaction(model, rid)
+    
+end
