@@ -23,6 +23,7 @@ DocStringExtensions = "0.9"
 JSON = "0.21"
 JuMP = "1"
 MD5 = "0.2"
+SBML = "1"
 
 [extras]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
