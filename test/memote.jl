@@ -62,3 +62,11 @@ end
     # these tests are too basic to split out into multiple subtests
     test_basic(model)
 end
+
+@testset "GPR" begin
+    @test length(reactions_without_gpr(model)) == 6
+
+    @test length(reactions_with_complexes(model)) == 15
+
+    @test length(reactions_transport_no_gpr(model; config = memote_config)) == 4
+end
