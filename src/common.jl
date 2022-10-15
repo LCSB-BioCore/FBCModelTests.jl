@@ -25,6 +25,7 @@ function _has_sensible_gpr(model, rid)
     grrs = reaction_gene_association(model, rid)
     isnothing(grrs) && return false
     isempty(grrs) && return false
+    any(isempty.(grrs)) && return false
     any("" in grr for grr in grrs) && return false
 
     gids = Set(reduce(vcat, grrs))
@@ -45,16 +46,11 @@ annotations. This test may yield false negatives.
 """
 function _probably_transport_reaction(model, rid, test_annotation)
     is_transport_reaction(model, rid) && return true
-    length(Set([metabolite_compartment(model, mid) for mid in metabolites(model)])) == 1 && return false
+    allequal(metabolite_compartment(model, mid) for mid in keys(reaction_stoichiometry(model, rid))) && return false
 
     comp_mid = Dict{String,Set{String}}()
     for mid in keys(reaction_stoichiometry(model, rid))
-        comp = metabolite_compartment(model, mid)
-        if haskey(comp_mid, comp)
-            push!(comp_mid[comp], mid)
-        else
-            comp_mid[comp] = Set([mid])
-        end
+        push!(get!(comp_mid, metabolite_compartment(model, mid), Set{String}()), mid)
     end
 
     # must have annotations for all metabolites
@@ -69,8 +65,18 @@ function _probably_transport_reaction(model, rid, test_annotation)
     ) && return false
 
     get_annotation(mid) = metabolite_annotations(model, mid)[test_annotation]
-    get_formula(mid) = [join(k * string(v) for (k, v) in metabolite_formula(model, mid))]
-
+    get_formula(mid) = begin 
+        d = metabolite_formula(model, mid)
+        ks = sort(collect(keys(d)))
+        [join(k * string(d[k]) for k in ks)]
+    end
+    
+    #= 
+    Compare the formulas and annotations of metabolites in different
+    compartments. If the any metabolite has the same formula or same annotation
+    but occurs in different comparments, then assume that it is probably a
+    transported. 
+    =#
     for (k1, v1) in comp_mid
         for (k2, v2) in comp_mid
             k1 == k2 && continue
