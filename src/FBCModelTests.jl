@@ -13,6 +13,7 @@ using MD5
 using SBML
 using SHA
 using Test
+using PeriodicTable
 
 include("version.jl")
 include("common.jl")

@@ -133,15 +133,21 @@ Parameters used by the biomass tests.
 $(TYPEDFIELDS)
 """
 mutable struct BiomassConfig
-    biomass_terms :: Vector{String}
+    biomass_strings :: Vector{String}
     atpm_strings :: Vector{String}
     growth_metabolites :: Dict{String, String}
+    minimum_growth_rate :: Float64
+    maximum_growth_rate :: Float64
+    optimizer_modifications :: Vector{Function}
 end
 
 biomass_config = BiomassConfig(
     ["BIOMASS", "biomass", "Biomass"],
     ["ATPM", "Maintenance", "maintenance"],
-    Dict("atp" => "atp_c", "adp" => "adp_c", "h2o" => "h2o_c", "pi" => "pi_c")
+    Dict("atp" => "atp_c", "adp" => "adp_c", "h2o" => "h2o_c", "pi" => "pi_c"),
+    0.01,
+    5.0,
+    Function[],
 )
 
 """
