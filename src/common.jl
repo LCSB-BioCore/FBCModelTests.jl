@@ -46,6 +46,7 @@ annotations. This test may yield false negatives.
 """
 function _probably_transport_reaction(model, rid, test_annotation)
     is_transport_reaction(model, rid) && return true
+    allequal(x) = all(isequal(first(x), x)) #  TODO remove when Julia LTS is > v1.8
     allequal(
         metabolite_compartment(model, mid) for
         mid in keys(reaction_stoichiometry(model, rid))
