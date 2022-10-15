@@ -12,10 +12,12 @@ Identify all the biomass reactions in the `model` using both sbo annotations, as
 well biomass strings typically contained in their reaction IDs. Use
 `config.biomass.biomass_strings` to update the list of strings to look for.
 """
-model_biomass_reactions(model; config = memote_config) = Set([
-    [rid for rid in reactions(model) if is_biomass_reaction(model, rid)]
-    find_biomass_reaction_ids(model; biomass_strings = config.biomass.biomass_strings)
-])
+model_biomass_reactions(model; config = memote_config) = Set(
+    [
+        [rid for rid in reactions(model) if is_biomass_reaction(model, rid)]
+        find_biomass_reaction_ids(model; biomass_strings = config.biomass.biomass_strings)
+    ],
+)
 
 """
 $(TYPEDSIGNATURES)
@@ -25,7 +27,9 @@ non-growth associated maintenance cost). Looks for reaction annotations
 corresponding to the sbo maintenance term, or looks for reaction ids that
 contain the strings listed in `config.biomass.atpm_strings`.
 """
-model_has_atpm_reaction(model; config = memote_config) = any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) || any(any(occursin.(config.biomass.atpm_strings, Ref(rid))) for rid in reactions(model))
+model_has_atpm_reaction(model; config = memote_config) =
+    any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) ||
+    any(any(occursin.(config.biomass.atpm_strings, Ref(rid))) for rid in reactions(model))
 
 """
 $(TYPEDSIGNATURES)
@@ -57,17 +61,18 @@ $(TYPEDSIGNATURES)
 For each biomass reaction, identified by [`model_biomass_reactions`](@ref),
 calculate the molar weight of the reaction by summing the products of the
 associated metabolite coefficients with their molar masses. This sum should fall
-within [1 - 1e-3, 1 + 1e-6]. 
+within [1 - 1e-3, 1 + 1e-6].
 """
 function model_biomass_is_consistent(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
-    to_symbol(x::String) = length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
+    to_symbol(x::String) =
+        length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
     get_molar_mass(mid) = begin
         rs = metabolite_formula(model, mid)
         sum(v * elements[to_symbol(k)].atomic_mass for (k, v) in rs).val
     end
 
-    x  = fill(0.0, length(biomass_rxns))
+    x = fill(0.0, length(biomass_rxns))
     for (idx, rid) in enumerate(biomass_rxns)
         d = reaction_stoichiometry(model, rid)
         x[idx] = sum(v * get_molar_mass(k) for (k, v) in d)
@@ -89,7 +94,7 @@ function model_solves_default(model, optimizer; config = memote_config)
             model,
             optimizer;
             modifications = config.biomass.optimizer_modifications,
-        )
+        ),
     )
     config.biomass.minimum_growth_rate < mu < config.biomass.maximum_growth_rate
 end
@@ -101,7 +106,7 @@ $(TYPEDSIGNATURES)
 Check if the model can synthesize all of the biomass precursors in all of the
 biomass functions, except those listed in `config.biomass.ignored_precursors` in
 the default medium. Set any optimizer modifications with
-`config.biomass.optimizer_modifications`. 
+`config.biomass.optimizer_modifications`.
 """
 function model_can_produce_biomass_precursors(model, optimizer; config = memote_config)
     stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
@@ -124,7 +129,7 @@ function model_can_produce_biomass_precursors(model, optimizer; config = memote_
                     config.biomass.optimizer_modifications
                     change_objective(rid)
                 ],
-            )
+            ),
         )
         remove_reaction!(stdmodel, rid)
         config.biomass.minimum_growth_rate < mu && continue # no max bound required
@@ -146,7 +151,8 @@ function biomass_contains_essential_precursors(model; config = memote_config)
     for (idx, rid) in enumerate(biomass_rxns)
         mids = [k for (k, v) in reaction_stoichiometry(model, rid) if v < 0]
         for mid in mids
-            mid ∉ keys(config.biomass.essential_precursors) && push!(num_missing_essential_precursors[idx], mid)
+            mid ∉ keys(config.biomass.essential_precursors) &&
+                push!(num_missing_essential_precursors[idx], mid)
         end
     end
     return num_missing_essential_precursors
