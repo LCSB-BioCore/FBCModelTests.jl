@@ -76,17 +76,20 @@ end
     wrong_model = convert(StandardModel, model)
     remove_reaction!(wrong_model, "ATPM")
     @test !model_has_atpm_reaction(wrong_model)
-   
+
     @test all(values(atp_present_in_biomass(model)))
 
     @test "BIOMASS_Ecoli_core_w_GAM" in model_biomass_reactions(model)
-    
+
     @test model_biomass_molar_mass(model)["BIOMASS_Ecoli_core_w_GAM"] == 1.5407660614638816
     @test !model_biomass_is_consistent(model)
 
     @test model_solves_in_default_medium(model, Tulip.Optimizer)
 
-    @test length(find_blocked_biomass_precursors(model, Tulip.Optimizer)["BIOMASS_Ecoli_core_w_GAM"]) ==  3
+    @test length(
+        find_blocked_biomass_precursors(model, Tulip.Optimizer)["BIOMASS_Ecoli_core_w_GAM"],
+    ) == 3
 
-    @test length(biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"]) == 32
+    @test length(biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"]) ==
+          32
 end

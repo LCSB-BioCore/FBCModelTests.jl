@@ -71,13 +71,13 @@ function model_biomass_molar_mass(model; config = memote_config)
         sum(v * elements[to_symbol(k)].atomic_mass for (k, v) in rs).val
     end
 
-    x  = Dict(biomass_rxns .=> 0.0)
+    x = Dict(biomass_rxns .=> 0.0)
     for rid in biomass_rxns
         d = reaction_stoichiometry(model, rid)
         x[rid] += sum(v * get_molar_mass(k) for (k, v) in d)
     end
     for (k, v) in x
-        x[k] *= -1/1000.0 
+        x[k] *= -1 / 1000.0
     end
     return x
 end
@@ -88,7 +88,8 @@ $(TYPEDSIGNATURES)
 Check that the molar mass of each biomass reactions falls within `[1 - 1e-3, 1 +
 1e-6]` by calling [`model_biomass_molar_mass`](@ref) internally.
 """
-model_biomass_is_consistent(model; config = memote_config) = all(-1e-3 .<  (collect(values(model_biomass_molar_mass(model; config))) .- 1) .< 1e-6)
+model_biomass_is_consistent(model; config = memote_config) =
+    all(-1e-3 .< (collect(values(model_biomass_molar_mass(model; config))) .- 1) .< 1e-6)
 
 """
 $(TYPEDSIGNATURES)
@@ -121,7 +122,7 @@ the default medium. Set any optimizer modifications with
 function find_blocked_biomass_precursors(model, optimizer; config = memote_config)
     stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
     biomass_rxns = model_biomass_reactions(stdmodel; config)
-    blocked_precursors = Dict{String, Vector{String}}()
+    blocked_precursors = Dict{String,Vector{String}}()
 
     for rid in biomass_rxns
         mids = String[]
@@ -141,12 +142,12 @@ function find_blocked_biomass_precursors(model, optimizer; config = memote_confi
                         config.biomass.optimizer_modifications
                         change_objective(temp_rid)
                     ],
-                )
+                ),
             )
             remove_reaction!(stdmodel, temp_rid)
             config.biomass.minimum_growth_rate < mu && continue # no max bound required
             push!(get!(blocked_precursors, rid, String[]), mid)
-        end    
+        end
     end
 
     return blocked_precursors
@@ -161,7 +162,7 @@ lumped biomass function.
 """
 function biomass_missing_essential_precursors(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
-    num_missing_essential_precursors = Dict{String, Vector{String}}() # for some reason can't do biomass_rxns .=> String[]
+    num_missing_essential_precursors = Dict{String,Vector{String}}() # for some reason can't do biomass_rxns .=> String[]
     for rid in biomass_rxns
         b = reaction_stoichiometry(model, rid)
         for mid in values(config.biomass.essential_precursors)
