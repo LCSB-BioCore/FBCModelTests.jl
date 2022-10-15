@@ -35,16 +35,16 @@ H⁺. Each of these metabolites have a lookup table mapping them to the name spa
 of the model, defined in `config.biomass.growth_metabolites`. These need to be
 set if you use anything other than the BiGG namespace.
 """
-function model_has_growth_atp_in_biomass(model; config = memote_config)
+function atp_present_in_biomass(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
-    x = fill(true, length(biomass_rxns))
-    for (idx, rid) in enumerate(biomass_rxns)
+    x = Dict(biomass_rxns .=> true)
+    for rid in biomass_rxns
         d = reaction_stoichiometry(model, rid)
         for (m1, m2) in config.biomass.growth_metabolites
             if m1 in ["atp", "h2o"] # must consume
-                !haskey(d, m2) && !(d[m2] < 0) && (x[idx] = false)
+                !haskey(d, m2) && !(d[m2] < 0) && (x[rid] = false)
             else # must produce
-                !haskey(d, m2) && !(d[m2] > 0) && (x[idx] = false)
+                !haskey(d, m2) && !(d[m2] > 0) && (x[rid] = false)
             end
         end
     end
@@ -56,10 +56,9 @@ $(TYPEDSIGNATURES)
 
 For each biomass reaction, identified by [`model_biomass_reactions`](@ref),
 calculate the molar weight of the reaction by summing the products of the
-associated metabolite coefficients with their molar masses. This sum should fall
-within [1 - 1e-3, 1 + 1e-6]. 
+associated metabolite coefficients with their molar masses.
 """
-function model_biomass_is_consistent(model; config = memote_config)
+function model_biomass_molar_mass(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
     to_symbol(x::String) = length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
     get_molar_mass(mid) = begin
@@ -67,13 +66,24 @@ function model_biomass_is_consistent(model; config = memote_config)
         sum(v * elements[to_symbol(k)].atomic_mass for (k, v) in rs).val
     end
 
-    x  = fill(0.0, length(biomass_rxns))
-    for (idx, rid) in enumerate(biomass_rxns)
+    x  = Dict(biomass_rxns .=> 0.0)
+    for rid in biomass_rxns
         d = reaction_stoichiometry(model, rid)
-        x[idx] = sum(v * get_molar_mass(k) for (k, v) in d)
+        x[rid] += sum(v * get_molar_mass(k) for (k, v) in d)
     end
-    return -x ./ 1000.0
+    for (k, v) in x
+        x[k] *= -1/1000.0 
+    end
+    return x
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Check that the molar mass of each biomass reactions falls within `[1 - 1e-3, 1 +
+1e-6]` by calling [`model_biomass_molar_mass`](@ref) internally.
+"""
+model_biomass_is_consistent(model; config = memote_config) = all(-1e-3 .<  (collect(values(model_biomass_molar_mass(model; config))) .- 1) .< 1e-6)
 
 """
 $(TYPEDSIGNATURES)
@@ -83,7 +93,7 @@ growth rate. Here reasonable is set via `config.biomass.minimum_growth_rate` and
 `config.biomass.maximum_growth_rate`. Optionally, pass optimization
 modifications to the solver through `config.biomass.optimizer_modifications`.
 """
-function model_solves_default(model, optimizer; config = memote_config)
+function model_solves_in_default_medium(model, optimizer; config = memote_config)
     mu = solved_objective_value(
         flux_balance_analysis(
             model,
@@ -103,33 +113,37 @@ biomass functions, except those listed in `config.biomass.ignored_precursors` in
 the default medium. Set any optimizer modifications with
 `config.biomass.optimizer_modifications`. 
 """
-function model_can_produce_biomass_precursors(model, optimizer; config = memote_config)
+function find_blocked_biomass_precursors(model, optimizer; config = memote_config)
     stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
     biomass_rxns = model_biomass_reactions(stdmodel; config)
-    mids = Set(String[])
+    blocked_precursors = Dict{String, Vector{String}}()
+
     for rid in biomass_rxns
+        mids = String[]
         for mid in [k for (k, v) in reaction_stoichiometry(stdmodel, rid) if v < 0]
             push!(mids, mid)
         end
-    end
-    blocked_precursors = String[]
-    for mid in filter(x -> x ∉ config.biomass.ignored_precursors, mids)
-        rid = "MEMOTE_TEMP_RXN"
-        add_reaction!(stdmodel, Reaction(rid, Dict(mid => -1), :forward))
-        mu = solved_objective_value(
-            flux_balance_analysis(
-                stdmodel,
-                optimizer;
-                modifications = [
-                    config.biomass.optimizer_modifications
-                    change_objective(rid)
-                ],
+
+        for mid in mids
+            mid in config.biomass.ignored_precursors && continue
+            temp_rid = "MEMOTE_TEMP_RXN"
+            add_reaction!(stdmodel, Reaction(temp_rid, Dict(mid => -1), :forward))
+            mu = solved_objective_value(
+                flux_balance_analysis(
+                    stdmodel,
+                    optimizer;
+                    modifications = [
+                        config.biomass.optimizer_modifications
+                        change_objective(temp_rid)
+                    ],
+                )
             )
-        )
-        remove_reaction!(stdmodel, rid)
-        config.biomass.minimum_growth_rate < mu && continue # no max bound required
-        push!(blocked_precursors, mid)
+            remove_reaction!(stdmodel, temp_rid)
+            config.biomass.minimum_growth_rate < mu && continue # no max bound required
+            push!(get!(blocked_precursors, rid, String[]), mid)
+        end    
     end
+
     return blocked_precursors
 end
 
@@ -140,13 +154,14 @@ Tests if each biomass reaction contains a set of essential precursors, listed in
 `config.biomass.essential_precursors`. Note, this function only works on a
 lumped biomass function.
 """
-function biomass_contains_essential_precursors(model; config = memote_config)
+function biomass_missing_essential_precursors(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
-    num_missing_essential_precursors = fill(String[], length(biomass_rxns))
-    for (idx, rid) in enumerate(biomass_rxns)
-        mids = [k for (k, v) in reaction_stoichiometry(model, rid) if v < 0]
-        for mid in mids
-            mid ∉ keys(config.biomass.essential_precursors) && push!(num_missing_essential_precursors[idx], mid)
+    num_missing_essential_precursors = Dict{String, Vector{String}}() # for some reason can't do biomass_rxns .=> String[]
+    for rid in biomass_rxns
+        b = reaction_stoichiometry(model, rid)
+        for mid in values(config.biomass.essential_precursors)
+            haskey(b, mid) && b[mid] < 0 && continue # is a precursor
+            push!(get!(num_missing_essential_precursors, rid, String[]), mid)
         end
     end
     return num_missing_essential_precursors
