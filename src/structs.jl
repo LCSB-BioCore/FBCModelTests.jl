@@ -138,6 +138,8 @@ mutable struct BiomassConfig
     growth_metabolites :: Dict{String, String}
     minimum_growth_rate :: Float64
     maximum_growth_rate :: Float64
+    ignored_precursors :: Vector{String}
+    essential_precursors :: Dict{String, String}
     optimizer_modifications :: Vector{Function}
 end
 
@@ -147,6 +149,46 @@ biomass_config = BiomassConfig(
     Dict("atp" => "atp_c", "adp" => "adp_c", "h2o" => "h2o_c", "pi" => "pi_c"),
     0.01,
     5.0,
+    ["atp_c", "h2o_c"],
+    Dict(
+        "trp__L" => "trp__L_c", 
+        "cys__L" => "cys__L_c", 
+        "his__L" => "his__L_c", 
+        "tyr__L" => "tyr__L_c", 
+        "met__L" => "met__L_c", 
+        "phe__L" => "phe__L_c", 
+        "ser__L" => "ser__L_c", 
+        "pro__L" => "pro__L_c", 
+        "asp__L" => "asp__L_c", 
+        "thr__L" => "thr__L_c", 
+        "gln__L" => "gln__L_c", 
+        "glu__L" => "glu__L_c", 
+        "ile__L" => "ile__L_c", 
+        "arg__L" => "arg__L_c", 
+        "lys__L" => "lys__L_c", 
+        "val__L" => "val__L_c", 
+        "leu__L" => "leu__L_c", 
+        "ala__L" => "ala__L_c", 
+        "gly" => "gly_c", 
+        "asn__L" => "asn__L_c",
+        "datp" => "datp_c", 
+        "dctp" => "dctp_c", 
+        "dttp" => "dttp_c", 
+        "dgtp" => "dgtp_c",
+        "atp" => "atp_c", 
+        "ctp" => "ctp_c", 
+        "utp" => "utp_c", 
+        "gtp" => "gtp_c",
+        "nad" => "nad_c", 
+        "nadp" => "nadp_c",
+        "amet" => "amet_c", 
+        "fad" => "fad_c", 
+        "pydx5p" => "pydx5p_c", 
+        "coa" => "coa_c", 
+        "thmpp" => "thmpp_c", 
+        "fmn" => "fmn_c",
+        "h2o" => "h2o_c",
+    ),
     Function[],
 )
 

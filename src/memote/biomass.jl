@@ -93,3 +93,61 @@ function model_solves_default(model, optimizer; config = memote_config)
     )
     config.biomass.minimum_growth_rate < mu < config.biomass.maximum_growth_rate
 end
+
+
+"""
+$(TYPEDSIGNATURES)
+
+Check if the model can synthesize all of the biomass precursors in all of the
+biomass functions, except those listed in `config.biomass.ignored_precursors` in
+the default medium. Set any optimizer modifications with
+`config.biomass.optimizer_modifications`. 
+"""
+function model_can_produce_biomass_precursors(model, optimizer; config = memote_config)
+    stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
+    biomass_rxns = model_biomass_reactions(stdmodel; config)
+    mids = Set(String[])
+    for rid in biomass_rxns
+        for mid in [k for (k, v) in reaction_stoichiometry(stdmodel, rid) if v < 0]
+            push!(mids, mid)
+        end
+    end
+    blocked_precursors = String[]
+    for mid in filter(x -> x ∉ config.biomass.ignored_precursors, mids)
+        rid = "MEMOTE_TEMP_RXN"
+        add_reaction!(stdmodel, Reaction(rid, Dict(mid => -1), :forward))
+        mu = solved_objective_value(
+            flux_balance_analysis(
+                stdmodel,
+                optimizer;
+                modifications = [
+                    config.biomass.optimizer_modifications
+                    change_objective(rid)
+                ],
+            )
+        )
+        remove_reaction!(stdmodel, rid)
+        config.biomass.minimum_growth_rate < mu && continue # no max bound required
+        push!(blocked_precursors, mid)
+    end
+    return blocked_precursors
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Tests if each biomass reaction contains a set of essential precursors, listed in
+`config.biomass.essential_precursors`. Note, this function only works on a
+lumped biomass function.
+"""
+function biomass_contains_essential_precursors(model; config = memote_config)
+    biomass_rxns = model_biomass_reactions(model; config)
+    num_missing_essential_precursors = fill(String[], length(biomass_rxns))
+    for (idx, rid) in enumerate(biomass_rxns)
+        mids = [k for (k, v) in reaction_stoichiometry(model, rid) if v < 0]
+        for mid in mids
+            mid ∉ keys(config.biomass.essential_precursors) && push!(num_missing_essential_precursors[idx], mid)
+        end
+    end
+    return num_missing_essential_precursors
+end
