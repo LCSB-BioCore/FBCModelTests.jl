@@ -46,7 +46,10 @@ annotations. This test may yield false negatives.
 """
 function _probably_transport_reaction(model, rid, test_annotation)
     is_transport_reaction(model, rid) && return true
-    allequal(metabolite_compartment(model, mid) for mid in keys(reaction_stoichiometry(model, rid))) && return false
+    allequal(
+        metabolite_compartment(model, mid) for
+        mid in keys(reaction_stoichiometry(model, rid))
+    ) && return false
 
     comp_mid = Dict{String,Set{String}}()
     for mid in keys(reaction_stoichiometry(model, rid))
@@ -65,17 +68,17 @@ function _probably_transport_reaction(model, rid, test_annotation)
     ) && return false
 
     get_annotation(mid) = metabolite_annotations(model, mid)[test_annotation]
-    get_formula(mid) = begin 
+    get_formula(mid) = begin
         d = metabolite_formula(model, mid)
         ks = sort(collect(keys(d)))
         [join(k * string(d[k]) for k in ks)]
     end
-    
-    #= 
+
+    #=
     Compare the formulas and annotations of metabolites in different
     compartments. If the any metabolite has the same formula or same annotation
     but occurs in different comparments, then assume that it is probably a
-    transported. 
+    transported.
     =#
     for (k1, v1) in comp_mid
         for (k2, v2) in comp_mid
