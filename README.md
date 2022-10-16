@@ -38,8 +38,7 @@ Matthias König ([@matthiaskoenig](https://github.com/matthiaskoenig)).
 The implementation in FBCModelTests.jl is mostly authored by
 Mirek Kratochvíl ([@exaexa](https://github.com/exaexa))
 with parts contributed by
-St Elmo Wilken ([@stelmo](https://github.com/stelmo))
-and Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh)).
+St Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
 ## Memote-style tests
 
@@ -69,6 +68,11 @@ not included in this package as the issues they identify are often easier to
 identify using simpler means. For example, find the stoichiometrically
 inconsistent metabolites is simpler done by just checking the mass balance
 around each reaction.
+
+The implementation in FBCModelTests.jl is mostly authored by
+St Elmo Wilken ([@stelmo](https://github.com/stelmo))
+with parts contributed by
+Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh)).
 
 # Acknowledgements
 
