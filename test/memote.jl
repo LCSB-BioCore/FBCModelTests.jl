@@ -109,13 +109,24 @@ end
     for db2 in ["reactome", "brenda"]
         @test length(u_r[db2]) == 95
     end
-    @test u_r["seed.reaction"] == ["PFK","PGI","BIOMASS_Ecoli_core_w_GAM","RPI","TALA","TKT1","TKT2","FBP","FRUpts2"]
+    @test u_r["seed.reaction"] == [
+        "PFK",
+        "PGI",
+        "BIOMASS_Ecoli_core_w_GAM",
+        "RPI",
+        "TALA",
+        "TKT1",
+        "TKT2",
+        "FBP",
+        "FRUpts2",
+    ]
 
     #test reactions_annotation_conformity()
     Reaction_anno_confi = reactions_annotation_conformity(json_model)
     @test Reaction_anno_confi["rhea"] == ["GLNabc"]
     @test Reaction_anno_confi["ec-code"] == ["PDH"]
-    for db in ["bigg.reaction", "metanetx.reaction", "seed.reaction", "kegg.reaction", "biocyc"]
+    for db in
+        ["bigg.reaction", "metanetx.reaction", "seed.reaction", "kegg.reaction", "biocyc"]
         @test isempty(Reaction_anno_confi[db])
     end
 end

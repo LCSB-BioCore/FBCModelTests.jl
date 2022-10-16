@@ -14,19 +14,34 @@ Checks for the presence of reaction annotations.
 Returns a vector of all reactions without any annotations.
 """
 function all_unannotated_reactions(model::MetabolicModel)
-    return [reaction_id for reaction_id in reactions(model) if isempty(reaction_annotations(model, reaction_id))]
+    return [
+        reaction_id for
+        reaction_id in reactions(model) if isempty(reaction_annotations(model, reaction_id))
+    ]
 end
 
 """
 $(TYPEDSIGNATURES)
 
 Iterates through a model's reactions to check if any common biochemical databases appear in the annotations field.
-Returns a dictionary with the biochemical database names being checked for as keywords 
+Returns a dictionary with the biochemical database names being checked for as keywords
 and the corresponding value being a vector of all reactions missing that database name.
 """
-function unannotated_reactions(model::MetabolicModel, annotation_keywords = ["rhea", "kegg.reaction", 
-    "seed.reaction", "metanetx.reaction", "bigg.reaction", "reactome", "ec-code", "brenda", "biocyc"])
-    missing_annos = Dict{String, Vector{String}}()
+function unannotated_reactions(
+    model::MetabolicModel,
+    annotation_keywords = [
+        "rhea",
+        "kegg.reaction",
+        "seed.reaction",
+        "metanetx.reaction",
+        "bigg.reaction",
+        "reactome",
+        "ec-code",
+        "brenda",
+        "biocyc",
+    ],
+)
+    missing_annos = Dict{String,Vector{String}}()
     for keyword in annotation_keywords
         missing_annos[keyword] = []
         for reaction_id in reactions(model)
@@ -40,34 +55,37 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Checks if the entry of the reaction which have the annotation keyword are formally correct 
-and returns a Dict with the keywords as keys and 
+Checks if the entry of the reaction which have the annotation keyword are formally correct
+and returns a Dict with the keywords as keys and
 an array of the formally incorrect reactions as values.
 """
 
 function reactions_annotation_conformity(
     model::MetabolicModel;
-    REACTION_ANNOTATIONS = Dict("rhea" => r"^\d{5}$", 
-    "kegg.reaction" => r"^R\d+$",
-    "seed.reaction" => r"^rxn\d+$",
-    "metanetx.reaction" => r"^MNXR\d+$",
-    "bigg.reaction" => r"^[a-z_A-Z0-9]+$",
-    "reactome" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
-    "ec-code" => r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
-    "brenda" => r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
-    "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$"
-    )
-    
-  )
-  no_annos = Dict{String, Vector{String}}()
-  for rid in reactions(model) 
-    annos = reaction_annotations(model, rid)
-    for anno_kw in keys(REACTION_ANNOTATIONS)
-      if haskey(annos, anno_kw) == true 
-        !in(anno_kw, keys(no_annos)) && (no_annos[anno_kw] = [])
-        in.(nothing, Ref(match.(REACTION_ANNOTATIONS[anno_kw], annos[anno_kw]))) && push!(no_annos[anno_kw], rid)
-      end  
+    REACTION_ANNOTATIONS = Dict(
+        "rhea" => r"^\d{5}$",
+        "kegg.reaction" => r"^R\d+$",
+        "seed.reaction" => r"^rxn\d+$",
+        "metanetx.reaction" => r"^MNXR\d+$",
+        "bigg.reaction" => r"^[a-z_A-Z0-9]+$",
+        "reactome" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
+        "ec-code" =>
+            r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
+        "brenda" =>
+            r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
+        "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
+    ),
+)
+    no_annos = Dict{String,Vector{String}}()
+    for rid in reactions(model)
+        annos = reaction_annotations(model, rid)
+        for anno_kw in keys(REACTION_ANNOTATIONS)
+            if haskey(annos, anno_kw) == true
+                !in(anno_kw, keys(no_annos)) && (no_annos[anno_kw] = [])
+                in.(nothing, Ref(match.(REACTION_ANNOTATIONS[anno_kw], annos[anno_kw]))) &&
+                    push!(no_annos[anno_kw], rid)
+            end
+        end
     end
-  end
-  return no_annos
+    return no_annos
 end
