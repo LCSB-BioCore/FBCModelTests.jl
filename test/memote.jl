@@ -92,7 +92,7 @@ end
     end
 end
 
-@testset "Reactions Annotations" begin
+@testset "Reaction Annotations" begin
     #test all_unannotated_reactions()
     all_r = all_unannotated_reactions(model)
     @test isempty(all_r)
@@ -122,7 +122,7 @@ end
     ]
 
     #test reactions_annotation_conformity()
-    Reaction_anno_confi = reactions_annotation_conformity(json_model)
+    Reaction_anno_confi = reactions_annotation_conformity(model)
     @test Reaction_anno_confi["rhea"] == ["GLNabc"]
     @test Reaction_anno_confi["ec-code"] == ["PDH"]
     for db in
