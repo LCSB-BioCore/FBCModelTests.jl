@@ -124,6 +124,16 @@ consistency_config = ConsistencyConfig(
     Function[],
 )
 
+mutable struct NetworkConfig
+    condition_number :: Float64
+    optimizer_modifications :: Vector{Function}
+end
+
+network_config = NetworkConfig(
+    1e9,
+    Function[],
+)
+
 """
 $(TYPEDEF)
 
@@ -204,6 +214,7 @@ mutable struct MemoteConfig
     metabolite::MetaboliteConfig
     consistency::ConsistencyConfig
     biomass::BiomassConfig
+    network::NetworkConfig
 end
 
-memote_config = MemoteConfig(metabolite_config, consistency_config, biomass_config)
+memote_config = MemoteConfig(metabolite_config, consistency_config, network_config)
