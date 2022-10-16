@@ -10,7 +10,7 @@ Pages = ["frog.jl"]
 
 ```@autodocs
 Modules = [FBCModelTests]
-Pages = ["src/memote/basic.jl", "src/memote/consistency.jl", "src/memote/metabolites.jl", "src/memote/reactions.jl", "src/memote/gpr_associations.jl", "src/memote/biomass.jl", "src/memote/genes.jl"]
+Pages = ["src/memote/basic.jl", "src/memote/consistency.jl", "src/memote/metabolites.jl", "src/memote/reactions.jl", "src/memote/gpr_associations.jl", "src/memote/biomass.jl", "src/memote/network.jl", "src/memote/genes.jl"]
 
 ```
 

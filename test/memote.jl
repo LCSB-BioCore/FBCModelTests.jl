@@ -171,4 +171,8 @@ end
 
     crs = find_cycle_reactions(model, Tulip.Optimizer)
     @test "FRD7" in crs && "SUCDi" in crs
+
+    d = find_complete_medium_orphans_and_deadends(model, Tulip.Optimizer)
+    @test length(d[:consume]) == 12
+    @test length(d[:produce]) == 12
 end

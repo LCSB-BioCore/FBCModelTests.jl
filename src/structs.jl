@@ -128,12 +128,14 @@ mutable struct NetworkConfig
     condition_number :: Float64
     fva_bound :: Float64
     cycle_tol :: Float64
+    minimum_metabolite_flux :: Float64
     optimizer_modifications :: Vector{Function}
 end
 
 network_config = NetworkConfig(
     1e9,
     0.01,
+    1e-3,
     1e-3,
     Function[],
 )

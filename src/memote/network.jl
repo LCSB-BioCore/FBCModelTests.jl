@@ -93,7 +93,6 @@ in the `model` by inspecting the stoichiometric matrix.
 """
 find_deadend_metabolites(model) = _find_orphan_or_deadend_metabolites(model, consumed=false)
 
-
 """
 $(TYPEDSIGNATURES)
 
@@ -138,3 +137,45 @@ function find_cycle_reactions(model, optimizer; config = memote_config)
     end
     return cycle_reactions
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Return a dictionary mapping orphan and deadend metabolites that occur in the
+model in complete medium. Complete medium is modeled by opening all the bounday
+reactions. For each metabolite FBA is run with a temporary reaction either
+consuming or producing the metabolite in question. At minimum a flux of
+`config.network.minimum_metabolite_flux` must be attained for the metabolite to
+pass the test. 
+"""
+function find_complete_medium_orphans_and_deadends(model, optimizer; config = memote_config)
+    stdmodel = convert(StandardModel, model)
+    for rid in reactions(stdmodel)
+        change_bound!(stdmodel, rid, lower=-1000.0, upper=1000.0)
+    end
+
+    found_mets = Dict{Symbol, Vector{String}}()
+    for mid in metabolites(model)
+        for (k, v) in [(:produce, -1), (:consume, 1)]
+            temp_rid = "MEMOTE_TEMP_RXN"
+            add_reaction!(stdmodel, Reaction(temp_rid, Dict(mid => v), :forward))
+            mu = solved_objective_value(
+                flux_balance_analysis(
+                    stdmodel,
+                    optimizer;
+                    modifications = [
+                        config.network.optimizer_modifications
+                        change_objective(temp_rid)
+                    ],
+                ),
+            )
+            remove_reaction!(stdmodel, temp_rid)
+            if isnothing(mu) || mu < config.network.minimum_metabolite_flux
+                push!(get!(found_mets, k, String[]), mid)
+            end
+        end
+    end
+    return found_mets
+end
+
+
