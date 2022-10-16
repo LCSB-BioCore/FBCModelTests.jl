@@ -38,7 +38,8 @@ Matthias König ([@matthiaskoenig](https://github.com/matthiaskoenig)).
 The implementation in FBCModelTests.jl is mostly authored by
 Mirek Kratochvíl ([@exaexa](https://github.com/exaexa))
 with parts contributed by
-St Elmo Wilken ([@stelmo](https://github.com/stelmo)).
+St Elmo Wilken ([@stelmo](https://github.com/stelmo))
+and Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh)).
 
 ## Memote-style tests
 
