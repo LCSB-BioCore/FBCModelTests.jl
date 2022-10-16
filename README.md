@@ -72,7 +72,8 @@ around each reaction.
 The implementation in FBCModelTests.jl is mostly authored by
 St Elmo Wilken ([@stelmo](https://github.com/stelmo))
 with parts contributed by
-Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh)).
+Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh)) 
+and Flora Schlüter ([@Fl-Sch](https://github.com/Fl-Sch)).
 
 # Acknowledgements
 
