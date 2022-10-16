@@ -68,7 +68,7 @@ function model_biomass_molar_mass(model; config = memote_config)
         rs = metabolite_formula(model, mid)
         sum(v * to_element(k).atomic_mass for (k, v) in rs).val
     end
-    
+
     x = Dict(biomass_rxns .=> 0.0)
     for rid in biomass_rxns
         d = reaction_stoichiometry(model, rid)
