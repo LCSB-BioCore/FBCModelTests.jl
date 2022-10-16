@@ -16,7 +16,7 @@ jobs:
         version:
           - '1.6' # Oldest supported version of SBML.jl
           - '1' # This is always the latest stable release in the 1.X series
-          - 'nightly'
+          #- 'nightly' # we don't need this, let's be efficient
         os:
           - ubuntu-latest
           #- macOS-latest
