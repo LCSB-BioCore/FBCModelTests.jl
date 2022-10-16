@@ -68,7 +68,8 @@ end
     @test u_m["kegg.compound"] == ["q8h2_c"]
     @test u_m["biocyc"] == ["icit_c", "fdp_c"]
     @test u_m["hmdb"] == ["q8_c", "r5p_c", "fdp_c"]
-    for db in ["seed.compound", "inchi_key", "chebi", "metanetx.chemical", "bigg.metabolite"]
+    for db in
+        ["seed.compound", "inchi_key", "chebi", "metanetx.chemical", "bigg.metabolite"]
         @test isempty(u_m[db])
     end
     for db2 in ["pubchem.compound", "inchi", "reactome"]
@@ -78,7 +79,15 @@ end
     #test metabolite_annotation_conformity()
     c_m = metabolite_annotation_conformity(model)
     @test length(c_m) == 8
-    for db in [ "chebi", "metanetx.chemical", "inchi_key", "hmdb", "bigg.metabolite", "biocyc", "seed.compound"]
+    for db in [
+        "chebi",
+        "metanetx.chemical",
+        "inchi_key",
+        "hmdb",
+        "bigg.metabolite",
+        "biocyc",
+        "seed.compound",
+    ]
         @test isempty(c_m[db])
     end
 end

@@ -146,7 +146,10 @@ Returns a vector of all metabolites without any annotations.
 """
 
 function all_unannotated_metabolites(model::MetabolicModel)
-    return [metabolite_id for metabolite_id in metabolites(model) if isempty(metabolite_annotations(model, metabolite_id))]
+    return [
+        metabolite_id for metabolite_id in metabolites(model) if
+        isempty(metabolite_annotations(model, metabolite_id))
+    ]
 end
 
 """
@@ -157,18 +160,32 @@ Returns a dictionary with the biochemical database names being checked for as ke
 and the corresponding value being a vector of all metabolites missing that database name.
 """
 
-function unannotated_metabolites(model::MetabolicModel,
-    annotation_keywords = ["pubchem.compound", "kegg.compound", "seed.compound", "inchi_key", "inchi",
-    "chebi", "hmdb", "reactome", "metanetx.chemical", "bigg.metabolite", "biocyc"])
-   missing_annos = Dict{String, Vector{String}}()
-   for keyword in annotation_keywords
-       missing_annos[keyword] = []
-       for metabolite_id in metabolites(model)
-           metabolite_annos = metabolite_annotations(model, metabolite_id)
-           !haskey(metabolite_annos, keyword) && push!(missing_annos[keyword], metabolite_id)
-       end
-   end
-   return missing_annos
+function unannotated_metabolites(
+    model::MetabolicModel,
+    annotation_keywords = [
+        "pubchem.compound",
+        "kegg.compound",
+        "seed.compound",
+        "inchi_key",
+        "inchi",
+        "chebi",
+        "hmdb",
+        "reactome",
+        "metanetx.chemical",
+        "bigg.metabolite",
+        "biocyc",
+    ],
+)
+    missing_annos = Dict{String,Vector{String}}()
+    for keyword in annotation_keywords
+        missing_annos[keyword] = []
+        for metabolite_id in metabolites(model)
+            metabolite_annos = metabolite_annotations(model, metabolite_id)
+            !haskey(metabolite_annos, keyword) &&
+                push!(missing_annos[keyword], metabolite_id)
+        end
+    end
+    return missing_annos
 end
 
 """
@@ -183,27 +200,34 @@ with the corresponding value being an array of all metabolites whose annotations
 do not match the given regex pattern.
 """
 
-metabolites_regex = Dict("pubchem.compound" => r"^\d+$",
+metabolites_regex = Dict(
+    "pubchem.compound" => r"^\d+$",
     "kegg.compound" => r"^C\d+$",
     "seed.compound" => r"^cpd\d+$",
     "inchi_key" => r"^[A-Z]{14}\-[A-Z]{10}(\-[A-Z])?",
-    "inchi" => r"^InChI\=1S?\/[A-Za-z0-9\.]+(\+[0-9]+)?(\/[cnpqbtmsih][A-Za-z0-9\-\+\(\)\,\/\?\;\.]+)*$",
+    "inchi" =>
+        r"^InChI\=1S?\/[A-Za-z0-9\.]+(\+[0-9]+)?(\/[cnpqbtmsih][A-Za-z0-9\-\+\(\)\,\/\?\;\.]+)*$",
     "chebi" => r"^CHEBI:\d+$",
     "hmdb" => r"^HMDB\d{5}$",
     "reactome" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
     "metanetx.chemical" => r"^MNXM\d+$",
     "bigg.metabolite" => r"^[a-z_A-Z0-9]+$",
-    "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$")
+    "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
+)
 
 
-function metabolite_annotation_conformity(model::MetabolicModel, annotation_standards = metabolites_regex)
-    nonconform_annos = Dict{String, Vector{String}}()
+function metabolite_annotation_conformity(
+    model::MetabolicModel,
+    annotation_standards = metabolites_regex,
+)
+    nonconform_annos = Dict{String,Vector{String}}()
     for metabolite_id in metabolites(model)
         metabolite_annos = metabolite_annotations(model, metabolite_id)
         for key in keys(annotation_standards)
             if haskey(metabolite_annos, key) == true
                 !in(key, keys(nonconform_annos)) && (nonconform_annos[key] = [])
-                in.(nothing, Ref(match.(metabolites_regex[key],  metabolite_annos[key]))) && push!(nonconform_annos[key], metabolite_id)
+                in.(nothing, Ref(match.(metabolites_regex[key], metabolite_annos[key]))) &&
+                    push!(nonconform_annos[key], metabolite_id)
             end
         end
     end
