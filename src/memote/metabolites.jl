@@ -153,12 +153,12 @@ end
 
 $(TYPEDSIGNATURES)
 Iterates through a model's metabolites to check if any common biochemical databases appear in the annotations field.
-Returns a dictionary with the biochemical database names being checked for as keywords 
+Returns a dictionary with the biochemical database names being checked for as keywords
 and the corresponding value being a vector of all metabolites missing that database name.
 """
 
 function unannotated_metabolites(model::MetabolicModel,
-    annotation_keywords = ["pubchem.compound", "kegg.compound", "seed.compound", "inchi_key", "inchi", 
+    annotation_keywords = ["pubchem.compound", "kegg.compound", "seed.compound", "inchi_key", "inchi",
     "chebi", "hmdb", "reactome", "metanetx.chemical", "bigg.metabolite", "biocyc"])
    missing_annos = Dict{String, Vector{String}}()
    for keyword in annotation_keywords
@@ -175,10 +175,10 @@ end
 $(TYPEDSIGNATURES)
 
 Metabolite Annotation Conformity Per Database
-Uses the following regex dictionary to check if the annotations conform to patterns 
+Uses the following regex dictionary to check if the annotations conform to patterns
 defined according to the MIRIAM guidelines,
 i.e. matching those that are defined at https://identifiers.org/.
-Returns a dictionary with a key for every database that has annotations 
+Returns a dictionary with a key for every database that has annotations
 with the corresponding value being an array of all metabolites whose annotations
 do not match the given regex pattern.
 """
@@ -194,7 +194,7 @@ metabolites_regex = Dict("pubchem.compound" => r"^\d+$",
     "metanetx.chemical" => r"^MNXM\d+$",
     "bigg.metabolite" => r"^[a-z_A-Z0-9]+$",
     "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$")
-    
+
 
 function metabolite_annotation_conformity(model::MetabolicModel, annotation_standards = metabolites_regex)
     nonconform_annos = Dict{String, Vector{String}}()
