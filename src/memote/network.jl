@@ -43,9 +43,10 @@ function find_all_universally_blocked_reactions(model, optimizer; config = memot
         bounds = objective_bounds(config.network.fva_bound),
         modifications = config.network.optimizer_modifications,
     )
-    return [rid for rid=reactions(stdmodel)
-             if isapprox(abs(mins[rid][rid]), 0.0)
-             && isapprox(abs(maxs[rid][rid]), 0.0)]
+    return [
+        rid for rid = reactions(stdmodel) if
+        isapprox(abs(mins[rid][rid]), 0.0) && isapprox(abs(maxs[rid][rid]), 0.0)
+    ]
 end
 
 """
