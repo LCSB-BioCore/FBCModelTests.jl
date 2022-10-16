@@ -5,12 +5,15 @@ testing. Nat Biotechnol 38, 272–276 (2020).
 https://doi.org/10.1038/s41587-020-0446-y for details.
 =#
 
+#ToDo: change all instances of ::MetabolicModel to ::AbstractMetabolicModel once COBREXA 2.0 releases
+
+
 """
 $(TYPEDSIGNATURES)
 
 Checks if every gene has an annotation and returns an array of genes which do not have annotatons.
 """
-function all_unannotated_genes(model::StandardModel)
+function all_unannotated_genes(model::MetabolicModel)
     [gid for gid in genes(model) if isempty(gene_annotations(model, gid))]
 end
 
