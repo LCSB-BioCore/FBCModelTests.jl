@@ -153,5 +153,5 @@ end
 
     @test length(gene_anno_confi["ncbigi"]) == 136
 
-    
+
 end
