@@ -177,3 +177,21 @@ end
     @test length(d[:consume]) == 12
     @test length(d[:produce]) == 12
 end
+
+@testset "Reactions" begin
+    ident_grrs = reactions_with_identical_genes(model)
+    @test length(ident_grrs) == 11
+    @test issetequal(ident_grrs[["b1602", "b1603"]], ["NADTRHD", "THD2"])
+
+    met_rxns = find_all_purely_metabolic_reactions(model)
+    @test length(met_rxns) == 51
+    @test count(values(met_rxns)) == 1
+
+    trans_rxns = find_all_transport_reactions(model)
+    @test length(trans_rxns) == 23
+    @test  count(values(find_all_transport_reactions(model))) == 0
+
+    @test length(reactions_with_partially_identical_annotations(model)) == 14
+
+    @test issetequal(duplicate_reactions(model), ["FRD7", "SUCDi"])
+end
