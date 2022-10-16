@@ -11,7 +11,8 @@ $(TYPEDSIGNATURES)
 Return the ratio of the absolute maximum and minimum value of the nonzero
 coefficients in the stoichiometric matrix of `model`.
 """
-stoichiometric_max_min_ratio(model) = /(reverse(extrema(abs, x for x in stoichiometry(model) if x != 0.0))...)
+stoichiometric_max_min_ratio(model) =
+    /(reverse(extrema(abs, x for x in stoichiometry(model) if x != 0.0))...)
 
 """
 $(TYPEDSIGNATURES)
@@ -19,7 +20,8 @@ $(TYPEDSIGNATURES)
 Test if the stoichiometric matrix is well conditioned by determining if
 [`stoichiometric_max_min_value`](@ref) is less than 10⁹ (which can be set in `config.network.condition_number`).
 """
-stoichiometric_matrix_is_well_conditioned(model; config = memote_config) = stoichiometric_max_min_ratio(model) < config.network.condition_number
+stoichiometric_matrix_is_well_conditioned(model; config = memote_config) =
+    stoichiometric_max_min_ratio(model) < config.network.condition_number
 
 """
 $(TYPEDSIGNATURES)
@@ -32,18 +34,20 @@ function find_all_universally_blocked_reactions(model, optimizer; config = memot
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         if is_boundary(stdmodel, rid)
-            change_bound!(stdmodel, rid, lower=-1000, upper=1000)
+            change_bound!(stdmodel, rid, lower = -1000, upper = 1000)
         end
     end
     mins, maxs = flux_variability_analysis_dict(
-        stdmodel, 
+        stdmodel,
         optimizer;
         bounds = objective_bounds(config.network.fva_bound),
-        modifications = config.network.optimizer_modifications
+        modifications = config.network.optimizer_modifications,
     )
     blocked_rids = String[]
     for rid in reactions(stdmodel)
-        isapprox(abs(mins[rid][rid]), 0.0) && isapprox(abs(maxs[rid][rid]), 0.0) && push!(blocked_rids, rid)
+        isapprox(abs(mins[rid][rid]), 0.0) &&
+            isapprox(abs(maxs[rid][rid]), 0.0) &&
+            push!(blocked_rids, rid)
     end
     return blocked_rids
 end
@@ -56,7 +60,7 @@ to consider orphan metabolites or `false` to consider deadend metabolites. Set
 `complete_medium=true` to open all boundary reactions to simulate a complete
 medium.
 """
-function _find_orphan_or_deadend_metabolites(model; consumed=true)
+function _find_orphan_or_deadend_metabolites(model; consumed = true)
     mids = metabolites(model)
     mets = String[]
     S = stoichiometry(model)
@@ -83,7 +87,7 @@ $(TYPEDSIGNATURES)
 Find all metabolites that can only (excludes reversible reactions) be consumed
 in the `model` by inspecting the stoichiometric matrix.
 """
-find_orphan_metabolites(model) = _find_orphan_or_deadend_metabolites(model, consumed=true)
+find_orphan_metabolites(model) = _find_orphan_or_deadend_metabolites(model, consumed = true)
 
 """
 $(TYPEDSIGNATURES)
@@ -91,7 +95,8 @@ $(TYPEDSIGNATURES)
 Find all metabolites that can only (excludes reversible reactions) be produced
 in the `model` by inspecting the stoichiometric matrix.
 """
-find_deadend_metabolites(model) = _find_orphan_or_deadend_metabolites(model, consumed=false)
+find_deadend_metabolites(model) =
+    _find_orphan_or_deadend_metabolites(model, consumed = false)
 
 """
 $(TYPEDSIGNATURES)
@@ -103,7 +108,7 @@ function find_cycle_reactions(model, optimizer; config = memote_config)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         if is_boundary(stdmodel, rid)
-            change_bound!(stdmodel, rid, lower=0, upper=0)
+            change_bound!(stdmodel, rid, lower = 0, upper = 0)
         else # remove fixed constraints
             if stdmodel.reactions[rid].lb < 0
                 stdmodel.reactions[rid].lb = -1000.0
@@ -128,8 +133,8 @@ function find_cycle_reactions(model, optimizer; config = memote_config)
                         config.network.optimizer_modifications
                         change_objective(rid)
                         change_sense(sense)
-                    ]
-                )
+                    ],
+                ),
             )
             isnothing(mu) && continue
             abs(mu) > config.network.cycle_tol && (push!(cycle_reactions, rid); break)
@@ -146,15 +151,15 @@ model in complete medium. Complete medium is modeled by opening all the bounday
 reactions. For each metabolite FBA is run with a temporary reaction either
 consuming or producing the metabolite in question. At minimum a flux of
 `config.network.minimum_metabolite_flux` must be attained for the metabolite to
-pass the test. 
+pass the test.
 """
 function find_complete_medium_orphans_and_deadends(model, optimizer; config = memote_config)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
-        change_bound!(stdmodel, rid, lower=-1000.0, upper=1000.0)
+        change_bound!(stdmodel, rid, lower = -1000.0, upper = 1000.0)
     end
 
-    found_mets = Dict{Symbol, Vector{String}}()
+    found_mets = Dict{Symbol,Vector{String}}()
     for mid in metabolites(model)
         for (k, v) in [(:produce, -1), (:consume, 1)]
             temp_rid = "MEMOTE_TEMP_RXN"
@@ -177,5 +182,3 @@ function find_complete_medium_orphans_and_deadends(model, optimizer; config = me
     end
     return found_mets
 end
-
-
