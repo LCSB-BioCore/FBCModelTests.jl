@@ -125,9 +125,9 @@ end
     Reaction_anno_confi = reactions_annotation_conformity(model)
     @test Reaction_anno_confi["rhea"] == ["GLNabc"]
     @test Reaction_anno_confi["ec-code"] == ["PDH"]
-    for db in
+    for db3 in
         ["bigg.reaction", "metanetx.reaction", "seed.reaction", "kegg.reaction", "biocyc"]
-        @test isempty(Reaction_anno_confi[db])
+        @test isempty(Reaction_anno_confi[db3])
     end
 end
 
