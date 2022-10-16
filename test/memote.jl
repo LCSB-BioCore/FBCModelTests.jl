@@ -153,5 +153,22 @@ end
 
     @test length(gene_anno_confi["ncbigi"]) == 136
 
+end
 
+@testset "Network" begin
+    @test stoichiometric_matrix_is_well_conditioned(model)
+
+    @test isempty(find_all_universally_blocked_reactions(model, Tulip.Optimizer))
+    wrong_model = convert(StandardModel, model)
+    change_bound!(wrong_model, "MDH"; lower = 0.0, upper = 0.0)
+    @test first(find_all_universally_blocked_reactions(wrong_model, Tulip.Optimizer)) == "MDH"
+
+    @test isempty(find_orphan_metabolites(model)) 
+    @test length(find_orphan_metabolites(iJN746)) == 40
+
+    @test isempty(find_deadend_metabolites(model))
+    @test length(find_deadend_metabolites(iJN746)) == 51
+
+    crs = find_cycle_reactions(model, Tulip.Optimizer)
+    @test "FRD7" in crs && "SUCDi" in crs
 end
