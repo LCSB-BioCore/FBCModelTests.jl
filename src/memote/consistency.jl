@@ -296,7 +296,6 @@ function model_is_consistent(model, optimizer; config = memote_config)
     termination_status(opt_model) == OPTIMAL
 end
 
-<< << << < HEAD:src/memote/consistency.jl
 """
 $(TYPEDSIGNATURES)
 
