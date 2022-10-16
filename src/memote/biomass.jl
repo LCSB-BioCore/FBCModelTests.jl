@@ -46,9 +46,9 @@ function atp_present_in_biomass(model; config = memote_config)
         d = reaction_stoichiometry(model, rid)
         for (m1, m2) in config.biomass.growth_metabolites
             if m1 in ["atp", "h2o"] # must consume
-                !haskey(d, m2) && !(d[m2] < 0) && (x[rid] = false)
+                x[rid] &= get(d, m2, Inf) <= 0 # thanks mirek!
             else # must produce
-                !haskey(d, m2) && !(d[m2] > 0) && (x[rid] = false)
+                x[rid] &= get(d, m2, -Inf) >= 0
             end
         end
     end
@@ -64,20 +64,18 @@ associated metabolite coefficients with their molar masses.
 """
 function model_biomass_molar_mass(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
-    to_symbol(x::String) =
-        length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
     get_molar_mass(mid) = begin
         rs = metabolite_formula(model, mid)
-        sum(v * elements[to_symbol(k)].atomic_mass for (k, v) in rs).val
+        sum(v * to_element(k).atomic_mass for (k, v) in rs).val
     end
-
+    
     x = Dict(biomass_rxns .=> 0.0)
     for rid in biomass_rxns
         d = reaction_stoichiometry(model, rid)
         x[rid] += sum(v * get_molar_mass(k) for (k, v) in d)
     end
     for (k, v) in x
-        x[k] *= -1 / 1000.0
+        x[k] /= -1000.0
     end
     return x
 end
