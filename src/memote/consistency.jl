@@ -233,8 +233,8 @@ function model_has_no_erroneous_energy_generating_cycles(
             _model,
             optimizer;
             modifications = [
-                # config.consistency.optimizer_modifications
-                change_objective(objective_ids),
+                config.consistency.optimizer_modifications
+                change_objective(objective_ids)
             ],
         ),
     )

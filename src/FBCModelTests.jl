@@ -13,6 +13,7 @@ using MD5
 using SBML
 using SHA
 using Test
+using PeriodicTable
 
 include("version.jl")
 include("common.jl")
@@ -23,6 +24,7 @@ include(joinpath("memote", "reactions.jl"))
 include(joinpath("memote", "basic.jl"))
 include(joinpath("memote", "consistency.jl"))
 include(joinpath("memote", "gpr_associations.jl"))
+include(joinpath("memote", "biomass.jl"))
 
 # export everything that isn't prefixed with _ (inspired by JuMP.jl, thanks!)
 for sym in names(@__MODULE__, all = true)

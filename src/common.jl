@@ -101,3 +101,14 @@ function _probably_transport_reaction(model, rid, test_annotation)
 
     return false
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Return the chemical element of `x`.
+"""
+to_element(x::String) = begin
+    sym =
+        length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
+    elements[sym]
+end
