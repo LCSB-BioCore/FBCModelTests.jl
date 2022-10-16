@@ -92,6 +92,34 @@ end
     end
 end
 
+@testset "Reactions Annotations" begin
+    #test all_unannotated_reactions()
+    all_r = all_unannotated_reactions(model)
+    @test isempty(all_r)
+
+    #test unannotated_reactions()
+    u_r = unannotated_reactions(model)
+    @test length(u_r["biocyc"]) == 27
+    @test length(u_r["rhea"]) == 33
+    @test length(u_r["kegg.reaction"]) == 53
+    @test length(u_r["ec-code"]) == 44
+    for db in ["metanetx.reaction", "bigg.reaction"]
+        @test isempty(u_r[db])
+    end
+    for db2 in ["reactome", "brenda"]
+        @test length(u_r[db2]) == 95
+    end
+    @test u_r["seed.reaction"] == ["PFK","PGI","BIOMASS_Ecoli_core_w_GAM","RPI","TALA","TKT1","TKT2","FBP","FRUpts2"]
+
+    #test reactions_annotation_conformity()
+    Reaction_anno_confi = reactions_annotation_conformity(json_model)
+    @test Reaction_anno_confi["rhea"] == ["GLNabc"]
+    @test Reaction_anno_confi["ec-code"] == ["PDH"]
+    for db in ["bigg.reaction", "metanetx.reaction", "seed.reaction", "kegg.reaction", "biocyc"]
+        @test isempty(Reaction_anno_confi[db])
+    end
+end
+
 @testset "Basic" begin
     # these tests are too basic to split out into multiple subtests
     test_basic(model)
