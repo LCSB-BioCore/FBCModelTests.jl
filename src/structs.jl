@@ -124,6 +124,16 @@ consistency_config = ConsistencyConfig(
     Function[],
 )
 
+mutable struct NetworkConfig
+    condition_number::Float64
+    fva_bound::Float64
+    cycle_tol::Float64
+    minimum_metabolite_flux::Float64
+    optimizer_modifications::Vector{Function}
+end
+
+network_config = NetworkConfig(1e9, 0.01, 1e-3, 1e-3, Function[])
+
 """
 $(TYPEDEF)
 
@@ -204,6 +214,8 @@ mutable struct MemoteConfig
     metabolite::MetaboliteConfig
     consistency::ConsistencyConfig
     biomass::BiomassConfig
+    network::NetworkConfig
 end
 
-memote_config = MemoteConfig(metabolite_config, consistency_config, biomass_config)
+memote_config =
+    MemoteConfig(metabolite_config, consistency_config, biomass_config, network_config)
