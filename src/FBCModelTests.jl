@@ -25,6 +25,7 @@ include(joinpath("memote", "basic.jl"))
 include(joinpath("memote", "consistency.jl"))
 include(joinpath("memote", "gpr_associations.jl"))
 include(joinpath("memote", "biomass.jl"))
+include(joinpath("memote", "genes.jl"))
 
 # export everything that isn't prefixed with _ (inspired by JuMP.jl, thanks!)
 for sym in names(@__MODULE__, all = true)
