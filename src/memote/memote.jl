@@ -46,7 +46,8 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "GPR associations" begin
-            
+            @test length(reactions_without_gpr(model)) != n_reactions(model)
+            @test length(reactions_with_complexes(model)) != 0
         end
 
         @testset "Consistency" begin
@@ -61,7 +62,11 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Biomass" begin
-            
+            @test !isempty(model_biomass_reactions(model; config))
+            @test model_has_atpm_reaction(model; config)
+            @test all(values(atp_present_in_biomass(model; config)))
+            @test model_biomass_is_consistent(model; config)
+            @test model_solves_in_default_medium(model, optimizer; config)
         end
 
         @testset "Energy metabolism" begin
@@ -92,14 +97,32 @@ function generate_memote_report(model, optimizer; config = memote_config)
     result = Dict()
 
     # Basic information
+    result[""] = Dict(
+     "number_reactions" => n_reactions(model),
+     "number_metabolites" => n_metabolites(model),
+     "number_genes" => n_genes(model),
+     "metabolic_coverage" => model_metabolic_coverage(model),
+     "compartments" => model_compartments(model),
+    )
 
     # Reaction annotations
+    result[""] = Dict(
+        
+    )
 
     # Metabolite annotations
+    result[""] = Dict(
+        
+    )
 
     # Gene annotations
+    result[""] = Dict(
+        
+    )
 
     # SBO term annotations
+    result[""] = Dict(
+    )
 
     # Reaction information
     uncon_met, con_met = find_all_purely_metabolic_reactions(model; config)
@@ -112,7 +135,7 @@ function generate_memote_report(model, optimizer; config = memote_config)
         "reactions_identical_genes" => reactions_with_identical_genes(model),
         "duplicated_reactions" => duplicate_reactions(model),
         "reactions_partially_identical_annotations" => reactions_with_partially_identical_annotations(model; config),
-        
+
     )
 
     # Metabolite information
@@ -122,6 +145,11 @@ function generate_memote_report(model, optimizer; config = memote_config)
     )
 
     # Gene protein reaction associations
+    result["gpr_associations"] = Dict(
+        "reactions_no_gpr" => reactions_without_gpr(model),
+        "reactions_with_complexes" => reactions_with_complexes(model),
+        "transporters_without_gpr" => reactions_transport_no_gpr(model; config),
+    )
 
     # Consistency
     result["consistency"] = Dict(
@@ -130,12 +158,27 @@ function generate_memote_report(model, optimizer; config = memote_config)
     )
 
     # Biomass
+    result["biomass"] = Dict(
+        "biomas_reactions" => model_biomass_reactions(model; config),
+        "biomass_molar_masses" => model_biomass_molar_mass(model; config),
+        "blocked_biomass_precursors" => find_blocked_biomass_precursors(model, optimizer; config),
+        "missing_essential_precursors_in_biomass_reaction" => biomass_missing_essential_precursors(model; config),
+    )
 
     # Energy metabolism
+    result[""] = Dict(
+        
+    )
 
     # Network topology
+    result[""] = Dict(
+        
+    )
 
     # Matrix conditioning
+    result[""] = Dict(
+        
+    )
 
     return result
 end
