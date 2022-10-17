@@ -35,7 +35,7 @@ function run_tests(model, optimizer; config = memote_config)
                 frac_conform =
                     1 -
                     reduce(
-                        max,
+                        min,
                         length.(
                             values(find_nonconformal_reaction_annotations(model; config))
                         ),
