@@ -40,7 +40,9 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Metabolite information" begin
-            
+            @test isempty(metabolites_no_formula(model; config))
+            @test isempty(metabolites_no_charge(model; config))
+            @test isempty(metabolites_duplicated_in_compartment(model; config))
         end
 
         @testset "GPR associations" begin
@@ -87,6 +89,8 @@ Generate a report of model characteristics that are typically important measures
 of the scope of the model.
 """
 function generate_memote_report(model, optimizer; config = memote_config)
+    result = Dict()
+
     # Basic information
 
     # Reaction annotations
@@ -100,12 +104,18 @@ function generate_memote_report(model, optimizer; config = memote_config)
     # Reaction information
 
     # Metabolite information
+    result["metabolite_information"] = Dict(
+        "number_unique_metablites" => metabolites_unique(model; config),
+        "metabolite_only_imported" => metabolites_medium_components(model; config),
+    )
 
     # Gene protein reaction associations
 
     # Consistency
-    reactions_mass_unbalanced(model; config)
-    reactions_charge_unbalanced(model; config)
+    result["consistency"] = Dict(
+        "mass_unbalanced_reactions" => reactions_mass_unbalanced(model; config),
+        "charge_unbalanced_reactions" => reactions_charge_unbalanced(model; config),
+    )
 
     # Biomass
 
@@ -114,4 +124,6 @@ function generate_memote_report(model, optimizer; config = memote_config)
     # Network topology
 
     # Matrix conditioning
+
+    return result
 end

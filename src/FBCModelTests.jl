@@ -16,6 +16,8 @@ using Test
 using PeriodicTable
 using SparseArrays
 
+#TODO: change all instances of ::MetabolicModel to ::AbstractMetabolicModel once COBREXA 2.0 releases
+
 include("version.jl")
 include("common.jl")
 include("structs.jl")

@@ -10,7 +10,7 @@ $(TYPEDSIGNATURES)
 
 Return a list of all boundary reactions that allow flux into the model and
 create a metabolite. Assume that boundary reactions only create a single
-metabolite. Use the testing config, `default.metabolite.only_imported =
+metabolite. Use the testing config, `config.metabolite.only_imported =
 false`, to also return metabolites that can be produced by the model under
 default conditions.
 """
@@ -115,28 +115,6 @@ function metabolites_duplicated_in_compartment(model; config = memote_config)
     end
     return unique_metabolites
 end
-
-"""
-$(TYPEDSIGNATURES)
-
-Test if the metabolites contained in the `model`:
-1. are not duplicated, tested with [`metabolites_duplicated_in_compartment`](@ref)
-2. all have a formula and charge associated with them, tested with [`metabolites_no_formula`](ref) and [`metabolites_no_charge`](@ref)
-3. the default medium of the cell is not empty, tested with [`metabolites_medium_components`](ref).
-
-Each of the basic functions can be run independently. THe kwargs are forwarded as indicated by the prefix.
-"""
-function test_metabolites(model; config = memote_config)
-    @testset "Metabolite Information" begin
-        @test isempty(metabolites_duplicated_in_compartment(model; config))
-        @test isempty(metabolites_no_formula(model; config))
-        @test isempty(metabolites_no_charge(model; config))
-        @test !isempty(metabolites_medium_components(model; config))
-    end
-end
-
-
-#TODO: change all instances of ::MetabolicModel to ::AbstractMetabolicModel once COBREXA 2.0 releases
 
 """
 $(TYPEDSIGNATURES)
