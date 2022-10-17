@@ -11,7 +11,7 @@ $(TYPEDSIGNATURES)
 Checks if every gene has an annotation and returns an array of genes that do not
 have annotatons.
 """
-all_unannotated_genes(model::MetabolicModel) = [gid for gid in genes(model) if isempty(gene_annotations(model, gid))]
+find_all_unannotated_genes(model::MetabolicModel) = [gid for gid in genes(model) if isempty(gene_annotations(model, gid))]
 
 """
 $(TYPEDSIGNATURES)
@@ -19,7 +19,7 @@ $(TYPEDSIGNATURES)
 Checks if every metabolite has an annotation and returns an array of metabolites
 that do not have annotatons.
 """
-all_unannotated_metabolites(model::MetabolicModel) = [mid for mid in metabolites(model) if isempty(metabolite_annotations(model, mid))]
+find_all_unannotated_metabolites(model::MetabolicModel) = [mid for mid in metabolites(model) if isempty(metabolite_annotations(model, mid))]
 
 """
 $(TYPEDSIGNATURES)
@@ -27,7 +27,7 @@ $(TYPEDSIGNATURES)
 Checks if every reaction has an annotation and returns an array of reactions
 that do not have annotatons.
 """
-all_unannotated_reactions(model::MetabolicModel) = [rid for rid in reactions(model) if isempty(reaction_annotations(model, rid))]
+find_all_unannotated_reactions(model::MetabolicModel) = [rid for rid in reactions(model) if isempty(reaction_annotations(model, rid))]
 
 """
 $(TYPEDSIGNATURES)
@@ -49,29 +49,31 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Checks if the `config.annotation.gene_annotation_keywords` are present in the
-gene annotations. Returns a dictionary of annotation keywords mapped to a list
-of genes that do not include the keyword.
+Checks if the databases listed in `config.annotation.gene_annotation_keywords`
+are present in the gene annotations. Returns a dictionary of annotation keywords
+mapped to a list of genes that do not include the keyword.
 """
-find_unannotated_genes(model; config = memote_config) = _find_unannotated_components(model, genes, gene_annotations, config.annotation.gene_annotation_keywords)
+find_database_unannotated_genes(model; config = memote_config) = _find_unannotated_components(model, genes, gene_annotations, config.annotation.gene_annotation_keywords)
 
 """
 $(TYPEDSIGNATURES)
 
-Checks if the `config.annotation.metabolite_annotation_keywords` are present in
-the metabolite annotations. Returns a dictionary of annotation keywords mapped
-to a list of metabolites that do not include the keyword.
+Checks if the databases listed in
+`config.annotation.metabolite_annotation_keywords` are present in the metabolite
+annotations. Returns a dictionary of annotation keywords mapped to a list of
+metabolites that do not include the keyword.
 """
-find_unannotated_metabolites(model; config = memote_config) = _find_unannotated_components(model, metabolites, metabolite_annotations, config.annotation.metabolite_annotation_keywords)
+find_database_unannotated_metabolites(model; config = memote_config) = _find_unannotated_components(model, metabolites, metabolite_annotations, config.annotation.metabolite_annotation_keywords)
 
 """
 $(TYPEDSIGNATURES)
 
-Checks if the `config.annotation.reaction_annotation_keywords` are present in
-the reaction annotations. Returns a dictionary of annotation keywords mapped to
-a list of reactions that do not include the keyword.
+Checks if the databases listed in
+`config.annotation.reaction_annotation_keywords` are present in the reaction
+annotations. Returns a dictionary of annotation keywords mapped to a list of
+reactions that do not include the keyword.
 """
-find_unannotated_metabolites(model; config = memote_config) = _find_unannotated_components(model, reactions, reaction_annotations, config.annotation.reaction_annotation_keywords)
+find_database_unannotated_reactions(model; config = memote_config) = _find_unannotated_components(model, reactions, reaction_annotations, config.annotation.reaction_annotation_keywords)
 
 """
 $(TYPEDSIGNATURES)
@@ -103,7 +105,7 @@ annotation database using regex patterns. Uses the database formats listed in
 `config.annotation.gene_annotation_regexes` to test the conformity. Returns a
 dictionary mapping the database id to a list of genes that do not conform.
 """
-find_nonconformal_genes(model; config = memote_config) = _find_nonconformal_components(model, genes, gene_annotation, config.annotation.gene_annotation_regexes)
+find_nonconformal_gene_annotations(model; config = memote_config) = _find_nonconformal_components(model, genes, gene_annotations, config.annotation.gene_annotation_regexes)
 
 """
 $(TYPEDSIGNATURES)
@@ -114,7 +116,7 @@ of annotation database using regex patterns. Uses the database formats listed in
 Returns a dictionary mapping the database id to a list of metabolites that do
 not conform.
 """
-find_nonconformal_metabolites(model; config = memote_config) = _find_nonconformal_components(model, genes, gene_annotation, config.annotation.metabolite_annotation_regexes)
+find_nonconformal_metabolite_annotations(model; config = memote_config) = _find_nonconformal_components(model, genes, gene_annotations, config.annotation.metabolite_annotation_regexes)
 
 """
 $(TYPEDSIGNATURES)
@@ -124,4 +126,4 @@ of annotation database using regex patterns. Uses the database formats listed in
 `config.annotation.reaction_annotation_regexes` to test the conformity. Returns
 a dictionary mapping the database id to a list of reactions that do not conform.
 """
-find_nonconformal_reactions(model; config = memote_config) = _find_nonconformal_components(model, reactions, reaction_annotation, config.annotation.reaction_annotation_regexes)
+find_nonconformal_reaction_annotations(model; config = memote_config) = _find_nonconformal_components(model, reactions, reaction_annotations, config.annotation.reaction_annotation_regexes)
