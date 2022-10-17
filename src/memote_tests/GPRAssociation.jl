@@ -1,4 +1,10 @@
-module GPRAssociations
+module GPRAssociation
+
+using ..DocStringExtensions
+using ..ModuleTools
+using ..COBREXA
+import ..Config.memote_config
+import ..Utils: _has_sensible_gpr, _probably_transport_reaction
 
 """
 $(TYPEDSIGNATURES)
@@ -20,5 +26,7 @@ reactions_transport_no_gpr(model; config = memote_config) = [
     rid for rid in reactions(model) if !_has_sensible_gpr(model, rid) &&
     _probably_transport_reaction(model, rid, config.metabolite.test_annotation)
 ]
+
+@export_locals
 
 end # module

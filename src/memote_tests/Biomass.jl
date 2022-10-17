@@ -1,8 +1,14 @@
+"""
+$(TYPEDEF)
+
+This module contains tests that check the consistency of the biomass reaction.
+"""
 module Biomass
 
 using ..DocStringExtensions
+using ..ModuleTools
 using ..COBREXA
-import ..FBCModelTests.memote_config
+import ..Config.memote_config
 
 """
 $(TYPEDSIGNATURES)
@@ -17,18 +23,6 @@ model_biomass_reactions(model; config = memote_config) = Set(
         find_biomass_reaction_ids(model; biomass_strings = config.biomass.biomass_strings)
     ],
 )
-
-"""
-$(TYPEDSIGNATURES)
-
-Check if model has an ATP maintenance reaction built in (also called a
-non-growth associated maintenance cost). Looks for reaction annotations
-corresponding to the sbo maintenance term, or looks for reaction ids that
-contain the strings listed in `config.biomass.atpm_strings`.
-"""
-model_has_atpm_reaction(model; config = memote_config) =
-    any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) ||
-    any(any(occursin.(config.biomass.atpm_strings, Ref(rid))) for rid in reactions(model))
 
 """
 $(TYPEDSIGNATURES)
@@ -91,25 +85,6 @@ model_biomass_is_consistent(model; config = memote_config) =
 """
 $(TYPEDSIGNATURES)
 
-Check if the model can be solved under default conditions and yield a reasonable
-growth rate. Here reasonable is set via `config.biomass.minimum_growth_rate` and
-`config.biomass.maximum_growth_rate`. Optionally, pass optimization
-modifications to the solver through `config.biomass.optimizer_modifications`.
-"""
-function model_solves_in_default_medium(model, optimizer; config = memote_config)
-    mu = solved_objective_value(
-        flux_balance_analysis(
-            model,
-            optimizer;
-            modifications = config.biomass.optimizer_modifications,
-        ),
-    )
-    config.biomass.minimum_growth_rate < mu < config.biomass.maximum_growth_rate
-end
-
-"""
-$(TYPEDSIGNATURES)
-
 Check if the model can synthesize all of the biomass precursors in all of the
 biomass functions, except those listed in `config.biomass.ignored_precursors` in
 the default medium. Set any optimizer modifications with
@@ -168,5 +143,7 @@ function biomass_missing_essential_precursors(model; config = memote_config)
     end
     return num_missing_essential_precursors
 end
+
+@export_locals
 
 end # module

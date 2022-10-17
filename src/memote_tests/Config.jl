@@ -5,6 +5,10 @@ Module housing the configuration parameters for the memote-style tests.
 """
 module Config
 
+using ..DocStringExtensions
+using ..COBREXA
+using ..ModuleTools
+
 """
 $(TYPEDEF)
 
@@ -22,7 +26,7 @@ mutable struct AnnotationConfig
     minimum_fraction_database_annotations::Float64
 end
 
-annotations_config = AnnotationConfig(
+annotation_config = AnnotationConfig(
     [
         "kegg.genes",
         "refseq",
@@ -112,9 +116,17 @@ $(TYPEDFIELDS)
 """
 mutable struct BasicConfig
     minimum_metabolic_coverage::Float64
+    minimum_growth_rate::Float64
+    maximum_growth_rate::Float64
+    optimizer_modifications::Vector{Function}
 end
 
-basic_config = BasicConfig(0.1)
+basic_config = BasicConfig(
+    0.1,
+    0.01,
+    5.0,
+    Function[],
+)
 
 """
 $(TYPEDEF)
@@ -126,10 +138,7 @@ $(TYPEDFIELDS)
 """
 mutable struct BiomassConfig
     biomass_strings::Vector{String}
-    atpm_strings::Vector{String}
     growth_metabolites::Dict{String,String}
-    minimum_growth_rate::Float64
-    maximum_growth_rate::Float64
     ignored_precursors::Vector{String}
     essential_precursors::Dict{String,String}
     optimizer_modifications::Vector{Function}
@@ -137,10 +146,7 @@ end
 
 biomass_config = BiomassConfig(
     ["BIOMASS", "biomass", "Biomass"],
-    ["ATPM", "Maintenance", "maintenance"],
     Dict("atp" => "atp_c", "adp" => "adp_c", "h2o" => "h2o_c", "pi" => "pi_c"),
-    0.01,
-    5.0,
     ["atp_c", "h2o_c"],
     Dict(
         "trp__L" => "trp__L_c",
@@ -211,6 +217,7 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 mutable struct EnergyConfig
+    atpm_strings::Vector{String}
     energy_dissipating_metabolites::Dict{String,String}
     additional_energy_generating_reactions::Vector{Reaction}
     ignored_energy_reactions::Vector{String}
@@ -218,6 +225,7 @@ mutable struct EnergyConfig
 end
 
 energy_config = EnergyConfig(
+    ["ATPM", "Maintenance", "maintenance"],
     Dict(
         "ATP" => "atp_c",
         "CTP" => "ctp_c",
@@ -269,7 +277,7 @@ mutable struct GPRAssociationConfig
     test_annotation :: String
 end
 
-gpr_config = GPRAssociationConfig("inchi_key")
+gpra_config = GPRAssociationConfig("inchi_key")
 
 """
 $(TYPEDEF)
@@ -340,14 +348,16 @@ end
 
 memote_config = MemoteConfig(
     annotation_config,
-    biomass_config,
     basic_config,
+    biomass_config,
     consistency_config,
     energy_config,
-    gpr_config,
+    gpra_config,
     metabolite_config,
     network_config,
     reaction_config,
 )
+
+@export_locals
 
 end # module

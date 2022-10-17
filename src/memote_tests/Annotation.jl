@@ -1,8 +1,15 @@
-module Annotations
+"""
+$(TYPEDEF)
+
+This module contains tests used to check the coverage and conformance of
+reaction, gene, and metabolite annotations.
+"""
+module Annotation
 
 using ..COBREXA
+using ..ModuleTools
 using ..DocStringExtensions
-import ..FBCModelTests.memote_config
+import ..Config.memote_config
 
 """
 $(TYPEDSIGNATURES)
@@ -10,7 +17,7 @@ $(TYPEDSIGNATURES)
 Checks if every gene has an annotation and returns an array of genes that do not
 have annotatons.
 """
-find_all_unannotated_genes(model::MetabolicModel) =
+find_all_unannotated_genes(model) =
     [gid for gid in genes(model) if isempty(gene_annotations(model, gid))]
 
 """
@@ -19,7 +26,7 @@ $(TYPEDSIGNATURES)
 Checks if every metabolite has an annotation and returns an array of metabolites
 that do not have annotatons.
 """
-find_all_unannotated_metabolites(model::MetabolicModel) =
+find_all_unannotated_metabolites(model) =
     [mid for mid in metabolites(model) if isempty(metabolite_annotations(model, mid))]
 
 """
@@ -28,7 +35,7 @@ $(TYPEDSIGNATURES)
 Checks if every reaction has an annotation and returns an array of reactions
 that do not have annotatons.
 """
-find_all_unannotated_reactions(model::MetabolicModel) =
+find_all_unannotated_reactions(model) =
     [rid for rid in reactions(model) if isempty(reaction_annotations(model, rid))]
 
 """
@@ -37,7 +44,7 @@ $(TYPEDSIGNATURES)
 Helper function to find all the unannotated components in the model.
 """
 function _find_unannotated_components(
-    model::MetabolicModel,
+    model,
     id_accessor,
     annotation_accessor,
     annotation_kws,
@@ -106,7 +113,7 @@ $(TYPEDSIGNATURES)
 Helper function to find all the annotations that do not conform in the model.
 """
 function _find_nonconformal_components(
-    model::MetabolicModel,
+    model,
     id_accessor,
     annotation_accessor,
     annotation_regex,
@@ -173,5 +180,7 @@ find_nonconformal_reaction_annotations(model; config = memote_config) =
         reaction_annotations,
         config.annotation.reaction_annotation_regexes,
     )
+
+@export_locals
 
 end # module

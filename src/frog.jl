@@ -1,3 +1,27 @@
+"""
+# FROG
+
+Main entry point into FROG analysis.
+"""
+module FROG
+
+import Distributed
+import InteractiveUtils
+using DelimitedFiles
+using JSON
+using MD5
+using SBML
+using SHA
+
+using ..Test
+using ..ModuleTools
+using ..JuMP
+using ..COBREXA
+using ..DocStringExtensions
+using ..Utils
+
+include(joinpath("FROGTypes.jl"))
+using .FROGTypes
 
 #TODO any other kinds of suboptimal solutions?
 objstatus(::Nothing) = "infeasible"
@@ -430,3 +454,7 @@ function frog_compare_reports(report_dir_a::String, report_dir_b::String)
         end
     end
 end
+
+@export_locals
+
+end # module

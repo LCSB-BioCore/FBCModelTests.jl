@@ -1,3 +1,15 @@
+"""
+# Utils
+
+Miscellaneous functions, not typically user facing.
+"""
+module Utils
+
+using ..DocStringExtensions
+using ..ModuleTools
+using ..COBREXA
+using ..Test
+using PeriodicTable
 
 const Maybe{T} = Union{Nothing,T}
 
@@ -112,3 +124,7 @@ to_element(x::String) = begin
         length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
     elements[sym]
 end
+
+@export_locals
+
+end # module

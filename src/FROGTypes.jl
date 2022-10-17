@@ -1,4 +1,15 @@
 """
+# FROGTypes
+
+Helper structs used by FROG.
+"""
+module FROGTypes
+
+using ..ModuleTools
+using ..Utils
+using ..DocStringExtensions
+
+"""
 $(TYPEDEF)
 """
 const ObjectiveValue = Maybe{Float64}
@@ -37,3 +48,7 @@ end
 $(TYPEDEF)
 """
 const FROGReportData = Dict{String,FROGObjectiveReport}
+
+@export_locals
+
+end # module

@@ -6,8 +6,9 @@ Basic metabolic model tests.
 module Basic
 
 using ..DocStringExtensions
+using ..ModuleTools
 using ..COBREXA
-import ..FBCModelTests.memote_config
+import ..Config.memote_config
 
 """
 $(TYPEDSIGNATURES)
@@ -73,5 +74,26 @@ Test if the metabolic coverage, calculated with
 """
 model_metabolic_coverage_exceeds_minimum(model; config = memote_config) =
     model_metabolic_coverage(model) > config.basic.minimum_metabolic_coverage
+
+"""
+$(TYPEDSIGNATURES)
+
+Check if the model can be solved under default conditions and yield a reasonable
+growth rate. Here reasonable is set via `config.basic.minimum_growth_rate` and
+`config.basic.maximum_growth_rate`. Optionally, pass optimization
+modifications to the solver through `config.basic.optimizer_modifications`.
+"""
+function model_solves_in_default_medium(model, optimizer; config = memote_config)
+    mu = solved_objective_value(
+        flux_balance_analysis(
+            model,
+            optimizer;
+            modifications = config.biomass.optimizer_modifications,
+        ),
+    )
+    config.basic.minimum_growth_rate < mu < config.basic.maximum_growth_rate
+end
+
+@export_locals
 
 end

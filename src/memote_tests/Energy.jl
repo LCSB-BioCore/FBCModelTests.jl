@@ -1,4 +1,27 @@
+"""
+$(TYPEDEF)
+
+This module checks if the model is energetically sensible.
+"""
 module Energy
+
+using ..DocStringExtensions
+using ..ModuleTools
+using ..COBREXA
+using .. JuMP
+import ..Config.memote_config
+
+"""
+$(TYPEDSIGNATURES)
+
+Check if model has an ATP maintenance reaction built in (also called a
+non-growth associated maintenance cost). Looks for reaction annotations
+corresponding to the sbo maintenance term, or looks for reaction ids that
+contain the strings listed in `config.energy.atpm_strings`.
+"""
+model_has_atpm_reaction(model; config = memote_config) =
+    any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) ||
+    any(any(occursin.(config.energy.atpm_strings, Ref(rid))) for rid in reactions(model))
 
 """
 $(TYPEDSIGNATURES)
@@ -31,22 +54,22 @@ L-Glutamate + H2O --> 2-Oxoglutarate + Ammonium + 2 H
 H[external] --> H
 ```
 Additional energy dissipating reactions can be directly specified through
-`config.consistency.additional_energy_generating_reactions`, which should be
+`config.energy.additional_energy_generating_reactions`, which should be
 vector of COBREXA `Reaction`s using the same metabolite name space as the
 `model`. Internally, the `model` is converted to a COBREXA `StandardModel`, so
 ensure that the appropriate accessors are defined for it.
 
 Since models use different name spaces,
-`config.consistency.energy_dissipating_metabolites` is used to create the
+`config.energy.energy_dissipating_metabolites` is used to create the
 energy dissipating reactions. By default it uses the BiGG name space, but this
 will be changed to ChEBI in due course. If your model uses a different name
 space, then you have to change the values (NOT the keys) of
-`config.consistency.energy_dissipating_metabolites`. Each energy dissipating
+`config.energy.energy_dissipating_metabolites`. Each energy dissipating
 reaction is added to the test only if all its associated metabolites are
-present. Any `config.consistency.optimizer_modifications` to the solver are
+present. Any `config.energy.optimizer_modifications` to the solver are
 passed directly through to COBREXA's `flux_balance_analysis` function. All
-`config.consistency.boundary_reactions` and
-`config.consistency.ignored_energy_reactions` are deleted from an internal
+`config.energy.boundary_reactions` and
+`config.energy.ignored_energy_reactions` are deleted from an internal
 copy of `model`; this internal copy is used for analysis.
 
 Returns `true` if the model has no energy generating cycles.
@@ -172,5 +195,7 @@ function model_has_no_erroneous_energy_generating_cycles(
     # if objective is approximately 0 then no energy generating cycles present
     isapprox(objval, 0; atol = 1e-6)
 end
+
+@export_locals
 
 end # module

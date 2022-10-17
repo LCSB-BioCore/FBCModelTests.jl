@@ -1,11 +1,22 @@
+"""
+$(TYPEDEF)
+
+This module checks if the metabolic model is overall consistent.
+"""
 module Consistency
+
+using ..DocStringExtensions
+using ..ModuleTools
+using ..COBREXA
+using ..JuMP
+import ..Config.memote_config
 
 """
 $(TYPEDSIGNATURES)
 
 Iterates through all the reactions in `model` and checks if the charges across
 each reaction balance. Returns a list of reaction IDs that are charge
-unbalanced, which is empty if the test passes.
+unbalanced.
 
 Optionally, use `config.consistency.mass_ignored_reactions` to pass a vector
 of reaction ids to ignore in this process. Internally biomass and exchang
@@ -16,10 +27,11 @@ function reactions_charge_unbalanced(model; config = memote_config)
     ignored_reactions = [
         find_biomass_reaction_ids(model)
         find_exchange_reaction_ids(model)
+        config.consistency.mass_ignored_reactions
     ]
 
     for rid in reactions(model)
-        rid in [ignored_reactions; config.consistency.mass_ignored_reactions] && continue
+        rid in ignored_reactions && continue
         _rbal = 0
         for (mid, stoich) in reaction_stoichiometry(model, rid)
             try
@@ -39,8 +51,7 @@ end
 $(TYPEDSIGNATURES)
 
 Iterates through all the reactions in `model` and checks if the mass across each
-reaction balances. Returns a list of reaction IDs that are mass unbalanced,
-which is empty if the test passes.
+reaction balances. Returns a list of reaction IDs that are mass unbalanced.
 
 Optionally, use `config.consistency.charge_ignored_reactions` to pass a vector
 of reaction ids to ignore in this process. Internally biomass and exchang
@@ -51,10 +62,11 @@ function reactions_mass_unbalanced(model; config = memote_config)
     ignored_reactions = [
         find_biomass_reaction_ids(model)
         find_exchange_reaction_ids(model)
+        config.consistency.charge_ignored_reactions
     ]
 
     for rid in reactions(model)
-        rid in [ignored_reactions; config.consistency.charge_ignored_reactions] && continue
+        rid in ignored_reactions && continue
         try
             _rbal = reaction_atom_balance(model, rid)
             all(values(_rbal) .== 0) || push!(unbalanced_rxns, rid)
@@ -118,4 +130,6 @@ function model_is_consistent(model, optimizer; config = memote_config)
     termination_status(opt_model) == OPTIMAL
 end
 
-end
+@export_locals
+
+end # module

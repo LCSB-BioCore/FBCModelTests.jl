@@ -1,45 +1,30 @@
+#=
+This package contains a collection of tests based on Memote. See Lieven, C., Beber,
+M.E., Olivier, B.G. et al. MEMOTE for standardized genome-scale metabolic model
+testing. Nat Biotechnol 38, 272–276 (2020).
+https://doi.org/10.1038/s41587-020-0446-y for details.
+=#
 """
 # FBCModelTests v$(FBCModelTests.FBCMT_VERSION)
+
+This package allows you to generate a FROG report, as well as run MeMoTe-style
+tests on a constraint-based metabolic model.
 """
 module FBCModelTests
 
-import Distributed
-import InteractiveUtils
 import Pkg
-
 using COBREXA
 using JuMP
-using DelimitedFiles
 using DocStringExtensions
-using JSON
-using MD5
-using SBML
-using SHA
 using Test
-using PeriodicTable
 using SparseArrays
 
+include("modules.jl")
 include("version.jl")
-include("common.jl")
-include("structs.jl")
-include("frog.jl")
-include("memote_config.jl")
-include(joinpath("memote", "Basic.jl"))
-# include(joinpath("memote", "metabolites.jl"))
-# include(joinpath("memote", "reactions.jl"))
-# include(joinpath("memote", "gpr_associations.jl"))
-# include(joinpath("memote", "consistency.jl"))
-# include(joinpath("memote", "biomass.jl"))
-# include(joinpath("memote", "network.jl"))
-# include(joinpath("memote", "annotations.jl"))
-# include(joinpath("memote", "memote.jl")) #  the test harness
+include("Utils.jl")
+include("FROG.jl")
+include("Memote.jl")
 
-# export everything that isn't prefixed with _ (inspired by JuMP.jl, thanks!)
-for sym in names(@__MODULE__, all = true)
-    if sym in [Symbol(@__MODULE__), :eval, :include] || startswith(string(sym), ['_', '#'])
-        continue
-    end
-    @eval export $sym
-end
+export FROG, Memote
 
 end

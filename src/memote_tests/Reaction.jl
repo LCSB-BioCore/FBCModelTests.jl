@@ -1,3 +1,10 @@
+module Reaction
+
+using ..DocStringExtensions
+using ..ModuleTools
+using ..COBREXA
+import ..Config.memote_config
+
 """
 $(TYPEDSIGNATURES)
 
@@ -114,3 +121,7 @@ function reactions_with_identical_genes(model)
     end
     return filter(x -> length(x.second) > 1, grr_rids)
 end
+
+@export_locals
+
+end # module
