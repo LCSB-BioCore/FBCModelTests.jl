@@ -225,8 +225,8 @@ mutable struct AnnotationConfig
     metabolite_annotation_regexes :: Dict{String, Regex}
     reaction_annotation_keywords :: Vector{String}
     reaction_annotation_regexes :: Dict{String, Regex}
-    minimum_fraction_conformity :: Float64
-    minimum_fraction_annotated :: Float64
+    minimum_fraction_database_conformity :: Float64
+    minimum_fraction_database_annotations :: Float64
 end
 
 annotation_config = AnnotationConfig(

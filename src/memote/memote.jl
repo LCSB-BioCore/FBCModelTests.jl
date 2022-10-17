@@ -18,20 +18,37 @@ function run_tests(model, optimizer; config = memote_config)
             @test model_metabolic_coverage_exceeds_minimum(model; config)
             @test model_has_compartments(model)
         end
+        
+        @testset "Annotations" begin
+            @testset "Reaction annotations" begin
+                @test isempty(find_all_unannotated_reactions(model))
+                
+                frac_annotated = 1 - reduce(min, length.(values(find_database_unannotated_reactions(model; config))))/n_reactions(model)
+                @test config.annotation.minimum_fraction_database_annotations < frac_annotated
 
-        @testset "Reaction annotations" begin
-        end
+                frac_conform =  1 - reduce(max, length.(values(find_nonconformal_reaction_annotations(model; config))))/n_reactions(model)
+                @test config.annotation.minimum_fraction_database_conformity < frac_conform
+            end
 
-        @testset "Metabolite annotations" begin
+            @testset "Metabolite annotations" begin
+                @test isempty(find_all_unannotated_metabolites(model))
 
-        end
+                frac_annotated = 1 - reduce(min, length.(values(find_database_unannotated_metabolites(model; config))))/n_metabolites(model)
+                @test config.annotation.minimum_fraction_database_annotations < frac_annotated
 
-        @testset "Gene annotations" begin
-            @test isempty(all_unannotated_genes(model))
-            frac_annotated = (1 - reduce(min, length.(values(unannotated_genes(model; config))))/n_genes(model))
-            @test config.annotation.minimum_fraction_annotated < frac_annotated
-            frac_conform =  reduce(max, length.(values(gene_annotation_conformity(model; config))))/n_genes(model)
-            @test config.annotation.minimum_fraction_conformity < frac_conform
+                frac_conform = 1 - reduce(min, length.(values(find_nonconformal_metabolite_annotations(model; config))))/n_metabolites(model)
+                @test config.annotation.minimum_fraction_database_conformity < frac_conform
+            end
+
+            @testset "Gene annotations" begin
+                @test isempty(find_all_unannotated_genes(model))
+
+                frac_annotated = 1 - reduce(min, length.(values(find_database_unannotated_genes(model; config))))/n_genes(model)
+                @test config.annotation.minimum_fraction_database_annotations < frac_annotated
+
+                frac_conform = 1 - reduce(min, length.(values(find_nonconformal_gene_annotations(model; config))))/n_genes(model)
+                @test config.annotation.minimum_fraction_database_conformity < frac_conform
+            end
         end
 
         @testset "Reaction information" begin
@@ -107,21 +124,24 @@ function generate_memote_report(model, optimizer; config = memote_config)
     )
 
     # Reaction annotations
-    result["reaction_annotations"] = Dict( # TODO once #33 gets merged
+    result["reaction_annotations"] = Dict(
+        "all_unannotated" => find_all_unannotated_reactions(model),
+        "missing_databases" => find_database_unannotated_reactions(model; config),
+        "conformity" => find_nonconformal_reaction_annotations(model; config),
     )
 
     # Metabolite annotations
     result["metabolite_annotations"] = Dict(
-        "all_unannotated_metabolites" => all_unannotated_genes(model),
-        "metabolitess_missing_annotations" => unannotated_metabolites(model; config),
-        "metabolite_conformity" => metabolite_annotation_conformity(model; config),
+        "all_unannotated" => find_all_unannotated_metabolites(model),
+        "missing_databases" => find_database_unannotated_metabolites(model; config),
+        "conformity" => find_nonconformal_metabolite_annotations(model; config),
     )
 
     # Gene annotations
     result["gene_annotations"] = Dict(
-        "all_unannotated_genes" => all_unannotated_genes(model),
-        "genes_missing_annotations" => unannotated_genes(model; config),
-        "gene_conformity" => gene_annotation_conformity(model; config),
+        "all_unannotated" => find_all_unannotated_genes(model),
+        "missing_databases" => find_database_unannotated_genes(model; config),
+        "conformity" => find_nonconformal_gene_annotations(model; config)
     )
 
     # Reaction information
