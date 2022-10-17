@@ -1,3 +1,6 @@
+"""
+# FBCModelTests v$(FBCModelTests.FBCMT_VERSION)
+"""
 module FBCModelTests
 
 import Distributed
@@ -20,15 +23,16 @@ include("version.jl")
 include("common.jl")
 include("structs.jl")
 include("frog.jl")
-include(joinpath("memote", "basic.jl"))
-include(joinpath("memote", "metabolites.jl"))
-include(joinpath("memote", "reactions.jl"))
-include(joinpath("memote", "gpr_associations.jl"))
-include(joinpath("memote", "consistency.jl"))
-include(joinpath("memote", "biomass.jl"))
-include(joinpath("memote", "network.jl"))
-include(joinpath("memote", "annotations.jl"))
-include(joinpath("memote", "memote.jl")) #  the test harness
+include("memote_config.jl")
+include(joinpath("memote", "Basic.jl"))
+# include(joinpath("memote", "metabolites.jl"))
+# include(joinpath("memote", "reactions.jl"))
+# include(joinpath("memote", "gpr_associations.jl"))
+# include(joinpath("memote", "consistency.jl"))
+# include(joinpath("memote", "biomass.jl"))
+# include(joinpath("memote", "network.jl"))
+# include(joinpath("memote", "annotations.jl"))
+# include(joinpath("memote", "memote.jl")) #  the test harness
 
 # export everything that isn't prefixed with _ (inspired by JuMP.jl, thanks!)
 for sym in names(@__MODULE__, all = true)

@@ -1,3 +1,5 @@
+module GPRAssociations
+
 """
 $(TYPEDSIGNATURES)
 
@@ -18,3 +20,5 @@ reactions_transport_no_gpr(model; config = memote_config) = [
     rid for rid in reactions(model) if !_has_sensible_gpr(model, rid) &&
     _probably_transport_reaction(model, rid, config.metabolite.test_annotation)
 ]
+
+end # module

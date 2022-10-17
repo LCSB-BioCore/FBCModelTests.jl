@@ -1,3 +1,9 @@
+module Annotations
+
+using ..COBREXA
+using ..DocStringExtensions
+import ..FBCModelTests.memote_config
+
 """
 $(TYPEDSIGNATURES)
 
@@ -167,3 +173,5 @@ find_nonconformal_reaction_annotations(model; config = memote_config) =
         reaction_annotations,
         config.annotation.reaction_annotation_regexes,
     )
+
+end # module

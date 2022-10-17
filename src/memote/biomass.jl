@@ -1,3 +1,9 @@
+module Biomass
+
+using ..DocStringExtensions
+using ..COBREXA
+import ..FBCModelTests.memote_config
+
 """
 $(TYPEDSIGNATURES)
 
@@ -162,3 +168,5 @@ function biomass_missing_essential_precursors(model; config = memote_config)
     end
     return num_missing_essential_precursors
 end
+
+end # module
