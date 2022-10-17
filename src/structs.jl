@@ -202,6 +202,14 @@ biomass_config = BiomassConfig(
     Function[],
 )
 
+mutable struct ReactionConfig
+    test_annotation::String
+    ignore_annotations::Vector{String}
+    bound_default::Float64
+end
+
+reaction_config = ReactionConfig("inchi_key", ["sbo", "ec-code"], 1000.0)
+
 """
 $(TYPEDEF)
 
@@ -215,7 +223,13 @@ mutable struct MemoteConfig
     consistency::ConsistencyConfig
     biomass::BiomassConfig
     network::NetworkConfig
+    reaction::ReactionConfig
 end
 
-memote_config =
-    MemoteConfig(metabolite_config, consistency_config, biomass_config, network_config)
+memote_config = MemoteConfig(
+    metabolite_config,
+    consistency_config,
+    biomass_config,
+    network_config,
+    reaction_config,
+)
