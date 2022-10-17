@@ -15,43 +15,55 @@ _is_constrained(lb, ub, default) = lb ∉ [-default, 0, default] || ub ∉ [-def
 """
 $(TYPEDSIGNATURES)
 
-Find all purely metabolic reactions and indicate which are constrained beyond
-directionality (if value of dictionary is true, then constrained). For a
-constraint to be not purely directional, the lower or upper bound needs to be
-different from `[-config.reactions.bound_default, 0,
-config.reactions.bound_default]`. Metabolic reactions exclude transport,
-boundary and biomass reactions.
+Find all purely metabolic reactions and return two sets, one with unconstrained
+metabolic reactions (directional constraints do not count as constraints in this
+sense), and one with constrained metabolic reactions. For a constraint to be not
+purely directional, the lower or upper bound needs to be different from
+`[-config.reactions.bound_default, 0, config.reactions.bound_default]`.
+Metabolic reactions exclude transport, boundary and biomass reactions.
 """
 function find_all_purely_metabolic_reactions(model; config = memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
-    metabolic_reactions = Dict{String, Bool}()
+    metabolic_reactions_constrained = Set{String}()
+    metabolic_reactions_unconstrained = Set{String}()
     for (lb, ub, rid) in zip(bounds(model)..., reactions(model))
         is_boundary(model, rid) && continue
         rid in biomass_rxns && continue
         _probably_transport_reaction(model, rid, config.reaction.test_annotation) && continue
-        metabolic_reactions[rid] = _is_constrained(lb, ub, config.reaction.bound_default)
+        if _is_constrained(lb, ub, config.reaction.bound_default)
+            push!(metabolic_reactions_constrained, rid)       
+        else
+            push!(metabolic_reactions_unconstrained, rid)
+        end
     end
-    return metabolic_reactions
+    return metabolic_reactions_unconstrained, metabolic_reactions_constrained
 end
 
 """
 $(TYPEDSIGNATURES)
 
-Find all transport reactions and indicate which are constrained beyond
-directionality. For a constraint to be not purely directional, the lower or
-upper bound needs to be different from `[-config.reactions.bound_default, 0,
-config.reactions.bound_default]`. Transport reactions are heuristically
-identified, see [`!_probably_transport_reaction`](@ref), which partially uses
-reaction annotations. Set the annotation field to use via
+Find all transport reactions and and return two sets, one with unconstrained
+transport reactions (directional constraints do not count as constraints in this
+sense), and one with constrained transport reactions. For a constraint to be not
+purely directional, the lower or upper bound needs to be different from
+`[-config.reactions.bound_default, 0, config.reactions.bound_default]`.
+Transport reactions are heuristically identified, see
+[`!_probably_transport_reaction`](@ref), which partially uses reaction
+annotations. Set the annotation field to use via
 `config.reactions.rest_annotation`. 
 """
 function find_all_transport_reactions(model; config = memote_config)
-    transport_reactions = Dict{String, Bool}()
+    transport_unconstrained = Set{String}()
+    transport_constrained = Set{String}()
     for (lb, ub, rid) in zip(bounds(model)..., reactions(model))
         !_probably_transport_reaction(model, rid, config.reaction.test_annotation) && continue
-        transport_reactions[rid] = _is_constrained(lb, ub, config.reaction.bound_default)
+        if _is_constrained(lb, ub, config.reaction.bound_default)
+            push!(transport_constrained, rid)
+        else
+            push!(transport_unconstrained, rid)
+        end
     end
-    return transport_reactions
+    return transport_unconstrained, transport_constrained
 end
 
 """
@@ -98,21 +110,11 @@ directionality or compartments into account.
 """
 function reactions_with_identical_genes(model)
     grr_rids = Dict{Vector{String}, Set{String}}()
-    rids = reactions(model)
-    for rid1 in rids
-        !_has_sensible_gpr(model, rid1) && continue
-        grrs1 = reaction_gene_association(model, rid1)
-        for rid2 in rids
-            rid1 == rid2 && continue
-            !_has_sensible_gpr(model, rid2) && continue
-            grrs2 = reaction_gene_association(model, rid2)
-            
-            for grr1 in grrs1
-                for grr2 in grrs2
-                    issetequal(grr1, grr2) && push!(get!(grr_rids, sort(grr1), Set{Vector{String}}()), rid1)
-                end
-            end
-        end 
+    for rid in reactions(model)
+        !_has_sensible_gpr(model, rid) && continue
+        for grr in reaction_gene_association(model, rid)
+            push!(get!(grr_rids, sort(grr), Set{Vector{String}}()), rid)
+        end
     end
-    return grr_rids
+    return filter(x -> length(x.second) > 1, grr_rids)
 end

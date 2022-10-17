@@ -183,13 +183,13 @@ end
     @test length(ident_grrs) == 11
     @test issetequal(ident_grrs[["b1602", "b1603"]], ["NADTRHD", "THD2"])
 
-    met_rxns = find_all_purely_metabolic_reactions(model)
-    @test length(met_rxns) == 51
-    @test count(values(met_rxns)) == 1
+    metabolic_reactions_unconstrained, metabolic_reactions_constrained = find_all_purely_metabolic_reactions(model)
+    @test length(metabolic_reactions_unconstrained) == 50
+    @test length(metabolic_reactions_constrained) == 1
 
-    trans_rxns = find_all_transport_reactions(model)
-    @test length(trans_rxns) == 23
-    @test  count(values(find_all_transport_reactions(model))) == 0
+    transport_unconstrained, transport_constrained = find_all_transport_reactions(model)
+    @test length(transport_unconstrained) == 23
+    @test  length(transport_constrained) == 0
 
     @test length(reactions_with_partially_identical_annotations(model)) == 14
 
