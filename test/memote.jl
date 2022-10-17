@@ -3,7 +3,7 @@
     @test model_has_metabolites(model)
     @test model_has_reactions(model)
     @test model_has_genes(model)
-    @test model_metabolic_coverage(model) > 0.1
+    @test model_metabolic_coverage_exceeds_minimum(model)
     @test length(model_compartments(model)) == 2
     @test model_has_compartments(model) 
 end
