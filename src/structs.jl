@@ -226,5 +226,10 @@ mutable struct MemoteConfig
     reaction::ReactionConfig
 end
 
-memote_config =
-    MemoteConfig(metabolite_config, consistency_config, biomass_config, network_config, reaction_config)
+memote_config = MemoteConfig(
+    metabolite_config,
+    consistency_config,
+    biomass_config,
+    network_config,
+    reaction_config,
+)
