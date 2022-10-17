@@ -23,4 +23,5 @@ model_compartments(model) =
 
 model_has_compartments(model) = length(model_compartments(model)) > 0
 
-model_metabolic_coverage_exceeds_minimum(model; config = memote_config) = model_metabolic_coverage(model) > config.basic.minimum_metabolic_coverage
+model_metabolic_coverage_exceeds_minimum(model; config = memote_config) =
+    model_metabolic_coverage(model) > config.basic.minimum_metabolic_coverage

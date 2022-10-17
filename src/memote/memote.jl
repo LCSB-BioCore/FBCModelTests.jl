@@ -9,7 +9,7 @@ Note, for best results, make sure the model can be converted into a
 """
 function run_tests(model, optimizer; config = memote_config)
     @testset "Metabolic model tests" begin
-        
+
         @testset "Basic information" begin
             @test model_has_name(model)
             @test model_has_reactions(model)
@@ -18,35 +18,74 @@ function run_tests(model, optimizer; config = memote_config)
             @test model_metabolic_coverage_exceeds_minimum(model; config)
             @test model_has_compartments(model)
         end
-        
+
         @testset "Annotations" begin
             @testset "Reaction annotations" begin
                 @test isempty(find_all_unannotated_reactions(model))
-                
-                frac_annotated = 1 - reduce(min, length.(values(find_database_unannotated_reactions(model; config))))/n_reactions(model)
-                @test config.annotation.minimum_fraction_database_annotations < frac_annotated
 
-                frac_conform =  1 - reduce(max, length.(values(find_nonconformal_reaction_annotations(model; config))))/n_reactions(model)
+                frac_annotated =
+                    1 -
+                    reduce(
+                        min,
+                        length.(values(find_database_unannotated_reactions(model; config))),
+                    ) / n_reactions(model)
+                @test config.annotation.minimum_fraction_database_annotations <
+                      frac_annotated
+
+                frac_conform =
+                    1 -
+                    reduce(
+                        max,
+                        length.(
+                            values(find_nonconformal_reaction_annotations(model; config))
+                        ),
+                    ) / n_reactions(model)
                 @test config.annotation.minimum_fraction_database_conformity < frac_conform
             end
 
             @testset "Metabolite annotations" begin
                 @test isempty(find_all_unannotated_metabolites(model))
 
-                frac_annotated = 1 - reduce(min, length.(values(find_database_unannotated_metabolites(model; config))))/n_metabolites(model)
-                @test config.annotation.minimum_fraction_database_annotations < frac_annotated
+                frac_annotated =
+                    1 -
+                    reduce(
+                        min,
+                        length.(
+                            values(find_database_unannotated_metabolites(model; config))
+                        ),
+                    ) / n_metabolites(model)
+                @test config.annotation.minimum_fraction_database_annotations <
+                      frac_annotated
 
-                frac_conform = 1 - reduce(min, length.(values(find_nonconformal_metabolite_annotations(model; config))))/n_metabolites(model)
+                frac_conform =
+                    1 -
+                    reduce(
+                        min,
+                        length.(
+                            values(find_nonconformal_metabolite_annotations(model; config))
+                        ),
+                    ) / n_metabolites(model)
                 @test config.annotation.minimum_fraction_database_conformity < frac_conform
             end
 
             @testset "Gene annotations" begin
                 @test isempty(find_all_unannotated_genes(model))
 
-                frac_annotated = 1 - reduce(min, length.(values(find_database_unannotated_genes(model; config))))/n_genes(model)
-                @test config.annotation.minimum_fraction_database_annotations < frac_annotated
+                frac_annotated =
+                    1 -
+                    reduce(
+                        min,
+                        length.(values(find_database_unannotated_genes(model; config))),
+                    ) / n_genes(model)
+                @test config.annotation.minimum_fraction_database_annotations <
+                      frac_annotated
 
-                frac_conform = 1 - reduce(min, length.(values(find_nonconformal_gene_annotations(model; config))))/n_genes(model)
+                frac_conform =
+                    1 -
+                    reduce(
+                        min,
+                        length.(values(find_nonconformal_gene_annotations(model; config))),
+                    ) / n_genes(model)
                 @test config.annotation.minimum_fraction_database_conformity < frac_conform
             end
         end
@@ -69,7 +108,7 @@ function run_tests(model, optimizer; config = memote_config)
         @testset "Consistency" begin
             @testset "Mass and charge balances" begin
                 @test isempty(reactions_charge_unbalanced(model; config))
-                @test isempty(reactions_mass_unbalanced(model; config)) 
+                @test isempty(reactions_mass_unbalanced(model; config))
             end
 
             @testset "Stoichiometric consistency" begin
@@ -87,7 +126,11 @@ function run_tests(model, optimizer; config = memote_config)
 
         @testset "Energy metabolism" begin
             @testset "Erroneous energy cycles" begin
-                @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; config)
+                @test model_has_no_erroneous_energy_generating_cycles(
+                    model,
+                    optimizer;
+                    config,
+                )
             end
         end
 
@@ -95,11 +138,13 @@ function run_tests(model, optimizer; config = memote_config)
             @test isempty(find_all_universally_blocked_reactions(model, optimizer; config))
             @test isempty(find_orphan_metabolites(model))
             @test isempty(find_deadend_metabolites(model))
-            @test isempty(find_complete_medium_orphans_and_deadends(model, optimizer; config))
+            @test isempty(
+                find_complete_medium_orphans_and_deadends(model, optimizer; config),
+            )
         end
 
         @testset "Matrix conditioning" begin
-            @test stoichiometric_matrix_is_well_conditioned(model; config) 
+            @test stoichiometric_matrix_is_well_conditioned(model; config)
         end
 
     end
@@ -116,11 +161,11 @@ function generate_memote_report(model, optimizer; config = memote_config)
 
     # Basic information
     result["basic"] = Dict(
-     "number_reactions" => n_reactions(model),
-     "number_metabolites" => n_metabolites(model),
-     "number_genes" => n_genes(model),
-     "metabolic_coverage" => model_metabolic_coverage(model),
-     "compartments" => model_compartments(model),
+        "number_reactions" => n_reactions(model),
+        "number_metabolites" => n_metabolites(model),
+        "number_genes" => n_genes(model),
+        "metabolic_coverage" => model_metabolic_coverage(model),
+        "compartments" => model_compartments(model),
     )
 
     # Reaction annotations
@@ -141,7 +186,7 @@ function generate_memote_report(model, optimizer; config = memote_config)
     result["gene_annotations"] = Dict(
         "all_unannotated" => find_all_unannotated_genes(model),
         "missing_databases" => find_database_unannotated_genes(model; config),
-        "conformity" => find_nonconformal_gene_annotations(model; config)
+        "conformity" => find_nonconformal_gene_annotations(model; config),
     )
 
     # Reaction information
@@ -154,8 +199,8 @@ function generate_memote_report(model, optimizer; config = memote_config)
         "constrained_transporters" => con_trans,
         "reactions_identical_genes" => reactions_with_identical_genes(model),
         "duplicated_reactions" => duplicate_reactions(model),
-        "reactions_partially_identical_annotations" => reactions_with_partially_identical_annotations(model; config),
-
+        "reactions_partially_identical_annotations" =>
+            reactions_with_partially_identical_annotations(model; config),
     )
 
     # Metabolite information
@@ -181,23 +226,27 @@ function generate_memote_report(model, optimizer; config = memote_config)
     result["biomass"] = Dict(
         "biomas_reactions" => model_biomass_reactions(model; config),
         "biomass_molar_masses" => model_biomass_molar_mass(model; config),
-        "blocked_biomass_precursors" => find_blocked_biomass_precursors(model, optimizer; config),
-        "missing_essential_precursors_in_biomass_reaction" => biomass_missing_essential_precursors(model; config),
+        "blocked_biomass_precursors" =>
+            find_blocked_biomass_precursors(model, optimizer; config),
+        "missing_essential_precursors_in_biomass_reaction" =>
+            biomass_missing_essential_precursors(model; config),
     )
 
     # Network topology
     result["network_topology"] = Dict(
-        "universally_blocked_reactions" => find_all_universally_blocked_reactions(model, optimizer; config),
+        "universally_blocked_reactions" =>
+            find_all_universally_blocked_reactions(model, optimizer; config),
         "orphan_metabolites" => find_orphan_metabolites(model),
         "deadend_metabolites" => find_deadend_metabolites(model),
-        "reaction_in_stoichiometrically_balanced_cycles" => find_cycle_reactions(model, optimizer; config),
-        "metabolites_consumed_produced_complete_medium" => find_complete_medium_orphans_and_deadends(model, optimizer; config),
+        "reaction_in_stoichiometrically_balanced_cycles" =>
+            find_cycle_reactions(model, optimizer; config),
+        "metabolites_consumed_produced_complete_medium" =>
+            find_complete_medium_orphans_and_deadends(model, optimizer; config),
     )
 
     # Matrix conditioning
-    result["conditioning"] = Dict(
-        "stoichiometric_matrix_conditioning" => stoichiometric_max_min_ratio(model),
-    )
+    result["conditioning"] =
+        Dict("stoichiometric_matrix_conditioning" => stoichiometric_max_min_ratio(model))
 
     return result
 end

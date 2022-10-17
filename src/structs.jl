@@ -214,19 +214,17 @@ mutable struct BasicConfig
     minimum_metabolic_coverage::Float64
 end
 
-basic_config = BasicConfig(
-    0.1,
-)
+basic_config = BasicConfig(0.1)
 
 mutable struct AnnotationConfig
-    gene_annotation_keywords :: Vector{String}
-    gene_annotation_regexes :: Dict{String, Regex}
-    metabolite_annotation_keywords :: Vector{String}
-    metabolite_annotation_regexes :: Dict{String, Regex}
-    reaction_annotation_keywords :: Vector{String}
-    reaction_annotation_regexes :: Dict{String, Regex}
-    minimum_fraction_database_conformity :: Float64
-    minimum_fraction_database_annotations :: Float64
+    gene_annotation_keywords::Vector{String}
+    gene_annotation_regexes::Dict{String,Regex}
+    metabolite_annotation_keywords::Vector{String}
+    metabolite_annotation_regexes::Dict{String,Regex}
+    reaction_annotation_keywords::Vector{String}
+    reaction_annotation_regexes::Dict{String,Regex}
+    minimum_fraction_database_conformity::Float64
+    minimum_fraction_database_annotations::Float64
 end
 
 annotation_config = AnnotationConfig(
@@ -270,18 +268,18 @@ annotation_config = AnnotationConfig(
         "biocyc",
     ],
     Dict(
-    "pubchem.compound" => r"^\d+$",
-    "kegg.compound" => r"^C\d+$",
-    "seed.compound" => r"^cpd\d+$",
-    "inchi_key" => r"^[A-Z]{14}\-[A-Z]{10}(\-[A-Z])?",
-    "inchi" =>
-        r"^InChI\=1S?\/[A-Za-z0-9\.]+(\+[0-9]+)?(\/[cnpqbtmsih][A-Za-z0-9\-\+\(\)\,\/\?\;\.]+)*$",
-    "chebi" => r"^CHEBI:\d+$",
-    "hmdb" => r"^HMDB\d{5}$",
-    "reactome.compound" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
-    "metanetx.chemical" => r"^MNXM\d+$",
-    "bigg.metabolite" => r"^[a-z_A-Z0-9]+$",
-    "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
+        "pubchem.compound" => r"^\d+$",
+        "kegg.compound" => r"^C\d+$",
+        "seed.compound" => r"^cpd\d+$",
+        "inchi_key" => r"^[A-Z]{14}\-[A-Z]{10}(\-[A-Z])?",
+        "inchi" =>
+            r"^InChI\=1S?\/[A-Za-z0-9\.]+(\+[0-9]+)?(\/[cnpqbtmsih][A-Za-z0-9\-\+\(\)\,\/\?\;\.]+)*$",
+        "chebi" => r"^CHEBI:\d+$",
+        "hmdb" => r"^HMDB\d{5}$",
+        "reactome.compound" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
+        "metanetx.chemical" => r"^MNXM\d+$",
+        "bigg.metabolite" => r"^[a-z_A-Z0-9]+$",
+        "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
     ),
     [
         "rhea",

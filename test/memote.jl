@@ -1,11 +1,11 @@
 @testset "Basic" begin
-    @test !model_has_name(model) # TODO without accessors to JSONModel, this should fail  
+    @test !model_has_name(model) # TODO without accessors to JSONModel, this should fail
     @test model_has_metabolites(model)
     @test model_has_reactions(model)
     @test model_has_genes(model)
     @test model_metabolic_coverage_exceeds_minimum(model)
     @test length(model_compartments(model)) == 2
-    @test model_has_compartments(model) 
+    @test model_has_compartments(model)
 end
 
 @testset "Consistency" begin
@@ -80,7 +80,7 @@ end
     @test length(gene_databases["ncbiprotein"]) == 137
 
     met_databases = find_database_unannotated_metabolites(model)
-    @test length(met_databases["kegg.compound"]) == 1 
+    @test length(met_databases["kegg.compound"]) == 1
     @test length(met_databases["biocyc"]) == 2
 
     rxn_databases = find_database_unannotated_reactions(model)
