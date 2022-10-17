@@ -76,7 +76,10 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Network topology" begin
-            
+            @test isempty(find_all_universally_blocked_reactions(model, optimizer; config))
+            @test isempty(find_orphan_metabolites(model))
+            @test isempty(find_deadend_metabolites(model))
+            @test isempty(find_complete_medium_orphans_and_deadends(model, optimizer; config))
         end
 
         @testset "Matrix conditioning" begin
@@ -96,7 +99,7 @@ function generate_memote_report(model, optimizer; config = memote_config)
     result = Dict()
 
     # Basic information
-    result[""] = Dict(
+    result["basic"] = Dict(
      "number_reactions" => n_reactions(model),
      "number_metabolites" => n_metabolites(model),
      "number_genes" => n_genes(model),
@@ -164,14 +167,13 @@ function generate_memote_report(model, optimizer; config = memote_config)
         "missing_essential_precursors_in_biomass_reaction" => biomass_missing_essential_precursors(model; config),
     )
 
-    # Energy metabolism
-    result[""] = Dict(
-        
-    )
-
     # Network topology
-    result[""] = Dict(
-        
+    result["network_topology"] = Dict(
+        "universally_blocked_reactions" => find_all_universally_blocked_reactions(model, optimizer; config),
+        "orphan_metabolites" => find_orphan_metabolites(model),
+        "deadend_metabolites" => find_deadend_metabolites(model),
+        "reaction_in_stoichiometrically_balanced_cycles" => find_cycle_reactions(model, optimizer; config),
+        "metabolites_consumed_produced_complete_medium" => find_complete_medium_orphans_and_deadends(model, optimizer; config),
     )
 
     # Matrix conditioning
