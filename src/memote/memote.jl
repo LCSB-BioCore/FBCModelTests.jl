@@ -48,7 +48,14 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Consistency" begin
-            
+            @testset "Mass and charge balances" begin
+                @test isempty(reactions_charge_unbalanced(model; config))
+                @test isempty(reactions_mass_unbalanced(model; config)) 
+            end
+
+            @testset "Stoichiometric consistency" begin
+                @test model_is_consistent(model, optimizer; config)
+            end
         end
 
         @testset "Biomass" begin
@@ -56,6 +63,9 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Energy metabolism" begin
+            @testset "Erroneous energy cycles" begin
+                @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; config)
+            end
             
         end
 
@@ -94,6 +104,8 @@ function generate_memote_report(model, optimizer; config = memote_config)
     # Gene protein reaction associations
 
     # Consistency
+    reactions_mass_unbalanced(model; config)
+    reactions_charge_unbalanced(model; config)
 
     # Biomass
 
