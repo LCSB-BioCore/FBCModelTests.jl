@@ -11,7 +11,7 @@ $(TYPEDSIGNATURES)
 Test if a reaction is constrained.
 """
 _is_constrained(lb, ub, default) =
-    lb ∉ [-default, 0, default] || ub ∉ [-default, 0, default]
+    !in(lb, [-default, 0, default]) || !in(ub, [-default, 0, default])
 
 """
 $(TYPEDSIGNATURES)
