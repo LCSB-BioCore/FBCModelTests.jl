@@ -73,7 +73,7 @@ end
 $(TYPEDSIGNATURES)
 
 Find all reactions with overlapping annotation information. Internally calls
-[`COBREXA.annotation_index`](@ref). Some annotations, like sbo terms will necessarily be
+`COBREXA.annotation_index`. Some annotations, like sbo terms will necessarily be
 non-unique, ignore annotations like this by editing `config.reaction.ignore_annotations`.
 """
 function reactions_with_partially_identical_annotations(model; config = memote_config)
