@@ -203,16 +203,12 @@ biomass_config = BiomassConfig(
 )
 
 mutable struct ReactionConfig
-    test_annotation :: String
-    ignore_annotations :: Vector{String}
-    bound_default :: Float64
+    test_annotation::String
+    ignore_annotations::Vector{String}
+    bound_default::Float64
 end
 
-reaction_config = ReactionConfig(
-    "inchi_key",
-    ["sbo","ec-code"],
-    1000.0,
-)
+reaction_config = ReactionConfig("inchi_key", ["sbo", "ec-code"], 1000.0)
 
 """
 $(TYPEDEF)

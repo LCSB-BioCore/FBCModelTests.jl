@@ -10,7 +10,8 @@ $(TYPEDSIGNATURES)
 
 Test if a reaction is constrained.
 """
-_is_constrained(lb, ub, default) = lb ∉ [-default, 0, default] || ub ∉ [-default, 0, default] 
+_is_constrained(lb, ub, default) =
+    lb ∉ [-default, 0, default] || ub ∉ [-default, 0, default]
 
 """
 $(TYPEDSIGNATURES)
@@ -29,9 +30,10 @@ function find_all_purely_metabolic_reactions(model; config = memote_config)
     for (lb, ub, rid) in zip(bounds(model)..., reactions(model))
         is_boundary(model, rid) && continue
         rid in biomass_rxns && continue
-        _probably_transport_reaction(model, rid, config.reaction.test_annotation) && continue
+        _probably_transport_reaction(model, rid, config.reaction.test_annotation) &&
+            continue
         if _is_constrained(lb, ub, config.reaction.bound_default)
-            push!(metabolic_reactions_constrained, rid)       
+            push!(metabolic_reactions_constrained, rid)
         else
             push!(metabolic_reactions_unconstrained, rid)
         end
@@ -50,13 +52,14 @@ purely directional, the lower or upper bound needs to be different from
 Transport reactions are heuristically identified, see
 [`!_probably_transport_reaction`](@ref), which partially uses reaction
 annotations. Set the annotation field to use via
-`config.reactions.rest_annotation`. 
+`config.reactions.rest_annotation`.
 """
 function find_all_transport_reactions(model; config = memote_config)
     transport_unconstrained = Set{String}()
     transport_constrained = Set{String}()
     for (lb, ub, rid) in zip(bounds(model)..., reactions(model))
-        !_probably_transport_reaction(model, rid, config.reaction.test_annotation) && continue
+        !_probably_transport_reaction(model, rid, config.reaction.test_annotation) &&
+            continue
         if _is_constrained(lb, ub, config.reaction.bound_default)
             push!(transport_constrained, rid)
         else
@@ -90,7 +93,7 @@ Return a list of all reactions that are duplicated.
 function duplicate_reactions(model)
     stdmodel = convert(StandardModel, model)
     duplicated_rxns = Set{String}()
-    for rid in reactions(stdmodel) 
+    for rid in reactions(stdmodel)
         dup = check_duplicate_reaction(
             stdmodel.reactions[rid],
             stdmodel.reactions;
@@ -109,7 +112,7 @@ Identify reactions that have the same gene reaction rules. Does not take
 directionality or compartments into account.
 """
 function reactions_with_identical_genes(model)
-    grr_rids = Dict{Vector{String}, Set{String}}()
+    grr_rids = Dict{Vector{String},Set{String}}()
     for rid in reactions(model)
         !_has_sensible_gpr(model, rid) && continue
         for grr in reaction_gene_association(model, rid)
