@@ -50,7 +50,7 @@ sense), and one with constrained transport reactions. For a constraint to be not
 purely directional, the lower or upper bound needs to be different from
 `[-config.reactions.bound_default, 0, config.reactions.bound_default]`.
 Transport reactions are heuristically identified, see
-[`!_probably_transport_reaction`](@ref), which partially uses reaction
+[`_probably_transport_reaction`](@ref), which partially uses reaction
 annotations. Set the annotation field to use via
 `config.reactions.rest_annotation`.
 """
@@ -73,7 +73,7 @@ end
 $(TYPEDSIGNATURES)
 
 Find all reactions with overlapping annotation information. Internally calls
-[`annotation_index`](@ref). Some annotations, like sbo terms will necessarily be
+[`COBREXA.annotation_index`](@ref). Some annotations, like sbo terms will necessarily be
 non-unique, ignore annotations like this by editing `config.reaction.ignore_annotations`.
 """
 function reactions_with_partially_identical_annotations(model; config = memote_config)
