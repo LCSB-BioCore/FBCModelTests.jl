@@ -68,8 +68,9 @@ end
     test_metabolites(model)
 end
 
-@testset "Metabolite Annotations" begin
-    #test all_unannotated_metabolites()
+@testset "Annotations" begin
+
+    # Metabolites
     all_m = all_unannotated_metabolites(model)
     @test isempty(all_m)
 
@@ -82,9 +83,10 @@ end
         ["seed.compound", "inchi_key", "chebi", "metanetx.chemical", "bigg.metabolite"]
         @test isempty(u_m[db])
     end
-    for db2 in ["pubchem.compound", "inchi", "reactome"]
+    for db2 in ["pubchem.compound", "inchi"]
         @test length(u_m[db2]) == 72
     end
+    @test length(u_m["reactome.compound"]) == 11 # memote.py does not pick this up...
 
     #test metabolite_annotation_conformity()
     c_m = metabolite_annotation_conformity(model)
@@ -100,11 +102,31 @@ end
     ]
         @test isempty(c_m[db])
     end
-end
 
-@testset "Basic" begin
-    # these tests are too basic to split out into multiple subtests
-    test_basic(model)
+        # use default conditions to exclude biomass and exchanges
+        missing_gene_anno = all_unannotated_genes(model)
+        missing_gene_key = unannotated_genes(model)
+        gene_anno_confi = gene_annotation_conformity(model)
+    
+        #Test1 all_unannotated_genes()
+        @test isempty(missing_gene_anno)
+    
+        #Test2 unannotated_genes()
+        for db in ["ncbiprotein", "ccds", "kegg.genes", "hprd", "refseq"]
+            @test length(missing_gene_key[db]) == 137
+        end
+        for db in ["uniprot", "ecogene", "ncbigi", "ncbigene", "asap"]
+            @test missing_gene_key[db] == ["s0001"]
+        end
+    
+        #Test3 gene_annotation_conformity()
+        for db in ["uniprot", "ecogene", "ncbigene", "asap"]
+            @test isempty(gene_anno_confi[db])
+        end
+    
+        @test length(gene_anno_confi["ncbigi"]) == 136
+
+        
 end
 
 @testset "GPR" begin
@@ -136,33 +158,6 @@ end
 
     @test length(biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"]) ==
           32
-end
-
-@testset "Gene Annotations" begin
-
-    # use default conditions to exclude biomass and exchanges
-    missing_gene_anno = all_unannotated_genes(model)
-    missing_gene_key = unannotated_genes(model)
-    gene_anno_confi = gene_annotation_conformity(model)
-
-    #Test1 all_unannotated_genes()
-    @test isempty(missing_gene_anno)
-
-    #Test2 unannotated_genes()
-    for db in ["ncbiprotein", "ccds", "kegg.genes", "hprd", "refseq"]
-        @test length(missing_gene_key[db]) == 137
-    end
-    for db in ["uniprot", "ecogene", "ncbigi", "ncbigene", "asap"]
-        @test missing_gene_key[db] == ["s0001"]
-    end
-
-    #Test3 gene_annotation_conformity()
-    for db in ["uniprot", "ecogene", "ncbigene", "asap"]
-        @test isempty(gene_anno_confi[db])
-    end
-
-    @test length(gene_anno_confi["ncbigi"]) == 136
-
 end
 
 @testset "Network" begin

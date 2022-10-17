@@ -210,13 +210,105 @@ end
 
 reaction_config = ReactionConfig("inchi_key", ["sbo", "ec-code"], 1000.0)
 
-
 mutable struct BasicConfig
     minimum_metabolic_coverage::Float64
 end
 
 basic_config = BasicConfig(
     0.1,
+)
+
+mutable struct AnnotationConfig
+    gene_annotation_keywords :: Vector{String}
+    gene_annotation_regexes :: Dict{String, Regex}
+    metabolite_annotation_keywords :: Vector{String}
+    metabolite_annotation_regexes :: Dict{String, Regex}
+    reaction_annotation_keywords :: Vector{String}
+    reaction_annotation_regexes :: Dict{String, Regex}
+    minimum_fraction_conformity :: Float64
+    minimum_fraction_annotated :: Float64
+end
+
+annotation_config = AnnotationConfig(
+    [
+        "kegg.genes",
+        "refseq",
+        "uniprot",
+        "ecogene",
+        "ncbigi",
+        "ncbigene",
+        "ncbiprotein",
+        "ccds",
+        "hprd",
+        "asap",
+    ],
+    Dict(
+        "refseq" =>
+            r"^((AC|AP|NC|NG|NM|NP|NR|NT|NW|XM|XP|XR|YP|ZP)_\d+|(NZ\_[A-Z]{4}\d+))(\.\d+)?$",
+        "uniprot" =>
+            r"^([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9][A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9])(\.\d+)?$",
+        "ecogene" => r"^EG\d+$",
+        "kegg.genes" => r"^\w+:[\w\d\.-]*$",
+        "ncbigi" => r"^(GI|gi)\:\d+$",
+        "ncbigene" => r"^\d+$",
+        "ncbiprotein" => r"^(\w+\d+(\.\d+)?)|(NP_\d+)$",
+        "ccds" => r"^CCDS\d+\.\d+$",
+        "hprd" => r"^\d+$",
+        "asap" => r"^[A-Za-z0-9-]+$",
+    ),
+    [
+        "pubchem.compound",
+        "kegg.compound",
+        "seed.compound",
+        "inchi_key",
+        "inchi",
+        "chebi",
+        "hmdb",
+        "reactome.compound",
+        "metanetx.chemical",
+        "bigg.metabolite",
+        "biocyc",
+    ],
+    Dict(
+    "pubchem.compound" => r"^\d+$",
+    "kegg.compound" => r"^C\d+$",
+    "seed.compound" => r"^cpd\d+$",
+    "inchi_key" => r"^[A-Z]{14}\-[A-Z]{10}(\-[A-Z])?",
+    "inchi" =>
+        r"^InChI\=1S?\/[A-Za-z0-9\.]+(\+[0-9]+)?(\/[cnpqbtmsih][A-Za-z0-9\-\+\(\)\,\/\?\;\.]+)*$",
+    "chebi" => r"^CHEBI:\d+$",
+    "hmdb" => r"^HMDB\d{5}$",
+    "reactome.compound" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
+    "metanetx.chemical" => r"^MNXM\d+$",
+    "bigg.metabolite" => r"^[a-z_A-Z0-9]+$",
+    "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
+    ),
+    [
+        "rhea",
+        "kegg.reaction",
+        "seed.reaction",
+        "metanetx.reaction",
+        "bigg.reaction",
+        "reactome",
+        "ec-code",
+        "brenda",
+        "biocyc",
+    ],
+    Dict(
+        "rhea" => r"^\d{5}$",
+        "kegg.reaction" => r"^R\d+$",
+        "seed.reaction" => r"^rxn\d+$",
+        "metanetx.reaction" => r"^MNXR\d+$",
+        "bigg.reaction" => r"^[a-z_A-Z0-9]+$",
+        "reactome" => r"(^R-[A-Z]{3}-[0-9]+(-[0-9]+)?$)|(^REACT_\d+(\.\d+)?$)",
+        "ec-code" =>
+            r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
+        "brenda" =>
+            r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
+        "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
+    ),
+    0.9,
+    0.9,
 )
 
 """
@@ -234,6 +326,7 @@ mutable struct MemoteConfig
     biomass::BiomassConfig
     network::NetworkConfig
     reaction::ReactionConfig
+    annotation::AnnotationConfig
 end
 
 memote_config = MemoteConfig(
@@ -243,4 +336,5 @@ memote_config = MemoteConfig(
     biomass_config,
     network_config,
     reaction_config,
+    annotation_config,
 )

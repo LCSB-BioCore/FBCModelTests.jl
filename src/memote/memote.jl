@@ -20,19 +20,18 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Reaction annotations" begin
-            
         end
 
         @testset "Metabolite annotations" begin
-            
+
         end
 
         @testset "Gene annotations" begin
-            
-        end
-
-        @testset "SBO term annotations" begin
-            
+            @test isempty(all_unannotated_genes(model))
+            frac_annotated = (1 - reduce(min, length.(values(unannotated_genes(model; config))))/n_genes(model))
+            @test config.annotation.minimum_fraction_annotated < frac_annotated
+            frac_conform =  reduce(max, length.(values(gene_annotation_conformity(model; config))))/n_genes(model)
+            @test config.annotation.minimum_fraction_conformity < frac_conform
         end
 
         @testset "Reaction information" begin
@@ -108,22 +107,21 @@ function generate_memote_report(model, optimizer; config = memote_config)
     )
 
     # Reaction annotations
-    result[""] = Dict(
-        
+    result["reaction_annotations"] = Dict( # TODO once #33 gets merged
     )
 
     # Metabolite annotations
-    result[""] = Dict(
-        
+    result["metabolite_annotations"] = Dict(
+        "all_unannotated_metabolites" => all_unannotated_genes(model),
+        "metabolitess_missing_annotations" => unannotated_metabolites(model; config),
+        "metabolite_conformity" => metabolite_annotation_conformity(model; config),
     )
 
     # Gene annotations
-    result[""] = Dict(
-        
-    )
-
-    # SBO term annotations
-    result[""] = Dict(
+    result["gene_annotations"] = Dict(
+        "all_unannotated_genes" => all_unannotated_genes(model),
+        "genes_missing_annotations" => unannotated_genes(model; config),
+        "gene_conformity" => gene_annotation_conformity(model; config),
     )
 
     # Reaction information

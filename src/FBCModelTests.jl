@@ -16,20 +16,18 @@ using Test
 using PeriodicTable
 using SparseArrays
 
-#TODO: change all instances of ::MetabolicModel to ::AbstractMetabolicModel once COBREXA 2.0 releases
-
 include("version.jl")
 include("common.jl")
 include("structs.jl")
 include("frog.jl")
+include(joinpath("memote", "basic.jl"))
 include(joinpath("memote", "metabolites.jl"))
 include(joinpath("memote", "reactions.jl"))
-include(joinpath("memote", "basic.jl"))
-include(joinpath("memote", "consistency.jl"))
 include(joinpath("memote", "gpr_associations.jl"))
+include(joinpath("memote", "consistency.jl"))
 include(joinpath("memote", "biomass.jl"))
-include(joinpath("memote", "genes.jl"))
 include(joinpath("memote", "network.jl"))
+include(joinpath("memote", "annotations.jl"))
 include(joinpath("memote", "memote.jl")) #  the test harness
 
 # export everything that isn't prefixed with _ (inspired by JuMP.jl, thanks!)
