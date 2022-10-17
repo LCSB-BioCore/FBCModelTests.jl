@@ -73,7 +73,6 @@ function run_tests(model, optimizer; config = memote_config)
             @testset "Erroneous energy cycles" begin
                 @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; config)
             end
-            
         end
 
         @testset "Network topology" begin
@@ -81,7 +80,7 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Matrix conditioning" begin
-            
+            @test stoichiometric_matrix_is_well_conditioned(model; config) 
         end
 
     end
@@ -176,8 +175,8 @@ function generate_memote_report(model, optimizer; config = memote_config)
     )
 
     # Matrix conditioning
-    result[""] = Dict(
-        
+    result["conditioning"] = Dict(
+        "stoichiometric_matrix_conditioning" => stoichiometric_max_min_ratio(model),
     )
 
     return result
