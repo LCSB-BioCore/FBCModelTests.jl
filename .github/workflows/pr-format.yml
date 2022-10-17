@@ -58,5 +58,5 @@ jobs:
             fi
           else
             gh pr comment ${{ github.event.issue.number }} --body \
-              ":sunny: Auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) succeeded, but the code was already formatted correctly."
+              ":sunny: Auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) succeeded, but the code in `git rev-parse HEAD` was already formatted correctly."
           fi
