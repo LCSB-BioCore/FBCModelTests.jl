@@ -24,6 +24,7 @@ DocStringExtensions = "0.9"
 JSON = "0.21"
 JuMP = "1"
 MD5 = "0.2"
+PeriodicTable = "1"
 SBML = "1"
 
 [extras]
