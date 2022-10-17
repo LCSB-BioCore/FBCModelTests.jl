@@ -36,7 +36,7 @@ function run_tests(model, optimizer; config = memote_config)
         end
 
         @testset "Reaction information" begin
-            
+            @test isempty(duplicate_reactions(model))
         end
 
         @testset "Metabolite information" begin
@@ -102,6 +102,18 @@ function generate_memote_report(model, optimizer; config = memote_config)
     # SBO term annotations
 
     # Reaction information
+    uncon_met, con_met = find_all_purely_metabolic_reactions(model; config)
+    uncon_trans, con_trans = find_all_transport_reactions(model; config)
+    result["reaction_information"] => Dict(
+        "unconstrained_metabolic_reactions" => uncon_met,
+        "constrained_metabolic_reactions" => con_met,
+        "unconstrained_transporters" => uncon_trans,
+        "constrained_transporters" => con_trans,
+        "reactions_identical_genes" => reactions_with_identical_genes(model),
+        "duplicated_reactions" => duplicate_reactions(model),
+        "reactions_partially_identical_annotations" => reactions_with_partially_identical_annotations(model; config),
+        
+    )
 
     # Metabolite information
     result["metabolite_information"] = Dict(
