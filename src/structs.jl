@@ -210,6 +210,15 @@ end
 
 reaction_config = ReactionConfig("inchi_key", ["sbo", "ec-code"], 1000.0)
 
+
+mutable struct BasicConfig
+    minimum_metabolic_coverage::Float64
+end
+
+basic_config = BasicConfig(
+    0.1,
+)
+
 """
 $(TYPEDEF)
 
@@ -219,6 +228,7 @@ A grouping of parameters used by the metabolic testing infrastructure.
 $(TYPEDFIELDS)
 """
 mutable struct MemoteConfig
+    basic::BasicConfig
     metabolite::MetaboliteConfig
     consistency::ConsistencyConfig
     biomass::BiomassConfig
@@ -227,6 +237,7 @@ mutable struct MemoteConfig
 end
 
 memote_config = MemoteConfig(
+    basic_config,
     metabolite_config,
     consistency_config,
     biomass_config,

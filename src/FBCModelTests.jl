@@ -28,6 +28,7 @@ include(joinpath("memote", "gpr_associations.jl"))
 include(joinpath("memote", "biomass.jl"))
 include(joinpath("memote", "genes.jl"))
 include(joinpath("memote", "network.jl"))
+include(joinpath("memote", "memote.jl")) #  the test harness
 
 # export everything that isn't prefixed with _ (inspired by JuMP.jl, thanks!)
 for sym in names(@__MODULE__, all = true)

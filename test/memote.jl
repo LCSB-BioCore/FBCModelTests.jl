@@ -1,3 +1,13 @@
+@testset "Basic" begin
+    @test !model_has_name(model) # TODO without accessors to JSONModel, this should fail  
+    @test model_has_metabolites(model)
+    @test model_has_reactions(model)
+    @test model_has_genes(model)
+    @test model_metabolic_coverage(model) > 0.1
+    @test length(model_compartments(model)) == 2
+    @test model_has_compartments(model) 
+end
+
 @testset "Consistency" begin
     # consistency
     @test model_is_consistent(model, Tulip.Optimizer)
