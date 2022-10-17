@@ -18,7 +18,7 @@ stoichiometric_max_min_ratio(model) =
 $(TYPEDSIGNATURES)
 
 Test if the stoichiometric matrix is well conditioned by determining if
-[`stoichiometric_max_min_value`](@ref) is less than 10⁹ (which can be set in `config.network.condition_number`).
+[`stoichiometric_max_min_ratio`](@ref) is less than 10⁹ (which can be set in `config.network.condition_number`).
 """
 stoichiometric_matrix_is_well_conditioned(model; config = memote_config) =
     stoichiometric_max_min_ratio(model) < config.network.condition_number
