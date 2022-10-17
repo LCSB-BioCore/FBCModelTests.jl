@@ -1,3 +1,13 @@
+@testset "Basic" begin
+    @test !model_has_name(model) # TODO without accessors to JSONModel, this should fail
+    @test model_has_metabolites(model)
+    @test model_has_reactions(model)
+    @test model_has_genes(model)
+    @test model_metabolic_coverage_exceeds_minimum(model)
+    @test length(model_compartments(model)) == 2
+    @test model_has_compartments(model)
+end
+
 @testset "Consistency" begin
     # consistency
     @test model_is_consistent(model, Tulip.Optimizer)
@@ -20,9 +30,6 @@
     wrong_model.metabolites["pyr_c"].formula = "C2H3X"
     @test !isempty(reactions_charge_unbalanced(wrong_model))
     @test !isempty(reactions_mass_unbalanced(wrong_model))
-
-    # test all
-    test_consistency(model, Tulip.Optimizer)
 end
 
 @testset "Metabolite" begin
@@ -53,48 +60,42 @@ end
 
     @test isempty(metabolites_duplicated_in_compartment(model))
     @test !isempty(metabolites_duplicated_in_compartment(wrong_model))
-
-    memote_config.metabolite.medium_only_imported = false
-    test_metabolites(model)
 end
 
-@testset "Metabolite Annotations" begin
-    #test all_unannotated_metabolites()
-    all_m = all_unannotated_metabolites(model)
-    @test isempty(all_m)
+@testset "Annotations" begin
 
-    #test unannotated_metabolites()
-    u_m = unannotated_metabolites(model)
-    @test u_m["kegg.compound"] == ["q8h2_c"]
-    @test u_m["biocyc"] == ["icit_c", "fdp_c"]
-    @test u_m["hmdb"] == ["q8_c", "r5p_c", "fdp_c"]
-    for db in
-        ["seed.compound", "inchi_key", "chebi", "metanetx.chemical", "bigg.metabolite"]
-        @test isempty(u_m[db])
-    end
-    for db2 in ["pubchem.compound", "inchi", "reactome"]
-        @test length(u_m[db2]) == 72
-    end
+    # identify unannotated components
+    all_mets_no_anno = find_all_unannotated_metabolites(model)
+    @test isempty(all_mets_no_anno)
 
-    #test metabolite_annotation_conformity()
-    c_m = metabolite_annotation_conformity(model)
-    @test length(c_m) == 8
-    for db in [
-        "chebi",
-        "metanetx.chemical",
-        "inchi_key",
-        "hmdb",
-        "bigg.metabolite",
-        "biocyc",
-        "seed.compound",
-    ]
-        @test isempty(c_m[db])
-    end
-end
+    all_rxns_no_anno = find_all_unannotated_reactions(model)
+    @test isempty(all_rxns_no_anno)
 
-@testset "Basic" begin
-    # these tests are too basic to split out into multiple subtests
-    test_basic(model)
+    all_gene_no_anno = find_all_unannotated_genes(model)
+    @test isempty(all_gene_no_anno)
+
+    # find databases missing in annotations
+    gene_databases = find_database_unannotated_genes(model)
+    @test length(gene_databases["uniprot"]) == 1
+    @test length(gene_databases["ncbiprotein"]) == 137
+
+    met_databases = find_database_unannotated_metabolites(model)
+    @test length(met_databases["kegg.compound"]) == 1
+    @test length(met_databases["biocyc"]) == 2
+
+    rxn_databases = find_database_unannotated_reactions(model)
+    @test length(rxn_databases["rhea"]) == 33
+    @test length(rxn_databases["ec-code"]) == 44
+
+    # find nonconformal annotations
+    gene_nonconformal = find_nonconformal_gene_annotations(model)
+    # TODO fix regexes
+
+    met_nonconformal = find_nonconformal_metabolite_annotations(model)
+    # TODO fix regexes
+
+    rxn_nonconformal = find_nonconformal_reaction_annotations(model)
+    # TODO fix regexes
 end
 
 @testset "GPR" begin
@@ -126,33 +127,6 @@ end
 
     @test length(biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"]) ==
           32
-end
-
-@testset "Gene Annotations" begin
-
-    # use default conditions to exclude biomass and exchanges
-    missing_gene_anno = all_unannotated_genes(model)
-    missing_gene_key = unannotated_genes(model)
-    gene_anno_confi = gene_annotation_conformity(model)
-
-    #Test1 all_unannotated_genes()
-    @test isempty(missing_gene_anno)
-
-    #Test2 unannotated_genes()
-    for db in ["ncbiprotein", "ccds", "kegg.genes", "hprd", "refseq"]
-        @test length(missing_gene_key[db]) == 137
-    end
-    for db in ["uniprot", "ecogene", "ncbigi", "ncbigene", "asap"]
-        @test missing_gene_key[db] == ["s0001"]
-    end
-
-    #Test3 gene_annotation_conformity()
-    for db in ["uniprot", "ecogene", "ncbigene", "asap"]
-        @test isempty(gene_anno_confi[db])
-    end
-
-    @test length(gene_anno_confi["ncbigi"]) == 136
-
 end
 
 @testset "Network" begin

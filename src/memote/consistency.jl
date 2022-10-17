@@ -295,26 +295,3 @@ function model_is_consistent(model, optimizer; config = memote_config)
     value.(m)
     termination_status(opt_model) == OPTIMAL
 end
-
-"""
-$(TYPEDSIGNATURES)
-
-Test if model is consistent by checking that:
-1. the model is stoichiometrically consistent, tested with
-   [`model_is_consistent`](@ref)
-2. there are no energy generating cycles, tested with
-   [`model_has_no_erroneous_energy_generating_cycles`](@ref)
-3. the model is both mass and charge balanced, tested with
-   [`reactions_charge_unbalanced`](@ref) and [`reactions_mass_unbalanced`]
-
-Each function called in this test function can be called individually. The
-kwargs are forwarded as indicated by the prefix.
-"""
-function test_consistency(model, optimizer; config = memote_config)
-    @testset "Consistency" begin
-        @test model_is_consistent(model, optimizer; config)
-        # @test model_has_no_erroneous_energy_generating_cycles(model, optimizer; config)
-        @test isempty(reactions_mass_unbalanced(model; config))
-        @test isempty(reactions_charge_unbalanced(model; config))
-    end
-end

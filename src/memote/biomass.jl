@@ -108,7 +108,6 @@ function model_solves_in_default_medium(model, optimizer; config = memote_config
     config.biomass.minimum_growth_rate < mu < config.biomass.maximum_growth_rate
 end
 
-
 """
 $(TYPEDSIGNATURES)
 
