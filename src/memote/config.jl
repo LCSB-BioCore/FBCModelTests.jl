@@ -120,12 +120,7 @@ mutable struct BasicConfig
     optimizer_modifications::Vector{Function}
 end
 
-basic_config = BasicConfig(
-    0.1,
-    0.01,
-    5.0,
-    Function[],
-)
+basic_config = BasicConfig(0.1, 0.01, 5.0, Function[])
 
 """
 $(TYPEDEF)
@@ -138,7 +133,7 @@ mutable struct BiomassConfig
     growth_metabolites::Dict{String,String}
     ignored_precursors::Vector{String}
     essential_precursors::Dict{String,String}
-    minimum_growth_rate :: Float64
+    minimum_growth_rate::Float64
     optimizer_modifications::Vector{Function}
 end
 
@@ -201,11 +196,7 @@ mutable struct ConsistencyConfig
     consistency_ignored_reactions::Vector{String}
 end
 
-consistency_config = ConsistencyConfig(
-    String[],
-    String[],
-    String[],
-)
+consistency_config = ConsistencyConfig(String[], String[], String[])
 
 """
 $(TYPEDEF)
@@ -271,7 +262,7 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 mutable struct GPRAssociationConfig
-    test_annotation :: String
+    test_annotation::String
 end
 
 gpra_config = GPRAssociationConfig("inchi_key")

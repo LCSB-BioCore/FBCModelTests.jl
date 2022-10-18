@@ -24,63 +24,83 @@ function run_tests(model, optimizer; config = Config.memote_config)
             @testset "Reaction annotations" begin
                 @test isempty(Annotation.find_all_unannotated_reactions(model))
 
-                num_annotated =
-                    reduce(
-                        max,
-                        length.(values(Annotation.find_database_unannotated_reactions(model; config))),
-                    )
-                @test config.annotation.minimum_fraction_database_annotations * n_reactions(model) <
-                      num_annotated
+                num_annotated = reduce(
+                    max,
+                    length.(
+                        values(
+                            Annotation.find_database_unannotated_reactions(model; config),
+                        )
+                    ),
+                )
+                @test config.annotation.minimum_fraction_database_annotations *
+                      n_reactions(model) < num_annotated
 
-                num_conform =
-                    reduce(
-                        max,
-                        length.(
-                            values(Annotation.find_nonconformal_reaction_annotations(model; config))
-                        ),
-                    )
-                @test config.annotation.minimum_fraction_database_conformity * n_reactions(model) < num_conform
+                num_conform = reduce(
+                    max,
+                    length.(
+                        values(
+                            Annotation.find_nonconformal_reaction_annotations(
+                                model;
+                                config,
+                            ),
+                        )
+                    ),
+                )
+                @test config.annotation.minimum_fraction_database_conformity *
+                      n_reactions(model) < num_conform
             end
 
             @testset "Metabolite annotations" begin
                 @test isempty(Annotation.find_all_unannotated_metabolites(model))
 
-                num_annotated =
-                    reduce(
-                        max,
-                        length.(
-                            values(Annotation.find_database_unannotated_metabolites(model; config))
-                        ),
-                    )
-                @test config.annotation.minimum_fraction_database_annotations * n_metabolites(model) < num_annotated
+                num_annotated = reduce(
+                    max,
+                    length.(
+                        values(
+                            Annotation.find_database_unannotated_metabolites(model; config),
+                        )
+                    ),
+                )
+                @test config.annotation.minimum_fraction_database_annotations *
+                      n_metabolites(model) < num_annotated
 
-                num_conform =
-                    reduce(
-                        max,
-                        length.(
-                            values(Annotation.find_nonconformal_metabolite_annotations(model; config))
-                        ),
-                    )
-                @test config.annotation.minimum_fraction_database_conformity * n_metabolites(model) < num_conform
+                num_conform = reduce(
+                    max,
+                    length.(
+                        values(
+                            Annotation.find_nonconformal_metabolite_annotations(
+                                model;
+                                config,
+                            ),
+                        )
+                    ),
+                )
+                @test config.annotation.minimum_fraction_database_conformity *
+                      n_metabolites(model) < num_conform
             end
 
             @testset "Gene annotations" begin
                 @test isempty(Annotation.find_all_unannotated_genes(model))
 
-                num_annotated =
-                    reduce(
-                        max,
-                        length.(values(Annotation.find_database_unannotated_genes(model; config))),
-                    )
-                @test config.annotation.minimum_fraction_database_annotations * n_genes(model) <
-                      num_annotated
+                num_annotated = reduce(
+                    max,
+                    length.(
+                        values(Annotation.find_database_unannotated_genes(model; config))
+                    ),
+                )
+                @test config.annotation.minimum_fraction_database_annotations *
+                      n_genes(model) < num_annotated
 
-                num_conform =
-                    reduce(
-                        max,
-                        length.(values(Annotation.find_nonconformal_gene_annotations(model; config))),
-                    )
-                @test config.annotation.minimum_fraction_database_conformity * n_genes(model) < num_conform
+                num_conform = reduce(
+                    max,
+                    length.(
+                        values(
+                            Annotation.find_nonconformal_gene_annotations(model; config),
+                        )
+                    ),
+                )
+                @test config.annotation.minimum_fraction_database_conformity *
+                      n_genes(model) < num_conform
             end
         end
 
@@ -124,7 +144,9 @@ function run_tests(model, optimizer; config = Config.memote_config)
         end
 
         @testset "Network topology" begin
-            @test isempty(Network.find_all_universally_blocked_reactions(model, optimizer; config))
+            @test isempty(
+                Network.find_all_universally_blocked_reactions(model, optimizer; config),
+            )
             @test isempty(Network.find_orphan_metabolites(model))
             @test isempty(Network.find_deadend_metabolites(model))
             @test isempty(
@@ -164,21 +186,26 @@ function generate_memote_report(model, optimizer; config = Config.memote_config)
     # Reaction annotations
     result["reaction_annotations"] = Dict(
         "all_unannotated" => Annotation.find_all_unannotated_reactions(model),
-        "missing_databases" => Annotation.find_database_unannotated_reactions(model; config),
-        "conformity" => Annotation.find_nonconformal_reaction_annotations(model; config),
+        "missing_databases" =>
+            Annotation.find_database_unannotated_reactions(model; config),
+        "conformity" =>
+            Annotation.find_nonconformal_reaction_annotations(model; config),
     )
 
     # Metabolite annotations
     result["metabolite_annotations"] = Dict(
         "all_unannotated" => Annotation.find_all_unannotated_metabolites(model),
-        "missing_databases" => Annotation.find_database_unannotated_metabolites(model; config),
-        "conformity" => Annotation.find_nonconformal_metabolite_annotations(model; config),
+        "missing_databases" =>
+            Annotation.find_database_unannotated_metabolites(model; config),
+        "conformity" =>
+            Annotation.find_nonconformal_metabolite_annotations(model; config),
     )
 
     # Gene annotations
     result["gene_annotations"] = Dict(
         "all_unannotated" => Annotation.find_all_unannotated_genes(model),
-        "missing_databases" => Annotation.find_database_unannotated_genes(model; config),
+        "missing_databases" =>
+            Annotation.find_database_unannotated_genes(model; config),
         "conformity" => Annotation.find_nonconformal_gene_annotations(model; config),
     )
 
@@ -187,45 +214,51 @@ function generate_memote_report(model, optimizer; config = Config.memote_config)
         "biomas_reactions" => Biomass.model_biomass_reactions(model; config),
         "biomass_molar_masses" => Biomass.model_biomass_molar_mass(model; config),
         "blocked_biomass_precursors" =>
-        Biomass.find_blocked_biomass_precursors(model, optimizer; config),
+            Biomass.find_blocked_biomass_precursors(model, optimizer; config),
         "missing_essential_precursors_in_biomass_reaction" =>
-        Biomass.biomass_missing_essential_precursors(model; config),
+            Biomass.biomass_missing_essential_precursors(model; config),
     )
-    
+
     # Consistency
     result["consistency"] = Dict(
-        "mass_unbalanced_reactions" => Consistency.reactions_mass_unbalanced(model; config),
-        "charge_unbalanced_reactions" => Consistency.reactions_charge_unbalanced(model; config),
+        "mass_unbalanced_reactions" =>
+            Consistency.reactions_mass_unbalanced(model; config),
+        "charge_unbalanced_reactions" =>
+            Consistency.reactions_charge_unbalanced(model; config),
     )
-    
+
     # Gene protein reaction associations
     result["gpr_associations"] = Dict(
         "reactions_no_gpr" => GPRAssociation.reactions_without_gpr(model),
         "reactions_with_complexes" => GPRAssociation.reactions_with_complexes(model),
-        "transporters_without_gpr" => GPRAssociation.reactions_transport_no_gpr(model; config),
+        "transporters_without_gpr" =>
+            GPRAssociation.reactions_transport_no_gpr(model; config),
     )
 
     # Metabolite information
     result["metabolite_information"] = Dict(
         "number_unique_metablites" => Metabolite.metabolites_unique(model; config),
-        "metabolite_only_imported" => Metabolite.metabolites_medium_components(model; config),
+        "metabolite_only_imported" =>
+            Metabolite.metabolites_medium_components(model; config),
     )
 
     # Network topology
     result["network_topology"] = Dict(
         "universally_blocked_reactions" =>
-        Network.find_all_universally_blocked_reactions(model, optimizer; config),
+            Network.find_all_universally_blocked_reactions(model, optimizer; config),
         "orphan_metabolites" => Network.find_orphan_metabolites(model),
         "deadend_metabolites" => Network.find_deadend_metabolites(model),
         "reaction_in_stoichiometrically_balanced_cycles" =>
-        Network.find_cycle_reactions(model, optimizer; config),
+            Network.find_cycle_reactions(model, optimizer; config),
         "metabolites_consumed_produced_complete_medium" =>
-        Network.find_complete_medium_orphans_and_deadends(model, optimizer; config),
+            Network.find_complete_medium_orphans_and_deadends(model, optimizer; config),
     )
 
     # Matrix conditioning
-    result["conditioning"] =
-        Dict("stoichiometric_matrix_conditioning" => Network.stoichiometric_max_min_ratio(model))
+    result["conditioning"] = Dict(
+        "stoichiometric_matrix_conditioning" =>
+            Network.stoichiometric_max_min_ratio(model),
+    )
 
     # Reaction information
     uncon_met, con_met = Reaction.find_all_purely_metabolic_reactions(model; config)
@@ -237,7 +270,8 @@ function generate_memote_report(model, optimizer; config = Config.memote_config)
         "constrained_transporters" => con_trans,
         "reactions_identical_genes" => Reaction.reactions_with_identical_genes(model),
         "duplicated_reactions" => Reaction.duplicate_reactions(model),
-        "reactions_partially_identical_annotations" => Reaction.reactions_with_partially_identical_annotations(model; config),
+        "reactions_partially_identical_annotations" =>
+            Reaction.reactions_with_partially_identical_annotations(model; config),
     )
 
     return result

@@ -48,15 +48,17 @@ end
     @test all(values(Biomass.atp_present_in_biomass(model)))
     @test "BIOMASS_Ecoli_core_w_GAM" in Biomass.model_biomass_reactions(model)
 
-    @test Biomass.model_biomass_molar_mass(model)["BIOMASS_Ecoli_core_w_GAM"] == 1.5407660614638816
+    @test Biomass.model_biomass_molar_mass(model)["BIOMASS_Ecoli_core_w_GAM"] ==
+          1.5407660614638816
     @test !Biomass.model_biomass_is_consistent(model)
 
     @test length(
         Biomass.find_blocked_biomass_precursors(model, Tulip.Optimizer)["BIOMASS_Ecoli_core_w_GAM"],
     ) == 3
 
-    @test length(Biomass.biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"]) ==
-          32
+    @test length(
+        Biomass.biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"],
+    ) == 32
 end
 
 @testset "Consistency" begin
@@ -83,7 +85,7 @@ end
     wrong_model = convert(StandardModel, model)
     remove_reaction!(wrong_model, "ATPM")
     @test !Energy.model_has_atpm_reaction(wrong_model)
-    
+
     # energy cycles
     @test Energy.model_has_no_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
     memote_config.energy.ignored_energy_reactions = ["BIOMASS_KT_TEMP", "ATPM"]
@@ -98,11 +100,15 @@ end
 
 @testset "Metabolite" begin
     memote_config.metabolite.medium_only_imported = false
-    @test "glc__D_e" in FBCModelTests.Memote.Metabolite.metabolites_medium_components(model; config = memote_config)
+    @test "glc__D_e" in FBCModelTests.Memote.Metabolite.metabolites_medium_components(
+        model;
+        config = memote_config,
+    )
 
     wrong_model = convert(StandardModel, model)
     wrong_model.reactions["EX_h2o_e"].ub = 0
-    @test "h2o_e" in FBCModelTests.Memote.Metabolite.metabolites_medium_components(wrong_model)
+    @test "h2o_e" in
+          FBCModelTests.Memote.Metabolite.metabolites_medium_components(wrong_model)
 
     @test isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(model))
     wrong_model.metabolites["pyr_c"].formula = ""
@@ -121,8 +127,12 @@ end
         wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
     @test length(FBCModelTests.Memote.Metabolite.metabolites_unique(wrong_model)) == 53
 
-    @test isempty(FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(model))
-    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(wrong_model))
+    @test isempty(
+        FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(model),
+    )
+    @test !isempty(
+        FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(wrong_model),
+    )
 end
 
 @testset "Network" begin
@@ -131,8 +141,9 @@ end
     @test isempty(Network.find_all_universally_blocked_reactions(model, Tulip.Optimizer))
     wrong_model = convert(StandardModel, model)
     change_bound!(wrong_model, "MDH"; lower = 0.0, upper = 0.0)
-    @test first(Network.find_all_universally_blocked_reactions(wrong_model, Tulip.Optimizer)) ==
-          "MDH"
+    @test first(
+        Network.find_all_universally_blocked_reactions(wrong_model, Tulip.Optimizer),
+    ) == "MDH"
 
     @test isempty(Network.find_orphan_metabolites(model))
     @test length(Network.find_orphan_metabolites(iJN746)) == 40
@@ -154,15 +165,21 @@ end
     @test issetequal(ident_grrs[["b1602", "b1603"]], ["NADTRHD", "THD2"])
 
     metabolic_reactions_unconstrained, metabolic_reactions_constrained =
-    FBCModelTests.Memote.Reaction.find_all_purely_metabolic_reactions(model)
+        FBCModelTests.Memote.Reaction.find_all_purely_metabolic_reactions(model)
     @test length(metabolic_reactions_unconstrained) == 50
     @test length(metabolic_reactions_constrained) == 1
 
-    transport_unconstrained, transport_constrained = FBCModelTests.Memote.Reaction.find_all_transport_reactions(model)
+    transport_unconstrained, transport_constrained =
+        FBCModelTests.Memote.Reaction.find_all_transport_reactions(model)
     @test length(transport_unconstrained) == 23
     @test length(transport_constrained) == 0
 
-    @test length(FBCModelTests.Memote.Reaction.reactions_with_partially_identical_annotations(model)) == 14
+    @test length(
+        FBCModelTests.Memote.Reaction.reactions_with_partially_identical_annotations(model),
+    ) == 14
 
-    @test issetequal(FBCModelTests.Memote.Reaction.duplicate_reactions(model), ["FRD7", "SUCDi"])
+    @test issetequal(
+        FBCModelTests.Memote.Reaction.duplicate_reactions(model),
+        ["FRD7", "SUCDi"],
+    )
 end

@@ -94,8 +94,7 @@ function model_has_no_erroneous_energy_generating_cycles(
             ),
         )
             _mets = Dict(
-                config.energy.energy_dissipating_metabolites[k] => v for
-                (k, v) in mets
+                config.energy.energy_dissipating_metabolites[k] => v for (k, v) in mets
             )
             rid = "MEMOTE_TEMP_RXN_$id"
             add_reaction!(_model, Reaction(rid, _mets, :forward))

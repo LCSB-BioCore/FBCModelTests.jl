@@ -82,7 +82,10 @@ Find all reactions with overlapping annotation information. Internally calls
 `COBREXA.annotation_index`. Some annotations, like sbo terms will necessarily be
 non-unique, ignore annotations like this by editing `config.reaction.ignore_annotations`.
 """
-function reactions_with_partially_identical_annotations(model; config = Config.memote_config)
+function reactions_with_partially_identical_annotations(
+    model;
+    config = Config.memote_config,
+)
     stdmodel = convert(StandardModel, model)
     idx = annotation_index(stdmodel.reactions)
     for anno in config.reaction.ignore_annotations

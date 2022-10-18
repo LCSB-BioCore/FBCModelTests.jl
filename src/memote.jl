@@ -15,7 +15,22 @@ using JuMP
 
 include(joinpath("memote", "Utils.jl")) # memote utils
 include(joinpath("memote", "Config.jl")) # memote test parameters
-include.(joinpath.(Ref("memote/checks"), ["Annotation.jl", "Basic.jl", "Biomass.jl", "Consistency.jl", "Energy.jl", "GPRAssociation.jl", "Metabolite.jl", "Network.jl", "Reaction.jl"]))
+include.(
+    joinpath.(
+        Ref("memote/checks"),
+        [
+            "Annotation.jl",
+            "Basic.jl",
+            "Biomass.jl",
+            "Consistency.jl",
+            "Energy.jl",
+            "GPRAssociation.jl",
+            "Metabolite.jl",
+            "Network.jl",
+            "Reaction.jl",
+        ],
+    )
+)
 
 include(joinpath("memote", "frontend.jl"))
 

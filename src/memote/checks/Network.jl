@@ -35,7 +35,11 @@ Make all boundary reactions reversible and run FVA on the model to find all
 reactions that are universally blocked. Optimizer modifications can be passed
 through `config.network.optimizer_modifications`
 """
-function find_all_universally_blocked_reactions(model, optimizer; config = Config.memote_config)
+function find_all_universally_blocked_reactions(
+    model,
+    optimizer;
+    config = Config.memote_config,
+)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         if is_boundary(stdmodel, rid)
@@ -155,7 +159,11 @@ consuming or producing the metabolite in question. At minimum a flux of
 `config.network.minimum_metabolite_flux` must be attained for the metabolite to
 pass the test.
 """
-function find_complete_medium_orphans_and_deadends(model, optimizer; config = Config.memote_config)
+function find_complete_medium_orphans_and_deadends(
+    model,
+    optimizer;
+    config = Config.memote_config,
+)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         change_bound!(stdmodel, rid, lower = -1000.0, upper = 1000.0)
