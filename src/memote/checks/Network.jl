@@ -1,9 +1,14 @@
-#=
-This file contains a collection of tests based on Memote. See Lieven, C., Beber,
-M.E., Olivier, B.G. et al. MEMOTE for standardized genome-scale metabolic model
-testing. Nat Biotechnol 38, 272–276 (2020).
-https://doi.org/10.1038/s41587-020-0446-y for details.
-=#
+"""
+module Network
+
+A module testing the network and topology properties of the model.
+"""
+module Network
+
+using DocStringExtensions
+using COBREXA
+using SparseArrays
+import ..Config
 
 """
 $(TYPEDSIGNATURES)
@@ -20,7 +25,7 @@ $(TYPEDSIGNATURES)
 Test if the stoichiometric matrix is well conditioned by determining if
 [`stoichiometric_max_min_ratio`](@ref) is less than 10⁹ (which can be set in `config.network.condition_number`).
 """
-stoichiometric_matrix_is_well_conditioned(model; config = memote_config) =
+stoichiometric_matrix_is_well_conditioned(model; config = Config.memote_config) =
     stoichiometric_max_min_ratio(model) < config.network.condition_number
 
 """
@@ -30,7 +35,7 @@ Make all boundary reactions reversible and run FVA on the model to find all
 reactions that are universally blocked. Optimizer modifications can be passed
 through `config.network.optimizer_modifications`
 """
-function find_all_universally_blocked_reactions(model, optimizer; config = memote_config)
+function find_all_universally_blocked_reactions(model, optimizer; config = Config.memote_config)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         if is_boundary(stdmodel, rid)
@@ -101,7 +106,7 @@ $(TYPEDSIGNATURES)
 Find all reactions that participate in stoichiometrically balanced cycles by
 closing all boundary reactions and running fva on the resultant model.
 """
-function find_cycle_reactions(model, optimizer; config = memote_config)
+function find_cycle_reactions(model, optimizer; config = Config.memote_config)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         if is_boundary(stdmodel, rid)
@@ -121,7 +126,7 @@ function find_cycle_reactions(model, optimizer; config = memote_config)
     end
     cycle_reactions = Set(String[])
     for rid in filter(x -> !is_boundary(model, x), reactions(model))
-        for sense in [MIN_SENSE, MAX_SENSE]
+        for sense in [COBREXA.MIN_SENSE, COBREXA.MAX_SENSE]
             mu = solved_objective_value(
                 flux_balance_analysis(
                     stdmodel,
@@ -150,7 +155,7 @@ consuming or producing the metabolite in question. At minimum a flux of
 `config.network.minimum_metabolite_flux` must be attained for the metabolite to
 pass the test.
 """
-function find_complete_medium_orphans_and_deadends(model, optimizer; config = memote_config)
+function find_complete_medium_orphans_and_deadends(model, optimizer; config = Config.memote_config)
     stdmodel = convert(StandardModel, model)
     for rid in reactions(stdmodel)
         change_bound!(stdmodel, rid, lower = -1000.0, upper = 1000.0)
@@ -179,3 +184,5 @@ function find_complete_medium_orphans_and_deadends(model, optimizer; config = me
     end
     return found_mets
 end
+
+end # module

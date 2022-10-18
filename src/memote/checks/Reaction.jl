@@ -1,9 +1,15 @@
-#=
-This file contains a collection of tests based on Memote. See Lieven, C., Beber,
-M.E., Olivier, B.G. et al. MEMOTE for standardized genome-scale metabolic model
-testing. Nat Biotechnol 38, 272–276 (2020).
-https://doi.org/10.1038/s41587-020-0446-y for details.
-=#
+"""
+module Reaction
+
+A module testing reaction properties.
+"""
+module Reaction
+
+using DocStringExtensions
+using COBREXA
+import ..Config
+import ..Biomass.model_biomass_reactions
+import ..Utils: _probably_transport_reaction, _has_sensible_gpr
 
 """
 $(TYPEDSIGNATURES)
@@ -23,7 +29,7 @@ purely directional, the lower or upper bound needs to be different from
 `[-config.reactions.bound_default, 0, config.reactions.bound_default]`.
 Metabolic reactions exclude transport, boundary and biomass reactions.
 """
-function find_all_purely_metabolic_reactions(model; config = memote_config)
+function find_all_purely_metabolic_reactions(model; config = Config.memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
     metabolic_reactions_constrained = Set{String}()
     metabolic_reactions_unconstrained = Set{String}()
@@ -54,7 +60,7 @@ Transport reactions are heuristically identified, see
 annotations. Set the annotation field to use via
 `config.reactions.rest_annotation`.
 """
-function find_all_transport_reactions(model; config = memote_config)
+function find_all_transport_reactions(model; config = Config.memote_config)
     transport_unconstrained = Set{String}()
     transport_constrained = Set{String}()
     for (lb, ub, rid) in zip(bounds(model)..., reactions(model))
@@ -76,7 +82,7 @@ Find all reactions with overlapping annotation information. Internally calls
 `COBREXA.annotation_index`. Some annotations, like sbo terms will necessarily be
 non-unique, ignore annotations like this by editing `config.reaction.ignore_annotations`.
 """
-function reactions_with_partially_identical_annotations(model; config = memote_config)
+function reactions_with_partially_identical_annotations(model; config = Config.memote_config)
     stdmodel = convert(StandardModel, model)
     idx = annotation_index(stdmodel.reactions)
     for anno in config.reaction.ignore_annotations
@@ -121,3 +127,5 @@ function reactions_with_identical_genes(model)
     end
     return filter(x -> length(x.second) > 1, grr_rids)
 end
+
+end # module
