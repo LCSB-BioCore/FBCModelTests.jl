@@ -8,9 +8,7 @@ using FBCModelTests.Memote.Biomass
 using FBCModelTests.Memote.Consistency
 using FBCModelTests.Memote.Energy
 using FBCModelTests.Memote.GPRAssociation
-using FBCModelTests.Memote.Metabolite
 using FBCModelTests.Memote.Network
-using FBCModelTests.Memote.Reaction
 
 memote_config = FBCModelTests.Config.memote_config
 
