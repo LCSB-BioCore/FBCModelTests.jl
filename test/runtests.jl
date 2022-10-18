@@ -12,6 +12,8 @@ using FBCModelTests.Memote.Metabolite
 using FBCModelTests.Memote.Network
 using FBCModelTests.Memote.Reaction
 
+memote_config = FBCModelTests.Config.memote_config
+
 using Downloads
 using COBREXA, Tulip
 

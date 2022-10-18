@@ -6,10 +6,9 @@ reaction, gene, and metabolite annotations.
 """
 module Annotation
 
-using ..COBREXA
-
-using ..DocStringExtensions
-import ..Config.Config.memote_config
+using COBREXA
+using DocStringExtensions
+import ..Config
 
 """
 $(TYPEDSIGNATURES)

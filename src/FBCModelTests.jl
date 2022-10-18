@@ -26,4 +26,7 @@ import .Config
 include(joinpath("memote", "Memote.jl"))
 import .Memote
 
+# import Config.memote_config
+# export FBCModelTests.Config.memote_config
+
 end

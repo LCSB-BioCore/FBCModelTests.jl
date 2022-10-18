@@ -1,101 +1,101 @@
 @testset "Basic" begin
-    @test !model_has_name(model) # TODO without accessors to JSONModel, this should fail
-    @test model_has_metabolites(model)
-    @test model_has_reactions(model)
-    @test model_has_genes(model)
-    @test model_metabolic_coverage_exceeds_minimum(model)
-    @test length(model_compartments(model)) == 2
-    @test model_has_compartments(model)
-end
-
-@testset "Consistency" begin
-    # consistency
-    @test model_is_consistent(model, Tulip.Optimizer)
-    temp_model = convert(StandardModel, model)
-    temp_model.reactions["PFK"].metabolites["fdp_c"] = 2
-    @test !model_is_consistent(temp_model, Tulip.Optimizer)
-
-    # energy cycles
-    @test model_has_no_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
-    Config.memote_config.consistency.ignored_energy_reactions = ["BIOMASS_KT_TEMP", "ATPM"]
-    @test !model_has_no_erroneous_energy_generating_cycles(iJN746, Tulip.Optimizer)
-
-    # use default conditions to exclude biomass and exchanges
-    @test isempty(reactions_charge_unbalanced(model))
-    @test isempty(reactions_mass_unbalanced(model))
-
-    # test if biomass and exchanges are identified
-    wrong_model = convert(StandardModel, model)
-    wrong_model.metabolites["pyr_c"].charge = nothing
-    wrong_model.metabolites["pyr_c"].formula = "C2H3X"
-    @test !isempty(reactions_charge_unbalanced(wrong_model))
-    @test !isempty(reactions_mass_unbalanced(wrong_model))
-end
-
-@testset "Metabolite" begin
-    Config.memote_config.metabolite.medium_only_imported = false
-    @test "glc__D_e" in metabolites_medium_components(model)
-
-    Config.memote_config.metabolite.medium_only_imported = true
-    wrong_model = convert(StandardModel, model)
-    wrong_model.reactions["EX_h2o_e"].ub = 0
-    @test first(metabolites_medium_components(wrong_model)) == "h2o_e"
-
-    @test isempty(metabolites_no_formula(model))
-    wrong_model.metabolites["pyr_c"].formula = ""
-    @test !isempty(metabolites_no_formula(wrong_model))
-    wrong_model.metabolites["pyr_c"].formula = "C2X"
-    @test !isempty(metabolites_no_formula(wrong_model))
-
-    @test isempty(metabolites_no_charge(model))
-    wrong_model.metabolites["pyr_c"].charge = nothing
-    @test !isempty(metabolites_no_charge(wrong_model))
-
-    @test length(metabolites_unique(model)) == 54
-    wrong_model.metabolites["pyr_c"].annotations["inchi_key"] =
-        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
-    wrong_model.metabolites["pyr_e"].annotations["inchi_key"] =
-        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
-    @test length(metabolites_unique(wrong_model)) == 53
-
-    @test isempty(metabolites_duplicated_in_compartment(model))
-    @test !isempty(metabolites_duplicated_in_compartment(wrong_model))
+    @test !Basic.model_has_name(model) # TODO without accessors to JSONModel, this should fail
+    @test Basic.model_has_metabolites(model)
+    @test Basic.model_has_reactions(model)
+    @test Basic.model_has_genes(model)
+    @test Basic.model_metabolic_coverage_exceeds_minimum(model)
+    @test length(Basic.model_compartments(model)) == 2
+    @test Basic.model_has_compartments(model)
 end
 
 @testset "Annotations" begin
 
     # identify unannotated components
-    all_mets_no_anno = find_all_unannotated_metabolites(model)
+    all_mets_no_anno = Annotation.find_all_unannotated_metabolites(model)
     @test isempty(all_mets_no_anno)
 
-    all_rxns_no_anno = find_all_unannotated_reactions(model)
+    all_rxns_no_anno = Annotation.find_all_unannotated_reactions(model)
     @test isempty(all_rxns_no_anno)
 
-    all_gene_no_anno = find_all_unannotated_genes(model)
+    all_gene_no_anno = Annotation.find_all_unannotated_genes(model)
     @test isempty(all_gene_no_anno)
 
     # find databases missing in annotations
-    gene_databases = find_database_unannotated_genes(model)
+    gene_databases = Annotation.find_database_unannotated_genes(model)
     @test length(gene_databases["uniprot"]) == 1
     @test length(gene_databases["ncbiprotein"]) == 137
 
-    met_databases = find_database_unannotated_metabolites(model)
+    met_databases = Annotation.find_database_unannotated_metabolites(model)
     @test length(met_databases["kegg.compound"]) == 1
     @test length(met_databases["biocyc"]) == 2
 
-    rxn_databases = find_database_unannotated_reactions(model)
+    rxn_databases = Annotation.find_database_unannotated_reactions(model)
     @test length(rxn_databases["rhea"]) == 33
     @test length(rxn_databases["ec-code"]) == 44
 
     # find nonconformal annotations
-    gene_nonconformal = find_nonconformal_gene_annotations(model)
+    gene_nonconformal = Annotation.find_nonconformal_gene_annotations(model)
     # TODO fix regexes
 
-    met_nonconformal = find_nonconformal_metabolite_annotations(model)
+    met_nonconformal = Annotation.find_nonconformal_metabolite_annotations(model)
     # TODO fix regexes
 
-    rxn_nonconformal = find_nonconformal_reaction_annotations(model)
+    rxn_nonconformal = Annotation.find_nonconformal_reaction_annotations(model)
     # TODO fix regexes
+end
+
+@testset "Consistency" begin
+    # consistency
+    @test Consistency.model_is_consistent(model, Tulip.Optimizer)
+    temp_model = convert(StandardModel, model)
+    temp_model.reactions["PFK"].metabolites["fdp_c"] = 2
+    @test !Consistency.model_is_consistent(temp_model, Tulip.Optimizer)
+
+    # energy cycles
+    @test Consistency.model_has_no_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
+    memote_config.consistency.ignored_energy_reactions = ["BIOMASS_KT_TEMP", "ATPM"]
+    @test !Consistency.model_has_no_erroneous_energy_generating_cycles(iJN746, Tulip.Optimizer)
+
+    # use default conditions to exclude biomass and exchanges
+    @test isempty(Consistency.reactions_charge_unbalanced(model))
+    @test isempty(Consistency.reactions_mass_unbalanced(model))
+
+    # test if biomass and exchanges are identified
+    wrong_model = convert(StandardModel, model)
+    wrong_model.metabolites["pyr_c"].charge = nothing
+    wrong_model.metabolites["pyr_c"].formula = "C2H3X"
+    @test !isempty(Consistency.reactions_charge_unbalanced(wrong_model))
+    @test !isempty(Consistency.reactions_mass_unbalanced(wrong_model))
+end
+
+@testset "Metabolite" begin
+    memote_config.metabolite.medium_only_imported = false
+    @test "glc__D_e" in Metabolite.metabolites_medium_components(model)
+
+    memote_config.metabolite.medium_only_imported = true
+    wrong_model = convert(StandardModel, model)
+    wrong_model.reactions["EX_h2o_e"].ub = 0
+    @test first(Metabolite.metabolites_medium_components(wrong_model)) == "h2o_e"
+
+    @test isempty(Metabolite.metabolites_no_formula(model))
+    wrong_model.metabolites["pyr_c"].formula = ""
+    @test !isempty(Metabolite.metabolites_no_formula(wrong_model))
+    wrong_model.metabolites["pyr_c"].formula = "C2X"
+    @test !isempty(Metabolite.metabolites_no_formula(wrong_model))
+
+    @test isempty(Metabolite.metabolites_no_charge(model))
+    wrong_model.metabolites["pyr_c"].charge = nothing
+    @test !isempty(Metabolite.metabolites_no_charge(wrong_model))
+
+    @test length(Metabolite.metabolites_unique(model)) == 54
+    wrong_model.metabolites["pyr_c"].annotations["inchi_key"] =
+        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
+    wrong_model.metabolites["pyr_e"].annotations["inchi_key"] =
+        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
+    @test length(Metabolite.metabolites_unique(wrong_model)) == 53
+
+    @test isempty(Metabolite.metabolites_duplicated_in_compartment(model))
+    @test !isempty(Metabolite.metabolites_duplicated_in_compartment(wrong_model))
 end
 
 @testset "GPR" begin

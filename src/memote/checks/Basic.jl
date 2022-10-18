@@ -5,10 +5,9 @@ Basic metabolic model tests.
 """
 module Basic
 
-using ..DocStringExtensions
-
-using ..COBREXA
-import ..Config.Config.memote_config
+using DocStringExtensions
+using COBREXA
+import ..Config
 
 """
 $(TYPEDSIGNATURES)
