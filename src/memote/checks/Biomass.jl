@@ -1,9 +1,15 @@
-#=
-This file contains a collection of tests based on Memote. See Lieven, C., Beber,
-M.E., Olivier, B.G. et al. MEMOTE for standardized genome-scale metabolic model
-testing. Nat Biotechnol 38, 272–276 (2020).
-https://doi.org/10.1038/s41587-020-0446-y for details.
-=#
+"""
+    module Biomass
+
+This module contains tests that check the consistency of the biomass reaction.
+"""
+module Biomass
+
+using DocStringExtensions
+using COBREXA
+
+import ..Config
+import ..Utils
 
 """
 $(TYPEDSIGNATURES)
@@ -12,7 +18,7 @@ Identify all the biomass reactions in the `model` using both sbo annotations, as
 well biomass strings typically contained in their reaction IDs. Use
 `config.biomass.biomass_strings` to update the list of strings to look for.
 """
-model_biomass_reactions(model; config = memote_config) = Set(
+model_biomass_reactions(model::MetabolicModel; config = Config.memote_config) = Set(
     [
         [rid for rid in reactions(model) if is_biomass_reaction(model, rid)]
         find_biomass_reaction_ids(model; biomass_strings = config.biomass.biomass_strings)
@@ -22,24 +28,12 @@ model_biomass_reactions(model; config = memote_config) = Set(
 """
 $(TYPEDSIGNATURES)
 
-Check if model has an ATP maintenance reaction built in (also called a
-non-growth associated maintenance cost). Looks for reaction annotations
-corresponding to the sbo maintenance term, or looks for reaction ids that
-contain the strings listed in `config.biomass.atpm_strings`.
-"""
-model_has_atpm_reaction(model; config = memote_config) =
-    any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) ||
-    any(any(occursin.(config.biomass.atpm_strings, Ref(rid))) for rid in reactions(model))
-
-"""
-$(TYPEDSIGNATURES)
-
 Check if the biomass reaction consumes ATP and H₂O, and produces ADP, HO₄P, and
 H⁺. Each of these metabolites have a lookup table mapping them to the name space
 of the model, defined in `config.biomass.growth_metabolites`. These need to be
 set if you use anything other than the BiGG namespace.
 """
-function atp_present_in_biomass(model; config = memote_config)
+function atp_present_in_biomass(model::MetabolicModel; config = Config.memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
     x = Dict(biomass_rxns .=> true)
     for rid in biomass_rxns
@@ -62,11 +56,11 @@ For each biomass reaction, identified by [`model_biomass_reactions`](@ref),
 calculate the molar weight of the reaction by summing the products of the
 associated metabolite coefficients with their molar masses.
 """
-function model_biomass_molar_mass(model; config = memote_config)
+function model_biomass_molar_mass(model::MetabolicModel; config = Config.memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
     get_molar_mass(mid) = begin
         rs = metabolite_formula(model, mid)
-        sum(v * to_element(k).atomic_mass for (k, v) in rs).val
+        sum(v * Utils.to_element(k).atomic_mass for (k, v) in rs).val
     end
 
     x = Dict(biomass_rxns .=> 0.0)
@@ -86,27 +80,8 @@ $(TYPEDSIGNATURES)
 Check that the molar mass of each biomass reactions falls within `[1 - 1e-3, 1 +
 1e-6]` by calling [`model_biomass_molar_mass`](@ref) internally.
 """
-model_biomass_is_consistent(model; config = memote_config) =
+model_biomass_is_consistent(model::MetabolicModel; config = Config.memote_config) =
     all(-1e-3 .< (collect(values(model_biomass_molar_mass(model; config))) .- 1) .< 1e-6)
-
-"""
-$(TYPEDSIGNATURES)
-
-Check if the model can be solved under default conditions and yield a reasonable
-growth rate. Here reasonable is set via `config.biomass.minimum_growth_rate` and
-`config.biomass.maximum_growth_rate`. Optionally, pass optimization
-modifications to the solver through `config.biomass.optimizer_modifications`.
-"""
-function model_solves_in_default_medium(model, optimizer; config = memote_config)
-    mu = solved_objective_value(
-        flux_balance_analysis(
-            model,
-            optimizer;
-            modifications = config.biomass.optimizer_modifications,
-        ),
-    )
-    config.biomass.minimum_growth_rate < mu < config.biomass.maximum_growth_rate
-end
 
 """
 $(TYPEDSIGNATURES)
@@ -116,7 +91,11 @@ biomass functions, except those listed in `config.biomass.ignored_precursors` in
 the default medium. Set any optimizer modifications with
 `config.biomass.optimizer_modifications`.
 """
-function find_blocked_biomass_precursors(model, optimizer; config = memote_config)
+function find_blocked_biomass_precursors(
+    model::MetabolicModel,
+    optimizer;
+    config = Config.memote_config,
+)
     stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
     biomass_rxns = model_biomass_reactions(stdmodel; config)
     blocked_precursors = Dict{String,Vector{String}}()
@@ -157,7 +136,10 @@ Tests if each biomass reaction contains a set of essential precursors, listed in
 `config.biomass.essential_precursors`. Note, this function only works on a
 lumped biomass function.
 """
-function biomass_missing_essential_precursors(model; config = memote_config)
+function biomass_missing_essential_precursors(
+    model::MetabolicModel;
+    config = Config.memote_config,
+)
     biomass_rxns = model_biomass_reactions(model; config)
     num_missing_essential_precursors = Dict{String,Vector{String}}() # for some reason can't do biomass_rxns .=> String[]
     for rid in biomass_rxns
@@ -169,3 +151,5 @@ function biomass_missing_essential_precursors(model; config = memote_config)
     end
     return num_missing_essential_precursors
 end
+
+end # module
