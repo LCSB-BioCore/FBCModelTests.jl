@@ -5,8 +5,9 @@ A module testing various facets of the gene reaction associations.
 """
 module GPRAssociation
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
+
 import ..Config
 import ..Utils: _has_sensible_gpr, _probably_transport_reaction
 

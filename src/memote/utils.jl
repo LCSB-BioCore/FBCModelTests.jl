@@ -5,8 +5,8 @@ Miscellaneous functions used by memote style tests, not typically user facing.
 """
 module Utils
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
 using PeriodicTable
 
 """

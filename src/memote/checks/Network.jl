@@ -5,9 +5,11 @@ A module testing the network and topology properties of the model.
 """
 module Network
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
+using JuMP
 using SparseArrays
+
 import ..Config
 
 """
@@ -137,7 +139,7 @@ function find_cycle_reactions(
     end
     cycle_reactions = Set(String[])
     for rid in filter(x -> !is_boundary(model, x), reactions(model))
-        for sense in [COBREXA.MIN_SENSE, COBREXA.MAX_SENSE]
+        for sense in [JuMP.MIN_SENSE, JuMP.MAX_SENSE]
             mu = solved_objective_value(
                 flux_balance_analysis(
                     stdmodel,

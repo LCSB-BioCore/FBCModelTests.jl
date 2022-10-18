@@ -5,8 +5,9 @@ A module testing various metabolite properties.
 """
 module Metabolite
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
+
 import ..Config
 
 """

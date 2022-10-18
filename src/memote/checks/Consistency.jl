@@ -5,9 +5,10 @@ This module checks if the metabolic model is overall consistent.
 """
 module Consistency
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
 using JuMP
+
 import ..Config
 
 """

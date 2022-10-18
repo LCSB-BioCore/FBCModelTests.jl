@@ -5,8 +5,8 @@ Module housing the configuration parameters for the memote-style tests.
 """
 module Config
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
 
 """
 $(TYPEDEF)

@@ -5,8 +5,9 @@ A module testing reaction properties.
 """
 module Reaction
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
+
 import ..Config
 import ..Biomass.model_biomass_reactions
 import ..Utils: _probably_transport_reaction, _has_sensible_gpr

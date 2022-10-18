@@ -5,9 +5,10 @@ This module checks if the model is energetically sensible.
 """
 module Energy
 
-using DocStringExtensions
 using COBREXA
+using DocStringExtensions
 using JuMP
+
 import ..Config
 
 """
