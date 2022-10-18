@@ -13,17 +13,13 @@ tests on a constraint-based metabolic model.
 module FBCModelTests
 
 import Pkg
-using COBREXA
-using JuMP
-using DocStringExtensions
-using Test
-using SparseArrays
-
 include("version.jl")
-include("Utils.jl")
-include("FROG.jl")
-include("Memote.jl")
 
-export FROG, Memote
+include("Utils.jl")
+include(joinpath("frog", "FROG.jl"))
+include(joinpath("memote", "Memote.jl"))
+include(joinpath("memote", "Config.jl"))
+
+export FROG, Memote, Config.memote_config
 
 end
