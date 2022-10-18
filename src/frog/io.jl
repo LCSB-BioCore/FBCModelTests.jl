@@ -123,7 +123,9 @@ $(TYPEDSIGNATURES)
 
 Reverse of [`frog_write_to_directory`](@ref).
 """
-function frog_read_from_directory(report_dir::String)
+function frog_read_from_directory(
+    report_dir::String,
+)::NamedTuple{(:metadata, :report),Tuple{FROGMetadata,FROGReportData}}
     outname(x) = joinpath(report_dir, x)
     readfrom(x::Function, fn) = open(x, outname(fn), "r")
 
