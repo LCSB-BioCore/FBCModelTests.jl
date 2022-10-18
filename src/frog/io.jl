@@ -1,4 +1,19 @@
 
+"""
+    module ReportIO
+
+Functions for reading and writing FROG reports.
+"""
+module ReportIO
+
+using ..FROG: FROGReactionReport, FROGObjectiveReport, FROGMetadata, FROGReportData
+
+using ...FBCModelTests: gets
+
+using DelimitedFiles
+using DocStringExtensions
+using JSON
+
 #TODO any other kinds of suboptimal solutions?
 objstatus(::Nothing) = "infeasible"
 objstatus(::Any) = "optimal"
@@ -189,4 +204,6 @@ function frog_read_from_directory(report_dir::String)
             ) for (obj, opt) in obj_vals
         ),
     )
+end
+
 end

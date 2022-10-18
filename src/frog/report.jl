@@ -1,5 +1,25 @@
 
 """
+    module ReportGenerators
+
+Functions for generating FROG report data and metadata file contents.
+"""
+module ReportGenerators
+
+using ..FROG: FROGReactionReport, FROGObjectiveReport, FROGMetadata, FROGReportData
+
+using ...FBCModelTests: FBCMT_VERSION
+
+using COBREXA
+using Distributed
+using DocStringExtensions
+using MD5
+using SBML
+using SHA
+
+import InteractiveUtils
+
+"""
 $(TYPEDEF)
 
 # Fields
@@ -104,6 +124,39 @@ frog_model_report(model::SBMLModel; optimizer, workers = [Distributed.myid()]) =
 """
 $(TYPEDSIGNATURES)
 """
+frog_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
+    FROGMetadata(
+        "software.name" => "FBCModelTests.jl",
+        "software.version" => string(FBCMT_VERSION),
+        "software.url" => "https://github.com/LCSB-BioCore/FBCModelTests.jl/",
+        "environment" => begin
+            x = IOBuffer()
+            InteractiveUtils.versioninfo(x)
+            replace(String(take!(x)), r"\n *" => " ")
+        end,
+        "model.filename" => basefilename,
+        "model.md5" => bytes2hex(open(f -> md5(f), filename, "r")),
+        "model.sha256" => bytes2hex(open(f -> sha256(f), filename, "r")),
+        "solver.name" => "COBREXA.jl $COBREXA_VERSION ($(COBREXA.JuMP.MOI.get(optimizer(), COBREXA.JuMP.MOI.SolverName())))",
+    )
+
+end
+
+"""
+    module ReportTests
+
+Function for testing the compatibility of FROG report data.
+"""
+module ReportTests
+
+using ..FROG: FROGReportData, FROGMetadata
+using ...FBCModelTests: test_dicts
+
+using Test, DocStringExtensions
+
+"""
+$(TYPEDSIGNATURES)
+"""
 function frog_test_report_equality(
     a::FROGReportData,
     b::FROGReportData;
@@ -156,25 +209,6 @@ end
 """
 $(TYPEDSIGNATURES)
 """
-frog_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
-    FROGMetadata(
-        "software.name" => "FBCModelTests.jl",
-        "software.version" => string(FBCMT_VERSION),
-        "software.url" => "https://github.com/LCSB-BioCore/FBCModelTests.jl/",
-        "environment" => begin
-            x = IOBuffer()
-            InteractiveUtils.versioninfo(x)
-            replace(String(take!(x)), r"\n *" => " ")
-        end,
-        "model.filename" => basefilename,
-        "model.md5" => bytes2hex(open(f -> md5(f), filename, "r")),
-        "model.sha256" => bytes2hex(open(f -> sha256(f), filename, "r")),
-        "solver.name" => "COBREXA.jl $COBREXA_VERSION ($(COBREXA.JuMP.MOI.get(optimizer(), COBREXA.JuMP.MOI.SolverName())))",
-    )
-
-"""
-$(TYPEDSIGNATURES)
-"""
 function frog_test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
     for k in ["model.filename", "model.md5"]
         @testset "$k is present" begin
@@ -190,4 +224,6 @@ function frog_test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
             end
         end
     end
+end
+
 end

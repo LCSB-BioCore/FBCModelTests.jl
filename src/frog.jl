@@ -9,8 +9,14 @@ See https://www.ebi.ac.uk/biomodels/curation/fbc for details.
 """
 module FROG
 
+using COBREXA
+using DelimitedFiles
+using Distributed
 using DocStringExtensions
-using SHA, MD5, JSON, SBML, DelimitedFiles, Test, COBREXA, Distributed
+using JSON
+using Test
+
+using ..FBCModelTests: Maybe
 
 include("frog/structs.jl")
 include("frog/report.jl")

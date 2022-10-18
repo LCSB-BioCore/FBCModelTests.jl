@@ -1,7 +1,5 @@
 module FBCModelTests
 
-import Distributed
-import InteractiveUtils
 import Pkg
 
 using COBREXA
