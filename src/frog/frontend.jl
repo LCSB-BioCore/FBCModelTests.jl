@@ -3,8 +3,9 @@
 $(TYPEDSIGNATURES)
 
 A complete function for one-shot generation of FROG reports. Use
-[`frog_model_report`](@ref), [`frog_metadata`](@ref) and
-[`frog_write_to_directory`](@ref) for finer control of the process.
+[`ReportGenerators.frog_model_report`](@ref),
+[`ReportGenerators.frog_metadata`](@ref) and
+[`ReportIO.frog_write_to_directory`](@ref) for finer control of the process.
 """
 function frog_generate_report(
     filename::String;

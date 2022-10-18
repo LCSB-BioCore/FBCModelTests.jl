@@ -2,8 +2,20 @@
 # FROG
 
 ```@autodocs
-Modules = [FBCModelTests]
-Pages = ["frog.jl"]
+Modules = [FBCModelTests, FBCModelTests.FROG]
+Pages = ["frog.jl", "frog/structs.jl", "frog/frontend.jl"]
+```
+
+## Reading and writing reports
+```@autodocs
+Modules = [FBCModelTests.FROG.ReportIO]
+Pages = ["frog/io.jl"]
+```
+
+## Generating and testing the reports
+```@autodocs
+Modules = [FBCModelTests.FROG.ReportGenerators, FBCModelTests.FROG.ReportTests]
+Pages = ["frog/report.jl"]
 ```
 
 # MEMOTE
