@@ -1,5 +1,5 @@
 
-datadir = joinpath(@__DIR__, "testdata")
+datadir = joinpath(@__DIR__, "data")
 mkpath(datadir)
 
 model_file = Dict(
