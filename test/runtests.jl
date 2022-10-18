@@ -9,5 +9,6 @@ using COBREXA, Tulip
 include("data.jl")
 
 @testset "FBCModelTests test suite" begin
+    include("frog.jl")
     include("memote.jl")
 end
