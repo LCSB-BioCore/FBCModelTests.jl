@@ -22,12 +22,12 @@ Pages = ["frog/report.jl"]
 
 ```@autodocs
 Modules = [FBCModelTests]
-Pages = ["src/memote/checks/Basic.jl", "src/memote/checks/Consistency.jl", "src/memote/checks/Metabolite.jl", "src/memote/checks/Reaction.jl", "src/memote/checks/GPRAssociation.jl", "src/memote/checks/Biomass.jl", "src/memote/checks/Network.jl", "src/memote/checks/Annotation.jl","src/memote/checks/Energy.jl", "src/memote/frontend.jl"]
+Pages = ["src/memote/checks/Basic.jl", "src/memote/checks/Consistency.jl", "src/memote/checks/Metabolite.jl", "src/memote/checks/Reaction.jl", "src/memote/checks/GPRAssociation.jl", "src/memote/checks/Biomass.jl", "src/memote/checks/Network.jl", "src/memote/checks/Annotation.jl","src/memote/checks/Energy.jl", "src/memote/frontend.jl", "src/memote/utils.jl", "src/memote/config.jl"]
 ```
 
 # Types and utilities
 
 ```@autodocs
 Modules = [FBCModelTests]
-Pages = ["structs.jl", "common.jl"]
+Pages = ["common.jl"]
 ```

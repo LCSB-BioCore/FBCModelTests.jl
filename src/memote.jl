@@ -13,8 +13,8 @@ using COBREXA
 using Test
 using JuMP
 
-include(joinpath("memote", "Utils.jl")) # memote utils
-include(joinpath("memote", "Config.jl")) # memote test parameters
+include(joinpath("memote", "utils.jl")) # memote utils
+include(joinpath("memote", "config.jl")) # memote test parameters
 include.(
     joinpath.(
         Ref("memote/checks"),
