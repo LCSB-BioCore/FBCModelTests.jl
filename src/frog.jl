@@ -1,4 +1,6 @@
 
+include("frog/structs.jl")
+
 #TODO any other kinds of suboptimal solutions?
 objstatus(::Nothing) = "infeasible"
 objstatus(::Any) = "optimal"

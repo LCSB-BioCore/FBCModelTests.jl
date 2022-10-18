@@ -17,6 +17,6 @@ isfile("iJN746.json") ||
     Downloads.download("http://bigg.ucsd.edu/static/models/iJN746.json", "iJN746.json")
 iJN746 = load_model("iJN746.json")
 
-@testset "Test tests" begin
+@testset "FBCModelTests test suite" begin
     include("memote.jl")
 end
