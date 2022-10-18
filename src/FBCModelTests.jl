@@ -19,7 +19,6 @@ using DocStringExtensions
 using Test
 using SparseArrays
 
-include("modules.jl")
 include("version.jl")
 include("Utils.jl")
 include("FROG.jl")

@@ -5,14 +5,13 @@ Main entry point into metabolic model quality tests.
 """
 module Memote
 
-using ..ModuleTools
 using ..DocStringExtensions
 using ..COBREXA
 using ..Test
 using ..JuMP
 using ..Utils
 
-include( joinpath("memote_tests", "Config.jl"))
+include(joinpath("memote_tests", "Config.jl"))
 include(joinpath("memote_tests", "Annotation.jl"))
 include(joinpath("memote_tests", "Basic.jl"))
 include(joinpath("memote_tests", "Biomass.jl"))

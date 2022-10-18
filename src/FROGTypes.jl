@@ -5,7 +5,6 @@ Helper structs used by FROG.
 """
 module FROGTypes
 
-using ..ModuleTools
 using ..Utils
 using ..DocStringExtensions
 

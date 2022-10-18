@@ -14,7 +14,6 @@ using SBML
 using SHA
 
 using ..Test
-using ..ModuleTools
 using ..JuMP
 using ..COBREXA
 using ..DocStringExtensions
@@ -454,7 +453,5 @@ function frog_compare_reports(report_dir_a::String, report_dir_b::String)
         end
     end
 end
-
-@export_locals
 
 end # module
