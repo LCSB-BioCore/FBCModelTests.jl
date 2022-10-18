@@ -21,7 +21,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 COBREXA = "1"
-DocStringExtensions = "0.9"
+DocStringExtensions = "0.8, 0.9"
 JSON = "0.21"
 JuMP = "1"
 MD5 = "0.2"
