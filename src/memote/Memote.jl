@@ -1,7 +1,10 @@
 """
-# Memote
+module Memote
 
-Main entry point into metabolic model quality tests.
+This package contains a collection of tests based on Memote. See Lieven, C.,
+Beber, M.E., Olivier, B.G. et al. MEMOTE for standardized genome-scale metabolic
+model testing. Nat Biotechnol 38, 272–276 (2020).
+https://doi.org/10.1038/s41587-020-0446-y for details.
 """
 module Memote
 
@@ -9,29 +12,10 @@ using DocStringExtensions
 using COBREXA
 using Test
 using JuMP
-using ..Utils
 
-include(joinpath("Config.jl"))
-include(joinpath("checks", "Annotation.jl"))
-include(joinpath("checks", "Basic.jl"))
-include(joinpath("checks", "Biomass.jl"))
-include(joinpath("checks", "Consistency.jl"))
-include(joinpath("checks", "Energy.jl"))
-include(joinpath("checks", "GPRAssociation.jl"))
-include(joinpath("checks", "Metabolite.jl"))
-include(joinpath("checks", "Network.jl"))
-include(joinpath("checks", "Reaction.jl"))
-
-using .Config
-using .Annotation
-using .Basic
-using .Biomass
-using .Consistency
-using .Energy
-using .GPRAssociation
-using .Metabolite
-using .Network
-using .Reaction
+include(joinpath("Utils.jl")) # memote utils
+include(joinpath("Config.jl")) # memote test parameters
+include.(joinpath.(Ref("checks"), ["Annotation.jl", "Basic.jl", "Biomass.jl", "Consistency.jl", "Energy.jl", "GPRAssociation.jl", "Metabolite.jl", "Network.jl", "Reaction.jl"]))
 
 """
 $(TYPEDSIGNATURES)
