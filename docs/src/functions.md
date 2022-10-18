@@ -1,4 +1,11 @@
 
+# FBCModelTests.jl functions
+
+```@autodocs
+Modules = [FBCModelTests]
+Pages = ["FBCModelTests.jl"]
+```
+
 # FROG
 
 ```@autodocs
