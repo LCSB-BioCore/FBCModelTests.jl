@@ -16,7 +16,7 @@ $(TYPEDSIGNATURES)
 Checks if every gene has an annotation and returns an array of genes that do not
 have annotatons.
 """
-find_all_unannotated_genes(model) =
+find_all_unannotated_genes(model::MetabolicModel) =
     [gid for gid in genes(model) if isempty(gene_annotations(model, gid))]
 
 """
@@ -25,7 +25,7 @@ $(TYPEDSIGNATURES)
 Checks if every metabolite has an annotation and returns an array of metabolites
 that do not have annotatons.
 """
-find_all_unannotated_metabolites(model) =
+find_all_unannotated_metabolites(model::MetabolicModel) =
     [mid for mid in metabolites(model) if isempty(metabolite_annotations(model, mid))]
 
 """
@@ -34,7 +34,7 @@ $(TYPEDSIGNATURES)
 Checks if every reaction has an annotation and returns an array of reactions
 that do not have annotatons.
 """
-find_all_unannotated_reactions(model) =
+find_all_unannotated_reactions(model::MetabolicModel) =
     [rid for rid in reactions(model) if isempty(reaction_annotations(model, rid))]
 
 """
@@ -43,7 +43,7 @@ $(TYPEDSIGNATURES)
 Helper function to find all the unannotated components in the model.
 """
 function _find_unannotated_components(
-    model,
+    model::MetabolicModel,
     id_accessor,
     annotation_accessor,
     annotation_kws,
@@ -112,7 +112,7 @@ $(TYPEDSIGNATURES)
 Helper function to find all the annotations that do not conform in the model.
 """
 function _find_nonconformal_components(
-    model,
+    model::MetabolicModel,
     id_accessor,
     annotation_accessor,
     annotation_regex,

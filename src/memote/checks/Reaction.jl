@@ -29,7 +29,10 @@ purely directional, the lower or upper bound needs to be different from
 `[-config.reactions.bound_default, 0, config.reactions.bound_default]`.
 Metabolic reactions exclude transport, boundary and biomass reactions.
 """
-function find_all_purely_metabolic_reactions(model; config = Config.memote_config)
+function find_all_purely_metabolic_reactions(
+    model::MetabolicModel;
+    config = Config.memote_config,
+)
     biomass_rxns = model_biomass_reactions(model; config)
     metabolic_reactions_constrained = Set{String}()
     metabolic_reactions_unconstrained = Set{String}()
@@ -60,7 +63,7 @@ Transport reactions are heuristically identified, see
 annotations. Set the annotation field to use via
 `config.reactions.rest_annotation`.
 """
-function find_all_transport_reactions(model; config = Config.memote_config)
+function find_all_transport_reactions(model::MetabolicModel; config = Config.memote_config)
     transport_unconstrained = Set{String}()
     transport_constrained = Set{String}()
     for (lb, ub, rid) in zip(bounds(model)..., reactions(model))
@@ -83,7 +86,7 @@ Find all reactions with overlapping annotation information. Internally calls
 non-unique, ignore annotations like this by editing `config.reaction.ignore_annotations`.
 """
 function reactions_with_partially_identical_annotations(
-    model;
+    model::MetabolicModel;
     config = Config.memote_config,
 )
     stdmodel = convert(StandardModel, model)
@@ -99,7 +102,7 @@ $(TYPEDSIGNATURES)
 
 Return a list of all reactions that are duplicated.
 """
-function duplicate_reactions(model)
+function duplicate_reactions(model::MetabolicModel)
     stdmodel = convert(StandardModel, model)
     duplicated_rxns = Set{String}()
     for rid in reactions(stdmodel)
@@ -120,7 +123,7 @@ $(TYPEDSIGNATURES)
 Identify reactions that have the same gene reaction rules. Does not take
 directionality or compartments into account.
 """
-function reactions_with_identical_genes(model)
+function reactions_with_identical_genes(model::MetabolicModel)
     grr_rids = Dict{Vector{String},Set{String}}()
     for rid in reactions(model)
         !_has_sensible_gpr(model, rid) && continue

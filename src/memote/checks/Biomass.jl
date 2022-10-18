@@ -18,7 +18,7 @@ Identify all the biomass reactions in the `model` using both sbo annotations, as
 well biomass strings typically contained in their reaction IDs. Use
 `config.biomass.biomass_strings` to update the list of strings to look for.
 """
-model_biomass_reactions(model; config = Config.memote_config) = Set(
+model_biomass_reactions(model::MetabolicModel; config = Config.memote_config) = Set(
     [
         [rid for rid in reactions(model) if is_biomass_reaction(model, rid)]
         find_biomass_reaction_ids(model; biomass_strings = config.biomass.biomass_strings)
@@ -33,7 +33,7 @@ H⁺. Each of these metabolites have a lookup table mapping them to the name spa
 of the model, defined in `config.biomass.growth_metabolites`. These need to be
 set if you use anything other than the BiGG namespace.
 """
-function atp_present_in_biomass(model; config = Config.memote_config)
+function atp_present_in_biomass(model::MetabolicModel; config = Config.memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
     x = Dict(biomass_rxns .=> true)
     for rid in biomass_rxns
@@ -56,7 +56,7 @@ For each biomass reaction, identified by [`model_biomass_reactions`](@ref),
 calculate the molar weight of the reaction by summing the products of the
 associated metabolite coefficients with their molar masses.
 """
-function model_biomass_molar_mass(model; config = Config.memote_config)
+function model_biomass_molar_mass(model::MetabolicModel; config = Config.memote_config)
     biomass_rxns = model_biomass_reactions(model; config)
     get_molar_mass(mid) = begin
         rs = metabolite_formula(model, mid)
@@ -80,7 +80,7 @@ $(TYPEDSIGNATURES)
 Check that the molar mass of each biomass reactions falls within `[1 - 1e-3, 1 +
 1e-6]` by calling [`model_biomass_molar_mass`](@ref) internally.
 """
-model_biomass_is_consistent(model; config = Config.memote_config) =
+model_biomass_is_consistent(model::MetabolicModel; config = Config.memote_config) =
     all(-1e-3 .< (collect(values(model_biomass_molar_mass(model; config))) .- 1) .< 1e-6)
 
 """
@@ -91,7 +91,11 @@ biomass functions, except those listed in `config.biomass.ignored_precursors` in
 the default medium. Set any optimizer modifications with
 `config.biomass.optimizer_modifications`.
 """
-function find_blocked_biomass_precursors(model, optimizer; config = Config.memote_config)
+function find_blocked_biomass_precursors(
+    model::MetabolicModel,
+    optimizer;
+    config = Config.memote_config,
+)
     stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
     biomass_rxns = model_biomass_reactions(stdmodel; config)
     blocked_precursors = Dict{String,Vector{String}}()
@@ -132,7 +136,10 @@ Tests if each biomass reaction contains a set of essential precursors, listed in
 `config.biomass.essential_precursors`. Note, this function only works on a
 lumped biomass function.
 """
-function biomass_missing_essential_precursors(model; config = Config.memote_config)
+function biomass_missing_essential_precursors(
+    model::MetabolicModel;
+    config = Config.memote_config,
+)
     biomass_rxns = model_biomass_reactions(model; config)
     num_missing_essential_precursors = Dict{String,Vector{String}}() # for some reason can't do biomass_rxns .=> String[]
     for rid in biomass_rxns

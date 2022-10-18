@@ -7,7 +7,7 @@ optimization problems and configure the test parameters with `config`.
 Note, for best results, make sure the model can be converted into a
 `COBREXA.StandardModel`.
 """
-function run_tests(model, optimizer; config = Config.memote_config)
+function run_tests(model::MetabolicModel, optimizer; config = Config.memote_config)
     @testset "Metabolic model tests" begin
 
         @testset "Basic information" begin
@@ -171,7 +171,11 @@ $(TYPEDSIGNATURES)
 Generate a report of model characteristics that are typically important measures
 of the scope of the model.
 """
-function generate_memote_report(model, optimizer; config = Config.memote_config)
+function generate_memote_report(
+    model::MetabolicModel,
+    optimizer;
+    config = Config.memote_config,
+)
     result = Dict()
 
     # Basic information

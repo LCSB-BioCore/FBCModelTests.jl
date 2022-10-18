@@ -18,7 +18,7 @@ non-growth associated maintenance cost). Looks for reaction annotations
 corresponding to the sbo maintenance term, or looks for reaction ids that
 contain the strings listed in `config.energy.atpm_strings`.
 """
-model_has_atpm_reaction(model; config = Config.memote_config) =
+model_has_atpm_reaction(model::MetabolicModel; config = Config.memote_config) =
     any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) ||
     any(any(occursin.(config.energy.atpm_strings, Ref(rid))) for rid in reactions(model))
 
@@ -70,7 +70,7 @@ copy of `model`; this internal copy is used for analysis.
 Returns `true` if the model has no energy generating cycles.
 """
 function model_has_no_erroneous_energy_generating_cycles(
-    model,
+    model::MetabolicModel,
     optimizer;
     config = Config.memote_config,
 )

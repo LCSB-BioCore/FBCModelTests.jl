@@ -15,7 +15,7 @@ $(TYPEDSIGNATURES)
 Internal helper function that determines if a reaction has a gene reaction rule
 and that each gene in the rule is contained in the model.
 """
-function _has_sensible_gpr(model, rid)
+function _has_sensible_gpr(model::MetabolicModel, rid)
     grrs = reaction_gene_association(model, rid)
     isnothing(grrs) && return false
     isempty(grrs) && return false
@@ -37,7 +37,7 @@ Determine if a reaction is probably a transport reaction by checking if:
 Note, PTS type transport reactions will be missed if they do not have sbo
 annotations. This test may yield false negatives.
 """
-function _probably_transport_reaction(model, rid, test_annotation)
+function _probably_transport_reaction(model::MetabolicModel, rid, test_annotation)
     is_transport_reaction(model, rid) && return true
     allequal(x) = all(isequal(first(x), x)) #  TODO remove when Julia LTS is > v1.8
     allequal(
