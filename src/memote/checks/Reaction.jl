@@ -56,7 +56,7 @@ sense), and one with constrained transport reactions. For a constraint to be not
 purely directional, the lower or upper bound needs to be different from
 `[-config.reactions.bound_default, 0, config.reactions.bound_default]`.
 Transport reactions are heuristically identified, see
-[`_probably_transport_reaction`](@ref), which partially uses reaction
+`Memote.Utils._probably_transport_reaction`, which partially uses reaction
 annotations. Set the annotation field to use via
 `config.reactions.rest_annotation`.
 """
