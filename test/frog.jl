@@ -20,6 +20,8 @@
         @test isfile(joinpath(report_path, "02_fva.tsv"))
         @test isfile(joinpath(report_path, "03_gene_deletion.tsv"))
         @test isfile(joinpath(report_path, "04_reaction_deletion.tsv"))
+
+        FROG.frog_compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
     end
 
     @testset "Report equality is reflexive" begin
