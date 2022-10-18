@@ -102,7 +102,7 @@ end
 
     wrong_model = convert(StandardModel, model)
     wrong_model.reactions["EX_h2o_e"].ub = 0
-    @test first(FBCModelTests.Memote.Metabolite.metabolites_medium_components(wrong_model)) == "h2o_e"
+    @test "h2o_e" in FBCModelTests.Memote.Metabolite.metabolites_medium_components(wrong_model)
 
     @test isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(model))
     wrong_model.metabolites["pyr_c"].formula = ""
