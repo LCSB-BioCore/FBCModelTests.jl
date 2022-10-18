@@ -2,7 +2,7 @@ using Test
 
 using FBCModelTests
 
-using Downloads
+using Downloads, SHA
 using COBREXA, Tulip
 
 # this loads some data
