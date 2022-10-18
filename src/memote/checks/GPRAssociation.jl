@@ -1,5 +1,5 @@
 """
-module GPRAssociation
+    module GPRAssociation
 
 A module testing various facets of the gene reaction associations.
 """

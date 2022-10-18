@@ -1,5 +1,5 @@
 """
-module Network
+    module Network
 
 A module testing the network and topology properties of the model.
 """

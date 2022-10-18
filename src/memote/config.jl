@@ -1,5 +1,5 @@
 """
-module Config
+    module Config
 
 Module housing the configuration parameters for the memote-style tests.
 """

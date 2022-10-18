@@ -1,5 +1,5 @@
 """
-module Basic
+    module Basic
 
 Basic metabolic model tests.
 """

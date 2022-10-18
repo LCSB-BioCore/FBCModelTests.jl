@@ -1,5 +1,5 @@
 """
-module Annotation
+    module Annotation
 
 This module contains tests used to check the coverage and conformance of
 reaction, gene, and metabolite annotations.

@@ -1,3 +1,8 @@
+"""
+    module FBCModelTests
+
+A collection of tests for constraint-based flux metabolic models.
+"""
 module FBCModelTests
 
 import Pkg

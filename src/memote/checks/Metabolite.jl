@@ -1,5 +1,5 @@
 """
-module Metabolite
+    module Metabolite
 
 A module testing various metabolite properties.
 """

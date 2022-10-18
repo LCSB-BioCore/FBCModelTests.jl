@@ -1,5 +1,5 @@
 """
-module Energy
+    module Energy
 
 This module checks if the model is energetically sensible.
 """

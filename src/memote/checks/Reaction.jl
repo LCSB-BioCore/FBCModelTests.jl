@@ -1,5 +1,5 @@
 """
-module Reaction
+    module Reaction
 
 A module testing reaction properties.
 """

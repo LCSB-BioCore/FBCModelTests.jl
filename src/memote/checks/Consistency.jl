@@ -1,5 +1,5 @@
 """
-module Consistency
+    module Consistency
 
 This module checks if the metabolic model is overall consistent.
 """

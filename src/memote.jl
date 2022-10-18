@@ -1,5 +1,5 @@
 """
-module Memote
+    module Memote
 
 This package contains a collection of tests based on Memote. See Lieven, C.,
 Beber, M.E., Olivier, B.G. et al. MEMOTE for standardized genome-scale metabolic

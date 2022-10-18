@@ -1,5 +1,5 @@
 """
-module Biomass
+    module Biomass
 
 This module contains tests that check the consistency of the biomass reaction.
 """
