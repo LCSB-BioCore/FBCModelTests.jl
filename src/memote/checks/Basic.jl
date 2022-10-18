@@ -8,7 +8,7 @@ module Basic
 using ..DocStringExtensions
 
 using ..COBREXA
-import ..Config.memote_config
+import ..Config.Config.memote_config
 
 """
 $(TYPEDSIGNATURES)
@@ -72,7 +72,7 @@ Test if the metabolic coverage, calculated with
 [`model_metabolic_coverage`](@ref), exceeds
 `config.basic.minimum_metabolic_coverage`.
 """
-model_metabolic_coverage_exceeds_minimum(model; config = memote_config) =
+model_metabolic_coverage_exceeds_minimum(model; config = Config.memote_config) =
     model_metabolic_coverage(model) > config.basic.minimum_metabolic_coverage
 
 """
@@ -83,7 +83,7 @@ growth rate. Here reasonable is set via `config.basic.minimum_growth_rate` and
 `config.basic.maximum_growth_rate`. Optionally, pass optimization
 modifications to the solver through `config.basic.optimizer_modifications`.
 """
-function model_solves_in_default_medium(model, optimizer; config = memote_config)
+function model_solves_in_default_medium(model, optimizer; config = Config.memote_config)
     mu = solved_objective_value(
         flux_balance_analysis(
             model,

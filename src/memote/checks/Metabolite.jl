@@ -1,9 +1,8 @@
 module Metabolite
 
-using ..DocStringExtensions
-
-using ..COBREXA
-import ..Config.memote_config
+using DocStringExtensions
+using COBREXA
+import ..Config
 
 """
 $(TYPEDSIGNATURES)
@@ -14,7 +13,7 @@ metabolite. Use the testing config, `config.metabolite.only_imported =
 false`, to also return metabolites that can be produced by the model under
 default conditions.
 """
-function metabolites_medium_components(model; config = memote_config)
+function metabolites_medium_components(model; config = Config.memote_config)
     mets = String[]
     for (rid, lb, ub) in zip(reactions(model), bounds(model)...)
         if is_boundary(model, rid)
@@ -33,7 +32,7 @@ List all metabolites without a formula. Use
 `config.metabolite.formula_corner_cases` to specify an extra case to check for
 formula's that are not properly assigned.
 """
-metabolites_no_formula(model; config = memote_config) = [
+metabolites_no_formula(model; config = Config.memote_config) = [
     mid for mid in metabolites(model) if isnothing(metabolite_formula(model, mid)) ||
     isempty(metabolite_formula(model, mid)) ||
     any(
@@ -51,7 +50,7 @@ List all metabolites without a charge. Use
 `config.metabolite.charge_corner_cases` to specify an extra case to check for
 charge's that are not properly assigned.
 """
-metabolites_no_charge(model; config = memote_config) = [
+metabolites_no_charge(model; config = Config.memote_config) = [
     mid for mid in metabolites(model) if isnothing(metabolite_charge(model, mid)) ||
     metabolite_charge(model, mid) in config.metabolite.charge_corner_cases
 ]
@@ -64,7 +63,7 @@ Test if metabolites `m1` and `m2` are different by comparing their
 metabolite. Note, if no annotations are present for one or both of the
 metabolites, then return `true`.
 """
-function metabolites_are_duplicated(model, m1, m2; config = memote_config)
+function metabolites_are_duplicated(model, m1, m2; config = Config.memote_config)
     k1s = get(metabolite_annotations(model, m1), config.metabolite.test_annotation, nothing)
     isnothing(k1s) && return true
     k2s = get(metabolite_annotations(model, m2), config.metabolite.test_annotation, nothing)
@@ -80,7 +79,7 @@ Return a list of unique metabolites in model. Uses
 to it. The latter argument is used to determine if two metabolites are the same
 by checking for any correspondence.
 """
-function metabolites_unique(model; config = memote_config)
+function metabolites_unique(model; config = Config.memote_config)
     unique_metabolites = Set{String}()
     for m1 in metabolites(model)
         duplicate = false
@@ -98,7 +97,7 @@ $(TYPEDSIGNATURES)
 
 Return a dictionary of metabolites that are duplicated in their compartment.
 """
-function metabolites_duplicated_in_compartment(model; config = memote_config)
+function metabolites_duplicated_in_compartment(model; config = Config.memote_config)
     unique_metabolites = Dict{String,Set{String}}()
     for m1 in metabolites(model)
         c1 = metabolite_compartment(model, m1)

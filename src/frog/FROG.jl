@@ -12,11 +12,11 @@ using JSON
 using MD5
 using SBML
 using SHA
+using Test
+using JuMP
+using COBREXA
+using DocStringExtensions
 
-using ..Test
-using ..JuMP
-using ..COBREXA
-using ..DocStringExtensions
 using ..Utils
 
 include(joinpath("FROGTypes.jl"))

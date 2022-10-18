@@ -6,7 +6,7 @@ Helper structs used by FROG.
 module FROGTypes
 
 using ..Utils
-using ..DocStringExtensions
+using DocStringExtensions
 
 """
 $(TYPEDEF)

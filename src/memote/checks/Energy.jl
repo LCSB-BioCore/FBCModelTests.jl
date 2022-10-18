@@ -5,11 +5,10 @@ This module checks if the model is energetically sensible.
 """
 module Energy
 
-using ..DocStringExtensions
-
-using ..COBREXA
-using .. JuMP
-import ..Config.memote_config
+using DocStringExtensions
+using COBREXA
+using JuMP
+import ..Config
 
 """
 $(TYPEDSIGNATURES)
@@ -19,7 +18,7 @@ non-growth associated maintenance cost). Looks for reaction annotations
 corresponding to the sbo maintenance term, or looks for reaction ids that
 contain the strings listed in `config.energy.atpm_strings`.
 """
-model_has_atpm_reaction(model; config = memote_config) =
+model_has_atpm_reaction(model; config = Config.memote_config) =
     any(is_atp_maintenance_reaction(model, rid) for rid in reactions(model)) ||
     any(any(occursin.(config.energy.atpm_strings, Ref(rid))) for rid in reactions(model))
 
@@ -77,7 +76,7 @@ Returns `true` if the model has no energy generating cycles.
 function model_has_no_erroneous_energy_generating_cycles(
     model,
     optimizer;
-    config = memote_config,
+    config = Config.memote_config,
 )
     # need to add reactions, only implemented for Core and StdModel
     if model isa StandardModel
@@ -94,12 +93,12 @@ function model_has_no_erroneous_energy_generating_cycles(
     function maybe_add_energy_reaction(mets, id)
         if all(
             in.(
-                [config.consistency.energy_dissipating_metabolites[x] for x in keys(mets)],
+                [config.energy.energy_dissipating_metabolites[x] for x in keys(mets)],
                 Ref(metabolites(_model)),
             ),
         )
             _mets = Dict(
-                config.consistency.energy_dissipating_metabolites[k] => v for
+                config.energy.energy_dissipating_metabolites[k] => v for
                 (k, v) in mets
             )
             rid = "MEMOTE_TEMP_RXN_$id"
@@ -167,14 +166,14 @@ function model_has_no_erroneous_energy_generating_cycles(
     maybe_add_energy_reaction(Dict("H[external]" => -1, "H" => 1), "PROTON")
 
     # add user specified reactions
-    for rxn in config.consistency.additional_energy_generating_reactions
+    for rxn in config.energy.additional_energy_generating_reactions
         push!(objective_ids, rxn.id)
         add_reaction!(_model, rxn)
     end
 
     # ignore reactions by just removing them
     for rid in [
-        config.consistency.ignored_energy_reactions
+        config.energy.ignored_energy_reactions
         [rid for rid in reactions(_model) if is_boundary(_model, rid)]
     ]
         rid in reactions(_model) && remove_reaction!(_model, rid)
@@ -185,7 +184,7 @@ function model_has_no_erroneous_energy_generating_cycles(
             _model,
             optimizer;
             modifications = [
-                config.consistency.optimizer_modifications
+                config.energy.optimizer_modifications
                 change_objective(objective_ids)
             ],
         ),

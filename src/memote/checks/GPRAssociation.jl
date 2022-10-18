@@ -1,9 +1,8 @@
 module GPRAssociation
 
-using ..DocStringExtensions
-
-using ..COBREXA
-import ..Config.memote_config
+using DocStringExtensions
+using COBREXA
+import ..Config
 import ..Utils: _has_sensible_gpr, _probably_transport_reaction
 
 """
@@ -22,7 +21,7 @@ reactions_with_complexes(model) = [
     any(length(grr) > 1 for grr in reaction_gene_association(model, rid))
 ]
 
-reactions_transport_no_gpr(model; config = memote_config) = [
+reactions_transport_no_gpr(model; config = Config.memote_config) = [
     rid for rid in reactions(model) if !_has_sensible_gpr(model, rid) &&
     _probably_transport_reaction(model, rid, config.metabolite.test_annotation)
 ]

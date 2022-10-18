@@ -54,11 +54,11 @@ using COBREXA, Tulip, Test
 
 model = load_model("e_coli_core.json")
 
-run_tests(model, Tulip.Optimizer; config = memote_config)
+run_tests(model, Tulip.Optimizer; config = Config.memote_config)
 
-model_info = generate_memote_report(model, optimizer; config = memote_config)
+model_info = generate_memote_report(model, optimizer; config = Config.memote_config)
 ```
-You can set the configuration parameters through adjusting `memote_config`,
+You can set the configuration parameters through adjusting `Config.memote_config`,
 which is a type of `MemoteConfig` and exported by default. Note, some of the
 original Memote tests involve solving MILPs. These tests are not included in
 this package as the issues they identify are often easier to identify by simpler

@@ -5,11 +5,10 @@ This module checks if the metabolic model is overall consistent.
 """
 module Consistency
 
-using ..DocStringExtensions
-
-using ..COBREXA
-using ..JuMP
-import ..Config.memote_config
+using DocStringExtensions
+using COBREXA
+using JuMP
+import ..Config
 
 """
 $(TYPEDSIGNATURES)
@@ -22,7 +21,7 @@ Optionally, use `config.consistency.mass_ignored_reactions` to pass a vector
 of reaction ids to ignore in this process. Internally biomass and exchang
 reactions are ignored.
 """
-function reactions_charge_unbalanced(model; config = memote_config)
+function reactions_charge_unbalanced(model; config = Config.memote_config)
     unbalanced_rxns = String[]
     ignored_reactions = [
         find_biomass_reaction_ids(model)
@@ -57,7 +56,7 @@ Optionally, use `config.consistency.charge_ignored_reactions` to pass a vector
 of reaction ids to ignore in this process. Internally biomass and exchang
 reactions are ignored.
 """
-function reactions_mass_unbalanced(model; config = memote_config)
+function reactions_mass_unbalanced(model; config = Config.memote_config)
     unbalanced_rxns = String[]
     ignored_reactions = [
         find_biomass_reaction_ids(model)
@@ -92,7 +91,7 @@ stoichiometric inconsistencies in biomolecular models." Bioinformatics (2008).
 Optionally ignore some reactions in this analysis by adding reaction IDs to
 `config.consistency.consistency_ignored_reactions`.
 """
-function model_is_consistent(model, optimizer; config = memote_config)
+function model_is_consistent(model, optimizer; config = Config.memote_config)
     #=
     Note, there is a MILP method that can be used to find the unconserved metabolite,
     but the problem is a MILP (and probably why the original MEMOTE takes so long to run).

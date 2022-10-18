@@ -16,10 +16,14 @@ import Pkg
 include("version.jl")
 
 include("Utils.jl")
-include(joinpath("frog", "FROG.jl"))
-include(joinpath("memote", "Memote.jl"))
-include(joinpath("memote", "Config.jl"))
+import .Utils
 
-export FROG, Memote, Config.memote_config
+# include(joinpath("frog", "FROG.jl"))
+
+include(joinpath("memote", "Config.jl"))
+import .Config
+
+include(joinpath("memote", "Memote.jl"))
+import .Memote
 
 end

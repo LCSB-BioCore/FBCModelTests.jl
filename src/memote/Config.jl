@@ -5,9 +5,8 @@ Module housing the configuration parameters for the memote-style tests.
 """
 module Config
 
-using ..DocStringExtensions
-using ..COBREXA
-
+using DocStringExtensions
+using COBREXA
 
 """
 $(TYPEDEF)
@@ -141,6 +140,7 @@ mutable struct BiomassConfig
     growth_metabolites::Dict{String,String}
     ignored_precursors::Vector{String}
     essential_precursors::Dict{String,String}
+    minimum_growth_rate :: Float64
     optimizer_modifications::Vector{Function}
 end
 
@@ -187,6 +187,7 @@ biomass_config = BiomassConfig(
         "fmn" => "fmn_c",
         "h2o" => "h2o_c",
     ),
+    0.01,
     Function[],
 )
 
@@ -357,6 +358,5 @@ memote_config = MemoteConfig(
     network_config,
     reaction_config,
 )
-
 
 end # module

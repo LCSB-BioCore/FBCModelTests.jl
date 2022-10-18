@@ -5,9 +5,9 @@ Miscellaneous functions, not typically user facing.
 """
 module Utils
 
-using ..DocStringExtensions
-using ..COBREXA
-using ..Test
+using DocStringExtensions
+using COBREXA
+using Test
 using PeriodicTable
 
 const Maybe{T} = Union{Nothing,T}
