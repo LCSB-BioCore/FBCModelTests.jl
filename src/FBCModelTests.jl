@@ -1,17 +1,10 @@
 module FBCModelTests
 
-import Distributed
-import InteractiveUtils
 import Pkg
 
 using COBREXA
 using JuMP
-using DelimitedFiles
 using DocStringExtensions
-using JSON
-using MD5
-using SBML
-using SHA
 using Test
 using PeriodicTable
 using SparseArrays
@@ -20,6 +13,7 @@ include("version.jl")
 include("common.jl")
 include("structs.jl")
 include("frog.jl")
+
 include(joinpath("memote", "basic.jl"))
 include(joinpath("memote", "metabolites.jl"))
 include(joinpath("memote", "reactions.jl"))

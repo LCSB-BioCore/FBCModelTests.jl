@@ -30,9 +30,9 @@ Manifest.toml
 .vscode
 
 # ignore models downloaded for testing
-*.json
-*.xml
-*.mat
+test/data/*.json
+test/data/*.xml
+test/data/*.mat
 
 # ignore develop/testing script
 temp.jl

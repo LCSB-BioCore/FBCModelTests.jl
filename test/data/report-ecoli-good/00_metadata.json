@@ -1,0 +1,10 @@
+{
+  "model.sha256": "b4db506aeed0e434c1f5f1fdd35feda0dfe5d82badcfda0e9d1342335ab31116",
+  "model.md5": "4574760460afe9e1b3388dc15f354706",
+  "software.name": "FBCModelTests.jl",
+  "environment": "Julia Version 1.8.0 Commit 5544a0fab76 (2022-08-17 13:38 UTC) Platform Info: OS: Linux (x86_64-linux-gnu) CPU: 8 × AMD Ryzen 7 2700U with Radeon Vega Mobile Gfx WORD_SIZE: 64 LIBM: libopenlibm LLVM: libLLVM-13.0.1 (ORCJIT, znver1) Threads: 1 on 8 virtual cores Environment: JULIA_LOAD_PATH = @:/tmp/jl_iPKIER ",
+  "software.version": "0.1.0",
+  "software.url": "https://github.com/LCSB-BioCore/FBCModelTests.jl/",
+  "model.filename": "e_coli_core.xml",
+  "solver.name": "COBREXA.jl 1.4.1 (GLPK)"
+}
