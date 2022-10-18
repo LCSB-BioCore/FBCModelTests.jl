@@ -7,7 +7,7 @@ module Config
 
 using ..DocStringExtensions
 using ..COBREXA
-using ..ModuleTools
+
 
 """
 $(TYPEDEF)
@@ -358,6 +358,5 @@ memote_config = MemoteConfig(
     reaction_config,
 )
 
-@export_locals
 
 end # module

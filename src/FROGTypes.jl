@@ -48,6 +48,5 @@ $(TYPEDEF)
 """
 const FROGReportData = Dict{String,FROGObjectiveReport}
 
-@export_locals
 
 end # module

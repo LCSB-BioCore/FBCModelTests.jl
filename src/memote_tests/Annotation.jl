@@ -7,7 +7,7 @@ reaction, gene, and metabolite annotations.
 module Annotation
 
 using ..COBREXA
-using ..ModuleTools
+
 using ..DocStringExtensions
 import ..Config.memote_config
 
@@ -180,7 +180,5 @@ find_nonconformal_reaction_annotations(model; config = memote_config) =
         reaction_annotations,
         config.annotation.reaction_annotation_regexes,
     )
-
-@export_locals
 
 end # module

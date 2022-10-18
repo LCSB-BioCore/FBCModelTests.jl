@@ -1,7 +1,7 @@
 module Network
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 import ..Config.memote_config
 
@@ -180,6 +180,5 @@ function find_complete_medium_orphans_and_deadends(model, optimizer; config = me
     return found_mets
 end
 
-@export_locals
 
 end # module

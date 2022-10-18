@@ -1,7 +1,7 @@
 module Metabolite
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 import ..Config.memote_config
 
@@ -116,6 +116,5 @@ function metabolites_duplicated_in_compartment(model; config = memote_config)
     return unique_metabolites
 end
 
-@export_locals
 
 end # module

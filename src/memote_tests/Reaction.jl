@@ -1,7 +1,7 @@
 module Reaction
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 import ..Config.memote_config
 
@@ -122,6 +122,5 @@ function reactions_with_identical_genes(model)
     return filter(x -> length(x.second) > 1, grr_rids)
 end
 
-@export_locals
 
 end # module

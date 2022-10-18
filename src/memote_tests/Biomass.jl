@@ -6,7 +6,7 @@ This module contains tests that check the consistency of the biomass reaction.
 module Biomass
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 import ..Config.memote_config
 
@@ -144,6 +144,5 @@ function biomass_missing_essential_precursors(model; config = memote_config)
     return num_missing_essential_precursors
 end
 
-@export_locals
 
 end # module

@@ -6,7 +6,7 @@ This module checks if the metabolic model is overall consistent.
 module Consistency
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 using ..JuMP
 import ..Config.memote_config
@@ -130,6 +130,5 @@ function model_is_consistent(model, optimizer; config = memote_config)
     termination_status(opt_model) == OPTIMAL
 end
 
-@export_locals
 
 end # module

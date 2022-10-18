@@ -6,7 +6,7 @@ This module checks if the model is energetically sensible.
 module Energy
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 using .. JuMP
 import ..Config.memote_config
@@ -196,6 +196,5 @@ function model_has_no_erroneous_energy_generating_cycles(
     isapprox(objval, 0; atol = 1e-6)
 end
 
-@export_locals
 
 end # module

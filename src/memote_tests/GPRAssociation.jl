@@ -1,7 +1,7 @@
 module GPRAssociation
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 import ..Config.memote_config
 import ..Utils: _has_sensible_gpr, _probably_transport_reaction
@@ -27,6 +27,5 @@ reactions_transport_no_gpr(model; config = memote_config) = [
     _probably_transport_reaction(model, rid, config.metabolite.test_annotation)
 ]
 
-@export_locals
 
 end # module

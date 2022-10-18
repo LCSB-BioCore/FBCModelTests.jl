@@ -6,7 +6,7 @@ Basic metabolic model tests.
 module Basic
 
 using ..DocStringExtensions
-using ..ModuleTools
+
 using ..COBREXA
 import ..Config.memote_config
 
@@ -93,7 +93,5 @@ function model_solves_in_default_medium(model, optimizer; config = memote_config
     )
     config.basic.minimum_growth_rate < mu < config.basic.maximum_growth_rate
 end
-
-@export_locals
 
 end
