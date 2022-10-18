@@ -33,6 +33,7 @@ Manifest.toml
 test/data/*.json
 test/data/*.xml
 test/data/*.mat
+test/data/*-generated
 
 # ignore develop/testing script
 temp.jl
