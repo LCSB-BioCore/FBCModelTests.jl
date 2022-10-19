@@ -23,7 +23,7 @@ objvalue(x::Number) = string(x)
 
 parse_objvalue(x::String) = x == "" ? nothing : parse(Float64, x)
 
-const frog_headers = Dict(
+const frog_report_tsv_headers = Dict(
     :objective => ["model" "objective" "status" "value"],
     :fva => ["model" "objective" "reaction" "flux" "status" "minimum" "maximum"],
     :gene_deletion => ["model" "objective" "gene" "status" "value"],
@@ -36,7 +36,7 @@ $(TYPEDSIGNATURES)
 Write the contents of [`FROGReportData`](@ref) to the 4 TSV files as specified
 by FROG standard, and additionally write the metadata into the JSON file.
 """
-function frog_write_to_directory(
+function save_report(
     r::FROGReportData,
     metadata::FROGMetadata;
     report_dir::String,
@@ -52,7 +52,7 @@ function frog_write_to_directory(
         writedlm(
             f,
             [
-                frog_headers[:objective]
+                frog_report_tsv_headers[:objective]
                 squash(
                     [basefilename, obj, objstatus(o.optimum), objvalue(o.optimum)] for
                     (obj, o) in r
@@ -66,7 +66,7 @@ function frog_write_to_directory(
         writedlm(
             f,
             [
-                frog_headers[:fva]
+                frog_report_tsv_headers[:fva]
                 squash(
                     [
                         basefilename,
@@ -87,7 +87,7 @@ function frog_write_to_directory(
         writedlm(
             f,
             [
-                frog_headers[:gene_deletion]
+                frog_report_tsv_headers[:gene_deletion]
                 squash(
                     [basefilename, obj, gene, objstatus(geneval), objvalue(geneval)] for
                     (obj, o) in r for (gene, geneval) in o.gene_deletions
@@ -101,7 +101,7 @@ function frog_write_to_directory(
         writedlm(
             f,
             [
-                frog_headers[:reaction_deletion]
+                frog_report_tsv_headers[:reaction_deletion]
                 squash(
                     [basefilename, obj, rxn, objstatus(r.deletion), objvalue(r.deletion)]
                     for (obj, o) in r for (rxn, r) in o.reactions
@@ -121,9 +121,9 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Reverse of [`frog_write_to_directory`](@ref).
+Reverse of [`save_report`](@ref).
 """
-function frog_read_from_directory(
+function load_report(
     report_dir::String,
 )::NamedTuple{(:metadata, :report),Tuple{FROGMetadata,FROGReportData}}
     outname(x) = joinpath(report_dir, x)
@@ -139,7 +139,7 @@ function frog_read_from_directory(
     objdata = readfrom("01_objective.tsv") do f
         readdlm(f, '\t', String)
     end
-    @assert objdata[1, :] == frog_headers[:objective][1, :]
+    @assert objdata[1, :] == frog_report_tsv_headers[:objective][1, :]
     obj_vals = Dict(
         o => parse_objvalue(v) for
         (m, o, _, v) = eachrow(objdata[2:end, :]) if m == basefilename
@@ -149,7 +149,7 @@ function frog_read_from_directory(
     fvadata = readfrom("02_fva.tsv") do f
         readdlm(f, '\t', String)
     end
-    @assert fvadata[1, :] == frog_headers[:fva][1, :]
+    @assert fvadata[1, :] == frog_report_tsv_headers[:fva][1, :]
     fva_vals = Dict(
         obj => Dict(
             r => parse_objvalue.((flx, min, max)) for
@@ -162,7 +162,7 @@ function frog_read_from_directory(
     gdata = readfrom("03_gene_deletion.tsv") do f
         readdlm(f, '\t', String)
     end
-    @assert gdata[1, :] == frog_headers[:gene_deletion][1, :]
+    @assert gdata[1, :] == frog_report_tsv_headers[:gene_deletion][1, :]
     gene_vals = Dict(
         obj => Dict(
             g => parse_objvalue(v) for (m, o, g, _, v) = eachrow(gdata[2:end, :]) if
@@ -174,7 +174,7 @@ function frog_read_from_directory(
     rdata = readfrom("04_reaction_deletion.tsv") do f
         readdlm(f, '\t', String)
     end
-    @assert rdata[1, :] == frog_headers[:reaction_deletion][1, :]
+    @assert rdata[1, :] == frog_report_tsv_headers[:reaction_deletion][1, :]
     rxn_vals = Dict(
         obj => Dict(
             r => parse_objvalue(v) for (m, o, r, _, v) = eachrow(rdata[2:end, :]) if
