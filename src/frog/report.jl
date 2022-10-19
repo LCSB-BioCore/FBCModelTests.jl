@@ -116,7 +116,7 @@ $(TYPEDSIGNATURES)
 
 Generate [`FROGReportData`](@ref) for a model.
 """
-frog_model_report(model::SBMLModel; optimizer, workers = [Distributed.myid()]) = Dict([
+generate_report_data(model::SBMLModel; optimizer, workers = [Distributed.myid()]) = Dict([
     objective => frog_objective_report(model, objective; optimizer, workers) for
     (objective, _) in model.sbml.objectives
 ])
@@ -124,7 +124,7 @@ frog_model_report(model::SBMLModel; optimizer, workers = [Distributed.myid()]) =
 """
 $(TYPEDSIGNATURES)
 """
-frog_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
+generate_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
     FROGMetadata(
         "software.name" => "FBCModelTests.jl",
         "software.version" => string(FBCMT_VERSION),
@@ -157,7 +157,7 @@ using Test, DocStringExtensions
 """
 $(TYPEDSIGNATURES)
 """
-function frog_test_report_equality(
+function test_report_compatibility(
     a::FROGReportData,
     b::FROGReportData;
     absolute_tolerance = 1e-6,
@@ -209,7 +209,7 @@ end
 """
 $(TYPEDSIGNATURES)
 """
-function frog_test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
+function test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
     for k in ["model.filename", "model.md5"]
         @testset "$k is present" begin
             @test haskey(a, k)

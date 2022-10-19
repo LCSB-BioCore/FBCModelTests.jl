@@ -7,7 +7,7 @@
     report_path = joinpath(datadir, "report-generated")
     rm(report_path, recursive = true, force = true)
 
-    FROG.frog_generate_report(
+    FROG.generate_report(
         model_file["e_coli_core.xml"],
         report_dir = report_path,
         optimizer = GLPK.Optimizer,
@@ -21,12 +21,12 @@
         @test isfile(joinpath(report_path, "03_gene_deletion.tsv"))
         @test isfile(joinpath(report_path, "04_reaction_deletion.tsv"))
 
-        FROG.frog_compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
+        FROG.compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
     end
 
     @testset "Report equality is reflexive" begin
         result = @testset CountTests "Same reports" begin
-            FROG.frog_compare_reports(report_path, report_path)
+            FROG.compare_reports(report_path, report_path)
         end
 
         @test result.passes == 758
@@ -36,7 +36,7 @@
 
     @testset "Generated report looks as expected" begin
         result = @testset CountTests "Expected report" begin
-            FROG.frog_compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
+            FROG.compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
         end
 
         @test result.passes == 758
@@ -46,7 +46,7 @@
 
     @testset "Broken report does not pass comparison" begin
         result = @testset CountTests "Different reports" begin
-            FROG.frog_compare_reports(report_path, joinpath(datadir, "report-ecoli-damaged"))
+            FROG.compare_reports(report_path, joinpath(datadir, "report-ecoli-damaged"))
         end
 
         @test result.passes == 745
