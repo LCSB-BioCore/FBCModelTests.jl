@@ -83,3 +83,7 @@ Institute for Quantitative and Theoretical Biology
 at the
 Heinrich Heine University in Düsseldorf
 ([qtb.hhu.de](https://www.qtb.hhu.de/)).
+The development was supported by European Union's Horizon 2020 Programme under
+PerMedCoE project ([permedcoe.eu](https://permedcoe.eu/)) agreement no. 951773.
+
+<img src="https://lcsb-biocore.github.io/FBCModelTests.jl/dev/assets/unilu.svg" alt="Uni.lu logo" height="64px" style="height:64px; width:auto">   <img src="https://lcsb-biocore.github.io/FBCModelTests.jl/dev/assets/lcsb.svg" alt="LCSB logo" height="64px" style="height:64px; width:auto">   <img src="https://lcsb-biocore.github.io/FBCModelTests.jl/dev/assets/hhu.svg" alt="HHU logo" height="64px" style="height:64px; width:auto">   <img src="https://lcsb-biocore.github.io/FBCModelTests.jl/dev/assets/qtb.svg" alt="QTB logo" height="64px" style="height:64px; width:auto">   <img src="https://lcsb-biocore.github.io/FBCModelTests.jl/dev/assets/permedcoe.svg" alt="PerMedCoE logo" height="64px" style="height:64px; width:auto">
