@@ -129,4 +129,56 @@ function model_is_consistent(
     termination_status(opt_model) == OPTIMAL
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Returns a list of all metabolites that aren't part of any reactions.
+"""
+function find_disconnected_metabolites(model::MetabolicModel)
+    mids = deepcopy(metabolites(model))
+    for rid in reactions(model)
+        rid_m = reaction_stoichiometry(model, rid)
+        for mid in mids
+            haskey(rid_m, mid) && deleteat!(mids, findall(x->x == mid, mids))
+        end
+    end
+    return mids
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+A function to find reactions able to carry unlimited flux under default conditions.
+The function compares the fluxes of the model calculated by FVA (using flux_variability_analysis_dict)
+with the median bounds of the model (+/- treshold) and returns the fluxes which are grearter or smaller than 
+the bounds in a two seperate dictionaries.
+"""
+function unbounded_flux_in_default_medium(model::MetabolicModel, fva_result::Tuple{Any,Any}, config = memote_config)
+    tol = config.consistency.tolerance_threshold
+
+    if isempty(fva_result)
+        throw(ArgumentError("fva_result is empty"))
+    end
+
+    low_unlimited_flux = Dict{String, Vector{Any}}()
+    high_unlimited_flux = Dict{String, Vector{Any}}()
+
+    min_fluxes, max_fluxes = fva_result
+    lower_bound, upper_bound = median_bounds(model)
+
+    for rid in reactions(model), rid2 in reactions(model)
+        if min_fluxes[rid][rid2] < lower_bound || isapprox(min_fluxes[rid][rid2], lower_bound; atol = tol)
+            low_unlimited_flux[rid] = [rid2, min_fluxes[rid][rid2]]
+        end
+    end
+
+    for rid3 in reactions(model), rid4 in reactions(model)
+        if max_fluxes[rid3][rid4] > upper_bound || isapprox(max_fluxes[rid3][rid4], upper_bound; atol = tol)
+            high_unlimited_flux[rid3] = [rid4, max_fluxes[rid3][rid4]]
+        end
+    end
+
+    return low_unlimited_flux, high_unlimited_flux
+end
+
 end # module

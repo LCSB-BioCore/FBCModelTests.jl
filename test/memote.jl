@@ -78,6 +78,18 @@ end
     wrong_model.metabolites["pyr_c"].formula = "C2H3X"
     @test !isempty(Consistency.reactions_charge_unbalanced(wrong_model))
     @test !isempty(Consistency.reactions_mass_unbalanced(wrong_model))
+
+    # test metabolite connectivity
+    dm = find_disconnected_metabolites(model)
+    @test isempty(dm)
+
+    # test unbounded flux
+    fva_result = flux_variability_analysis_dict(model, Tulip.Optimizer; bounds = objective_bounds(0.99))
+    mb = median_bounds(model)
+    low_unlimited_flux, high_unlimited_flux = unbounded_flux_in_default_medium(model, fva_result)
+    @test mb == (-1000.0, 1000.0)
+    @test isempty(low_unlimited_flux)
+    @test isapprox(high_unlimited_flux["FRD7"][2], 1000.0, atol = 1e-07)
 end
 
 @testset "Energy metabolism" begin
