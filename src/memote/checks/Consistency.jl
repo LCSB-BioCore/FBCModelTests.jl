@@ -140,7 +140,7 @@ find_disconnected_metabolites(model::MetabolicModel) = metabolites(model)[all(st
 $(TYPEDSIGNATURES)
 
 Finds reactions that can carry unlimited flux under default conditions.
-The function compares the fluxes of the model calculated by FVA (using flux_variability_analysis_dict)
+The function compares the fluxes of the model calculated by FVA (using `flux_variability_analysis_dict` from COBREXA)
 with the median bounds of the model (+/- treshold) and returns the fluxes which are grearter or smaller than 
 the bounds in a two seperate dictionaries.
 """
