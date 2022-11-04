@@ -134,16 +134,7 @@ $(TYPEDSIGNATURES)
 
 Returns a list of all metabolites that aren't part of any reactions.
 """
-function find_disconnected_metabolites(model::MetabolicModel)
-    mids = deepcopy(metabolites(model))
-    for rid in reactions(model)
-        rid_m = reaction_stoichiometry(model, rid)
-        for mid in mids
-            haskey(rid_m, mid) && deleteat!(mids, findall(x->x == mid, mids))
-        end
-    end
-    return mids
-end
+find_disconnected_metabolites(model::MetabolicModel) = metabolites(model)[all(stoichiometry(model) .== 0, dims = 2)[:]]
 
 """
 $(TYPEDSIGNATURES)
