@@ -146,30 +146,13 @@ the bounds in a two seperate dictionaries.
 """
 function unbounded_flux_in_default_medium(model::MetabolicModel, fva_result::Tuple{Any,Any}, config = memote_config)
     tol = config.consistency.tolerance_threshold
-
-    if isempty(fva_result)
-        throw(ArgumentError("fva_result is empty"))
-    end
-
-    low_unlimited_flux = Dict{String, Vector{Any}}()
-    high_unlimited_flux = Dict{String, Vector{Any}}()
+    
+    all(!isnothing, fva_result) || throw(ArgumentError("fva_result is empty"))
 
     min_fluxes, max_fluxes = fva_result
     lower_bound, upper_bound = median_bounds(model)
 
-    for rid in reactions(model), rid2 in reactions(model)
-        if min_fluxes[rid][rid2] < lower_bound || isapprox(min_fluxes[rid][rid2], lower_bound; atol = tol)
-            low_unlimited_flux[rid] = [rid2, min_fluxes[rid][rid2]]
-        end
-    end
-
-    for rid3 in reactions(model), rid4 in reactions(model)
-        if max_fluxes[rid3][rid4] > upper_bound || isapprox(max_fluxes[rid3][rid4], upper_bound; atol = tol)
-            high_unlimited_flux[rid3] = [rid4, max_fluxes[rid3][rid4]]
-        end
-    end
-
-    return low_unlimited_flux, high_unlimited_flux
+    return _compare_flux_bounds(min_fluxes, lower_bound, tol, <), _compare_flux_bounds(max_fluxes, upper_bound, tol, >)
 end
 
 end # module
