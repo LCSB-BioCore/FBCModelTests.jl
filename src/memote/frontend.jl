@@ -190,7 +190,7 @@ Overload of [`generate_report`](@ref) that works directly on a given
 filename.
 """
 generate_report(filename::String, optimizer; kwargs...) =
-    generate_memote_report(load_model(filename), optimizer; kwargs...)
+    generate_report(load_model(filename), optimizer; kwargs...)
 
 """
 $(TYPEDSIGNATURES)

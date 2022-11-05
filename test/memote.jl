@@ -1,14 +1,20 @@
 
+using FBCModelTests: Memote
+using FBCModelTests.Memote.Annotation
+using FBCModelTests.Memote.Basic
+using FBCModelTests.Memote.Biomass
+using FBCModelTests.Memote.Consistency
+using FBCModelTests.Memote.Energy
+using FBCModelTests.Memote.GPRAssociation
+using FBCModelTests.Memote.Network
+
 @testset "Front-end" begin
     @testset "Testing a model that _should_ be OK" begin
-        FBCModelTests.Memote.run_tests(model_file["e_coli_core.json"], Tulip.Optimizer)
+        Memote.run_tests(model_file["e_coli_core.json"], Tulip.Optimizer)
     end
 
     @testset "Report can be written successfully as JSON" begin
-        r = FBCModelTests.Memote.generate_report(
-            model_file["e_coli_core.json"],
-            Tulip.Optimizer,
-        )
+        r = Memote.generate_report(model_file["e_coli_core.json"], Tulip.Optimizer)
         @test r isa Dict
 
         # this should work without errors
