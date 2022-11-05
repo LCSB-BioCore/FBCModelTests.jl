@@ -110,11 +110,11 @@ end
 """
 $(TYPEDSIGNATURES)
 
-A helper function that returns the median upper and lower bounds in a tuple. If none can be calculated
-bound defaults are set.
+A helper function that returns the median upper and lower bounds in a tuple. If none can be calculated,
+constants from COBREXA are used as the default values.
 """
-function median_bounds(model::MetabolicModel, config = memote_config)
-    default = config.reaction.bound_default
+function median_bounds(model::MetabolicModel)
+    default = COBREXA._constants.default_reaction_bound
     lower_bound, upper_bound = bounds(model)
     lb_list = [element for element in lower_bound if !isapprox(element, 0.0)]
     ub_list = [element for element in upper_bound if !isapprox(element, 0.0)]
