@@ -111,14 +111,15 @@ end
 $(TYPEDSIGNATURES)
 
 A helper function that returns the median upper and lower bounds in a tuple. If none can be calculated
-(-1000.0, 1000.0) are set as the default values.
+bound defaults are set.
 """
-function median_bounds(model::MetabolicModel)
+function median_bounds(model::MetabolicModel, config = memote_config)
+    default = config.reaction.bound_default
     lower_bound, upper_bound = bounds(model)
-    lb_list = [element for element in lower_bound if element != 0.0]
-    ub_list = [element for element in upper_bound if element != 0.0]
-    isempty(lb_list) ? m_lower_bound = -1000.0 : m_lower_bound =  median(lb_list) 
-    isempty(ub_list) ? m_upper_bound = 1000.0 : m_upper_bound =  median(ub_list) 
+    lb_list = [element for element in lower_bound if !isapprox(element, 0.0)]
+    ub_list = [element for element in upper_bound if !isapprox(element, 0.0)]
+    isempty(lb_list) ? m_lower_bound = -default : m_lower_bound = median(lb_list) 
+    isempty(ub_list) ? m_upper_bound = default : m_upper_bound = median(ub_list)
     return m_lower_bound, m_upper_bound
 end
 
