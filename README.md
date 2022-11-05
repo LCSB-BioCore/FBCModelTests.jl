@@ -44,8 +44,7 @@ St. Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
 You can use a number of tests that automatically check various basic quality
 characteristics of a constraint-based metabolic model; the suite available in
-FBCModelTests.jl is vastly inspired by
-[MEMOTE](https://memote.readthedocs.io/).
+FBCModelTests.jl is inspired by [MEMOTE](https://memote.readthedocs.io/).
 
 To run the test suite on a toy model, use `run_tests`:
 ```julia
