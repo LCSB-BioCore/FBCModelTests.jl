@@ -123,4 +123,19 @@ function median_bounds(model::MetabolicModel)
     return m_lower_bound, m_upper_bound
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper function to compare fluxes with specific bounds.
+"""
+function _compare_flux_bounds(fluxes, bound, tol, comparison_operator)
+    unlimited_flux = Dict{String, Tuple{String, Float64}}()
+    for (rid, d) in fluxes, (frid, flux) in d
+        if comparison_operator(flux, bound) || isapprox(flux, bound; atol = tol)
+            unlimited_flux[rid] = (frid, flux)
+        end
+    end
+    return unlimited_flux
+end            
+            
 end # module
