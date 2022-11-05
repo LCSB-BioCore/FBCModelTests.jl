@@ -118,7 +118,7 @@ function median_bounds(model::MetabolicModel)
     lower_bound, upper_bound = bounds(model)
     lb_list = [element for element in lower_bound if !isapprox(element, 0.0)]
     ub_list = [element for element in upper_bound if !isapprox(element, 0.0)]
-    isempty(lb_list) ? m_lower_bound = -default : m_lower_bound = median(lb_list) 
+    isempty(lb_list) ? m_lower_bound = -default : m_lower_bound = median(lb_list)
     isempty(ub_list) ? m_upper_bound = default : m_upper_bound = median(ub_list)
     return m_lower_bound, m_upper_bound
 end
@@ -129,13 +129,13 @@ $(TYPEDSIGNATURES)
 Internal helper function to compare fluxes with specific bounds.
 """
 function _compare_flux_bounds(fluxes, bound, tol, comparison_operator)
-    unlimited_flux = Dict{String, Tuple{String, Float64}}()
+    unlimited_flux = Dict{String,Tuple{String,Float64}}()
     for (rid, d) in fluxes, (frid, flux) in d
         if comparison_operator(flux, bound) || isapprox(flux, bound; atol = tol)
             unlimited_flux[rid] = (frid, flux)
         end
     end
     return unlimited_flux
-end            
-            
+end
+
 end # module
