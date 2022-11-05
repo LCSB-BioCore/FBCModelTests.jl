@@ -1,14 +1,32 @@
 """
 $(TYPEDSIGNATURES)
 
-Run the standard memote test suite on `model` using `optimizer` to solve
-optimization problems and configure the test parameters with `config`.
-
-Note, for best results, make sure the model can be converted into a
-`COBREXA.StandardModel`.
+Overload of [`run_tests`](@ref) that works directly with a file.
 """
-function run_tests(model::MetabolicModel, optimizer; config = Config.memote_config)
-    @testset "Metabolic model tests" begin
+run_tests(filename::String, optimizer; kwargs...) = run_tests(
+    load_model(StandardModel, filename),
+    optimizer;
+    filename = basename(filename),
+    kwargs...,
+)
+
+"""
+$(TYPEDSIGNATURES)
+
+Run a MEMOTE-like test suite on `model` using `optimizer` to solve optimization
+problems; some basic parameters and thresholds are taken from `config`.
+
+Some of the tests internally convert the input model to `StandardModel` of
+COBREXA; supplying a `StandardModel` may thus increase efficiency of the whole
+process.
+"""
+function run_tests(
+    model::MetabolicModel,
+    optimizer;
+    config = Config.memote_config,
+    filename = nothing,
+)
+    @testset "Metabolic Model Tests$(isnothing(filename) ? "" : ": $filename")" begin
 
         @testset "Basic information" begin
             @test Basic.model_has_name(model)
@@ -168,86 +186,73 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Generate a report of model characteristics that are typically important measures
-of the scope of the model.
+Overload of [`generate_report`](@ref) that works directly on a given
+filename.
 """
-function generate_memote_report(
-    model::MetabolicModel,
-    optimizer;
-    config = Config.memote_config,
-)
-    result = Dict()
+generate_report(filename::String, optimizer; kwargs...) =
+    generate_report(load_model(filename), optimizer; kwargs...)
 
-    # Basic information
-    result["basic"] = Dict(
+"""
+$(TYPEDSIGNATURES)
+
+Generate a machine-readable report of model properties that can be used as a
+baseline for checking the quality of the model. Suitable for being exported as
+JSON.
+"""
+generate_report(model::MetabolicModel, optimizer; config = Config.memote_config) = Dict(
+    "basic" => Dict(
         "number_reactions" => n_reactions(model),
         "number_metabolites" => n_metabolites(model),
         "number_genes" => n_genes(model),
         "metabolic_coverage" => Basic.model_metabolic_coverage(model),
         "compartments" => Basic.model_compartments(model),
-    )
-
-    # Reaction annotations
-    result["reaction_annotations"] = Dict(
+    ),
+    "reaction_annotations" => Dict(
         "all_unannotated" => Annotation.find_all_unannotated_reactions(model),
         "missing_databases" =>
             Annotation.find_database_unannotated_reactions(model; config),
         "conformity" =>
             Annotation.find_nonconformal_reaction_annotations(model; config),
-    )
-
-    # Metabolite annotations
-    result["metabolite_annotations"] = Dict(
+    ),
+    "metabolite_annotations" => Dict(
         "all_unannotated" => Annotation.find_all_unannotated_metabolites(model),
         "missing_databases" =>
             Annotation.find_database_unannotated_metabolites(model; config),
         "conformity" =>
             Annotation.find_nonconformal_metabolite_annotations(model; config),
-    )
-
-    # Gene annotations
-    result["gene_annotations"] = Dict(
+    ),
+    "gene_annotations" => Dict(
         "all_unannotated" => Annotation.find_all_unannotated_genes(model),
         "missing_databases" =>
             Annotation.find_database_unannotated_genes(model; config),
         "conformity" => Annotation.find_nonconformal_gene_annotations(model; config),
-    )
-
-    # Biomass
-    result["biomass"] = Dict(
+    ),
+    "biomass" => Dict(
         "biomas_reactions" => Biomass.model_biomass_reactions(model; config),
         "biomass_molar_masses" => Biomass.model_biomass_molar_mass(model; config),
         "blocked_biomass_precursors" =>
             Biomass.find_blocked_biomass_precursors(model, optimizer; config),
         "missing_essential_precursors_in_biomass_reaction" =>
             Biomass.biomass_missing_essential_precursors(model; config),
-    )
-
-    # Consistency
-    result["consistency"] = Dict(
+    ),
+    "consistency" => Dict(
         "mass_unbalanced_reactions" =>
             Consistency.reactions_mass_unbalanced(model; config),
         "charge_unbalanced_reactions" =>
             Consistency.reactions_charge_unbalanced(model; config),
-    )
-
-    # Gene protein reaction associations
-    result["gpr_associations"] = Dict(
+    ),
+    "gpr_associations" => Dict(
         "reactions_no_gpr" => GPRAssociation.reactions_without_gpr(model),
         "reactions_with_complexes" => GPRAssociation.reactions_with_complexes(model),
         "transporters_without_gpr" =>
             GPRAssociation.reactions_transport_no_gpr(model; config),
-    )
-
-    # Metabolite information
-    result["metabolite_information"] = Dict(
+    ),
+    "metabolite_information" => Dict(
         "number_unique_metablites" => Metabolite.metabolites_unique(model; config),
         "metabolite_only_imported" =>
             Metabolite.metabolites_medium_components(model; config),
-    )
-
-    # Network topology
-    result["network_topology"] = Dict(
+    ),
+    "network_topology" => Dict(
         "universally_blocked_reactions" =>
             Network.find_all_universally_blocked_reactions(model, optimizer; config),
         "orphan_metabolites" => Network.find_orphan_metabolites(model),
@@ -256,27 +261,24 @@ function generate_memote_report(
             Network.find_cycle_reactions(model, optimizer; config),
         "metabolites_consumed_produced_complete_medium" =>
             Network.find_complete_medium_orphans_and_deadends(model, optimizer; config),
-    )
-
-    # Matrix conditioning
-    result["conditioning"] = Dict(
+    ),
+    "conditioning" => Dict(
         "stoichiometric_matrix_conditioning" =>
             Network.stoichiometric_max_min_ratio(model),
-    )
-
-    # Reaction information
-    uncon_met, con_met = Reaction.find_all_purely_metabolic_reactions(model; config)
-    uncon_trans, con_trans = Reaction.find_all_transport_reactions(model; config)
-    result["reaction_information"] = Dict(
-        "unconstrained_metabolic_reactions" => uncon_met,
-        "constrained_metabolic_reactions" => con_met,
-        "unconstrained_transporters" => uncon_trans,
-        "constrained_transporters" => con_trans,
-        "reactions_identical_genes" => Reaction.reactions_with_identical_genes(model),
-        "duplicated_reactions" => Reaction.duplicate_reactions(model),
-        "reactions_partially_identical_annotations" =>
-            Reaction.reactions_with_partially_identical_annotations(model; config),
-    )
-
-    return result
-end
+    ),
+    "reaction_information" => let
+        (uncon_met, con_met) = Reaction.find_all_purely_metabolic_reactions(model; config)
+        (uncon_trans, con_trans) = Reaction.find_all_transport_reactions(model; config)
+        Dict(
+            "unconstrained_metabolic_reactions" => uncon_met,
+            "constrained_metabolic_reactions" => con_met,
+            "unconstrained_transporters" => uncon_trans,
+            "constrained_transporters" => con_trans,
+            "reactions_identical_genes" =>
+                Reaction.reactions_with_identical_genes(model),
+            "duplicated_reactions" => Reaction.duplicate_reactions(model),
+            "reactions_partially_identical_annotations" =>
+                Reaction.reactions_with_partially_identical_annotations(model; config),
+        )
+    end,
+)
