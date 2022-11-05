@@ -9,9 +9,13 @@ using FBCModelTests.Memote.GPRAssociation
 using FBCModelTests.Memote.Network
 
 @testset "Front-end" begin
-    @testset "Testing a model that _should_ be OK" begin
+    result = @testset CountTests "Testing a model that _should_ be OK" begin
         Memote.run_tests(model_file["e_coli_core.json"], Tulip.Optimizer)
     end
+
+    @test result.passes == 29
+    @test result.fails == 6
+    @test result.errs == 0
 
     @testset "Report can be written successfully as JSON" begin
         r = Memote.generate_report(model_file["e_coli_core.json"], Tulip.Optimizer)
