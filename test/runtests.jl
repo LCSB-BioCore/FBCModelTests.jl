@@ -1,7 +1,6 @@
 using Test
 
-using FBCModelTests
-using FBCModelTests.Memote
+using FBCModelTests: Memote
 using FBCModelTests.Memote.Annotation
 using FBCModelTests.Memote.Basic
 using FBCModelTests.Memote.Biomass
@@ -12,7 +11,7 @@ using FBCModelTests.Memote.Network
 
 memote_config = FBCModelTests.Memote.Config.memote_config
 
-using Downloads, SHA
+using Downloads, SHA, JSON
 using COBREXA, Tulip
 
 # this loads some data

@@ -1,3 +1,21 @@
+
+@testset "Front-end" begin
+    @testset "Testing a model that _should_ be OK" begin
+        FBCModelTests.Memote.run_tests(model_file["e_coli_core.json"], Tulip.Optimizer)
+    end
+
+    @testset "Report can be written successfully as JSON" begin
+        r = FBCModelTests.Memote.generate_report(
+            model_file["e_coli_core.json"],
+            Tulip.Optimizer,
+        )
+        @test r isa Dict
+
+        # this should work without errors
+        @test JSON.json(r) isa String
+    end
+end
+
 @testset "Basic" begin
     @test !Basic.model_has_name(model) # TODO without accessors to JSONModel, this should fail
     @test Basic.model_has_metabolites(model)

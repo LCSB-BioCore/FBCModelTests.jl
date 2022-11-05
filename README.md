@@ -9,12 +9,12 @@ A collection of tests for constraint-based metabolic models.
 There are currently 2 main test suites implemented:
 
 - [FROG reproducibility and curation checks](https://www.ebi.ac.uk/biomodels/curation/fbc)
-- [Memote](https://memote.readthedocs.io/)-style model consistency and annotation checks
+- [MEMOTE](https://memote.readthedocs.io/)-style model consistency and annotation checks
 
 ## FROG
 
-You can generate FROG reports using function `frog_generate_report` and compare
-the "compatibility" of two reports using `frog_compare_reports`. See the inline
+You can generate FROG reports using function `FROG.generate_report` and compare
+the "compatibility" of two reports using `FROG.compare_reports`. See the
 documentation for more details.
 
 The supposed workflow with FROG reports is the following:
@@ -40,32 +40,33 @@ Mirek Kratochvíl ([@exaexa](https://github.com/exaexa))
 with parts contributed by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
-## Memote-style tests
+## MEMOTE-style tests
 
-This package exposes a number of tests aimed at quickly checking if certain
-basic quality characteristics of a constraint-based metabolic model are
-satisfied. Assuming your model will work with the default configuration
-arguments of the test functions (see their docstrings), then you can test your
-model with:
+You can use a number of tests that automatically check various basic quality
+characteristics of a constraint-based metabolic model; the suite available in
+FBCModelTests.jl is vastly inspired by
+[MEMOTE](https://memote.readthedocs.io/).
 
+To run the test suite on a toy model, use `run_tests`:
+```julia
+using FBCModelTests, Tulip
+FBCModelTests.Memote.run_tests("e_coli_core.json", Tulip.Optimizer)
 ```
-using FBCModelTests
-using COBREXA, Tulip, Test
 
-model = load_model("e_coli_core.json")
+An overview of the model properties can be also gathered in a `Dict` for
+mechanical inspection (or saving into JSON):
+```julia
+using FBCModelTests, Tulip
+structured_report = FBCModelTests.Memote.generate_report("e_coli_core.json, Tulip.Optimizer)
 
-@testset "Test model" begin
-  FBCModelTests.Memote.run_tests(model, Tulip.Optimizer)
+using JSON
+open("my_e_coli_core_report.json", "w") do io
+    JSON.print(io, report)
 end
-
-model_info = FBCModelTests.Memote.generate_memote_report(model, optimizer)
 ```
-You can set the configuration parameters by adjusting the `config` kwarg, which
-is a type of `MemoteConfig`. Note, some of the original Memote tests involve
-solving MILPs, these tests are not included in this package as the issues they
-identify are often easier to identify by simpler means. For example, find the
-stoichiometrically inconsistent metabolites is simpler done by just checking the
-mass balance around each reaction.
+
+See the function documentation for additional test configuration, and several
+performance gotchas and notes about MEMOTE compability.
 
 The implementation in FBCModelTests.jl is mostly authored by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo))
