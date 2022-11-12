@@ -57,7 +57,7 @@ function find_all_universally_blocked_reactions(
         modifications = config.network.optimizer_modifications,
     )
     return [
-        rid for rid = reactions(stdmodel) if
+        rid for rid in reactions(stdmodel) if
         isapprox(abs(mins[rid][rid]), 0.0) && isapprox(abs(maxs[rid][rid]), 0.0)
     ]
 end
