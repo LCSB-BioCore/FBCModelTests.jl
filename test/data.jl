@@ -43,7 +43,7 @@ model_file = Dict(
             "iML1515.json",
             "http://bigg.ucsd.edu/static/models/iML1515.json",
             "b0f9199f048779bb08a14dfa6c09ec56d35b8750d2f99681980d0f098355fbf5",
-        )
+        ),
     ]
 )
 
