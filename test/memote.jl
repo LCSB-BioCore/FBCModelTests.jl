@@ -269,9 +269,21 @@ end
     crs = Network.find_cycle_reactions(model, GLPK.Optimizer)
     @test "FRD7" in crs && "SUCDi" in crs
 
+    wrong_model = convert(StandardModel, model)
+    wrong_model.reactions["FRD7"].ub = 0
+    wrong_model.reactions["FRD7"].lb = -1000
+    crs = Network.find_cycle_reactions(wrong_model, GLPK.Optimizer)
+    @test isempty(crs)
+
     d = Network.find_complete_medium_orphans_and_deadends(model, GLPK.Optimizer)
     @test length(d[:consume]) == 12
     @test length(d[:produce]) == 12
+
+    wrong_model = convert(StandardModel, model)
+    add_reaction!(wrong_model, Reaction("temp", Dict("nad_c" => -1), :bidirectional))
+    d = Network.find_complete_medium_orphans_and_deadends(wrong_model, GLPK.Optimizer)
+    @test length(d[:consume]) == 10 # able to consume nadp as well
+    @test length(d[:produce]) == 10 # able to produce nadp as well
 end
 
 @testset "Reactions" begin
