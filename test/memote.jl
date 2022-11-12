@@ -202,6 +202,15 @@ end
     @test length(GPRAssociation.reactions_without_gpr(model)) == 6
     @test length(GPRAssociation.reactions_with_complexes(model)) == 15
     @test length(GPRAssociation.reactions_transport_no_gpr(model)) == 4
+
+    # fix the model to improve stats
+    new_model = deepcopy(convert(StandardModel, model))
+    new_model.reactions["GLUSy"].grr = [["b2097"]]
+    new_model.reactions["PYRt2"].grr = [["b2097"]]
+
+    @test length(GPRAssociation.reactions_without_gpr(new_model)) == 5
+    @test length(GPRAssociation.reactions_with_complexes(new_model)) == 14
+    @test length(GPRAssociation.reactions_transport_no_gpr(new_model)) == 3
 end
 
 @testset "Metabolite" begin
