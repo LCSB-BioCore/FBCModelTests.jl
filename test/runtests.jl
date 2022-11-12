@@ -5,6 +5,9 @@ using FBCModelTests
 using Downloads, SHA
 using COBREXA
 
+# test tolerance
+TEST_TOL = 1e-6
+
 # this loads some data
 include("data.jl")
 

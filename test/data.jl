@@ -39,9 +39,15 @@ model_file = Dict(
             "http://bigg.ucsd.edu/static/models/iJN746.json",
             "3da875419f4edff3e3e27424742b8b410b6b778eb0955b8939ae933fad5f1219",
         ),
+        (
+            "iML1515.json",
+            "http://bigg.ucsd.edu/static/models/iML1515.json",
+            "b0f9199f048779bb08a14dfa6c09ec56d35b8750d2f99681980d0f098355fbf5",
+        )
     ]
 )
 
 #TODO remove the globals
 model = load_model(model_file["e_coli_core.json"])
 iJN746 = load_model(model_file["iJN746.json"])
+iML1515 = load_model(model_file["iML1515.json"])

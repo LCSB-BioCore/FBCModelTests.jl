@@ -41,7 +41,8 @@ end
     @test length(Basic.model_compartments(model)) == 2
     @test Basic.model_has_compartments(model)
     @test Basic.model_solves_in_default_medium(model, GLPK.Optimizer)
-
+    
+    # Negative tests
     empty_model = StandardModel("test") # should fail all of these tests as it has no content
     @test Basic.model_has_name(empty_model) # id assigned above and function is specialized for StandardModels
     @test !Basic.model_has_metabolites(empty_model)
@@ -103,6 +104,21 @@ end
     @test length(
         Biomass.biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"],
     ) == 32
+
+    # Negative tests
+    broken_model = deepcopy(convert(StandardModel, model))
+
+    delete!(broken_model.reactions["BIOMASS_Ecoli_core_w_GAM"].metabolites, "atp_c")
+    @test !all(values(Biomass.atp_present_in_biomass(broken_model)))
+    
+    delete!(broken_model.reactions, "BIOMASS_Ecoli_core_w_GAM")
+    @test !("BIOMASS_Ecoli_core_w_GAM" in Biomass.model_biomass_reactions(broken_model))
+
+    # load a model that is better specified: iML1515
+    @test isapprox(Biomass.model_biomass_molar_mass(iML1515)["BIOMASS_Ec_iML1515_WT_75p37M"], 0.9992745719378807; atol = TEST_TOL)
+    @test Biomass.model_biomass_is_consistent(iML1515)
+    @test !haskey(Biomass.find_blocked_biomass_precursors(iML1515, GLPK.Optimizer), "BIOMASS_Ec_iML1515_core_75p37M")
+    @test length(Biomass.biomass_missing_essential_precursors(iML1515)["BIOMASS_Ec_iML1515_WT_75p37M"]) == 1
 end
 
 @testset "Consistency" begin
