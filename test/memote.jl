@@ -1,5 +1,18 @@
+
+using FBCModelTests.Memote
+using FBCModelTests.Memote.Annotation
+using FBCModelTests.Memote.Basic
+using FBCModelTests.Memote.Biomass
+using FBCModelTests.Memote.Consistency
+using FBCModelTests.Memote.Energy
+using FBCModelTests.Memote.GPRAssociation
+using FBCModelTests.Memote.Network
+using FBCModelTests.Memote.Utils
+
+memote_config = FBCModelTests.Memote.Config.memote_config
+
 @testset "Basic" begin
-    @test !Basic.model_has_name(model) # TODO without accessors to JSONModel, this should fail
+    @test_broken Basic.model_has_name(model) # TODO without accessors to JSONModel, this should fail
     @test Basic.model_has_metabolites(model)
     @test Basic.model_has_reactions(model)
     @test Basic.model_has_genes(model)
