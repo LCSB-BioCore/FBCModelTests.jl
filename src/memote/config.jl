@@ -194,9 +194,10 @@ mutable struct ConsistencyConfig
     mass_ignored_reactions::Vector{String}
     charge_ignored_reactions::Vector{String}
     consistency_ignored_reactions::Vector{String}
+    tolerance_threshold::Float64
 end
 
-consistency_config = ConsistencyConfig(String[], String[], String[])
+consistency_config = ConsistencyConfig(String[], String[], String[], 1e-07)
 
 """
 $(TYPEDEF)

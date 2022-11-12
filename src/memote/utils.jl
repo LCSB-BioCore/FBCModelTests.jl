@@ -8,6 +8,7 @@ module Utils
 using COBREXA
 using DocStringExtensions
 using PeriodicTable
+using Statistics
 
 """
 $(TYPEDSIGNATURES)
@@ -104,6 +105,37 @@ to_element(x::String) = begin
     sym =
         length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
     elements[sym]
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+A helper function that returns the median upper and lower bounds in a tuple. If none can be calculated,
+constants from COBREXA are used as the default values.
+"""
+function median_bounds(model::MetabolicModel)
+    default = COBREXA._constants.default_reaction_bound
+    lower_bound, upper_bound = bounds(model)
+    lb_list = [element for element in lower_bound if !isapprox(element, 0.0)]
+    ub_list = [element for element in upper_bound if !isapprox(element, 0.0)]
+    isempty(lb_list) ? m_lower_bound = -default : m_lower_bound = median(lb_list)
+    isempty(ub_list) ? m_upper_bound = default : m_upper_bound = median(ub_list)
+    return m_lower_bound, m_upper_bound
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper function to compare fluxes with specific bounds.
+"""
+function _compare_flux_bounds(fluxes, bound, tol, comparison_operator)
+    unlimited_flux = Dict{String,Tuple{String,Float64}}()
+    for (rid, d) in fluxes, (frid, flux) in d
+        if comparison_operator(flux, bound) || isapprox(flux, bound; atol = tol)
+            unlimited_flux[rid] = (frid, flux)
+        end
+    end
+    return unlimited_flux
 end
 
 end # module

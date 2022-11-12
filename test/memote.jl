@@ -1,5 +1,8 @@
 
-using FBCModelTests: Memote
+using JSON
+using GLPK
+
+using FBCModelTests.Memote
 using FBCModelTests.Memote.Annotation
 using FBCModelTests.Memote.Basic
 using FBCModelTests.Memote.Biomass
@@ -7,10 +10,13 @@ using FBCModelTests.Memote.Consistency
 using FBCModelTests.Memote.Energy
 using FBCModelTests.Memote.GPRAssociation
 using FBCModelTests.Memote.Network
+using FBCModelTests.Memote.Utils
+
+memote_config = FBCModelTests.Memote.Config.memote_config
 
 @testset "Front-end" begin
     result = @testset CountTests "Testing a model that _should_ be OK" begin
-        Memote.run_tests(model_file["e_coli_core.json"], Tulip.Optimizer)
+        Memote.run_tests(model_file["e_coli_core.json"], GLPK.Optimizer)
     end
 
     @test result.passes == 29
@@ -18,7 +24,7 @@ using FBCModelTests.Memote.Network
     @test result.errs == 0
 
     @testset "Report can be written successfully as JSON" begin
-        r = Memote.generate_report(model_file["e_coli_core.json"], Tulip.Optimizer)
+        r = Memote.generate_report(model_file["e_coli_core.json"], GLPK.Optimizer)
         @test r isa Dict
 
         # this should work without errors
@@ -27,14 +33,14 @@ using FBCModelTests.Memote.Network
 end
 
 @testset "Basic" begin
-    @test !Basic.model_has_name(model) # TODO without accessors to JSONModel, this should fail
+    @test_broken Basic.model_has_name(model) # TODO without accessors to JSONModel, this should fail
     @test Basic.model_has_metabolites(model)
     @test Basic.model_has_reactions(model)
     @test Basic.model_has_genes(model)
     @test Basic.model_metabolic_coverage_exceeds_minimum(model)
     @test length(Basic.model_compartments(model)) == 2
     @test Basic.model_has_compartments(model)
-    @test Basic.model_solves_in_default_medium(model, Tulip.Optimizer)
+    @test Basic.model_solves_in_default_medium(model, GLPK.Optimizer)
 end
 
 @testset "Annotations" begin
@@ -81,7 +87,7 @@ end
     @test !Biomass.model_biomass_is_consistent(model)
 
     @test length(
-        Biomass.find_blocked_biomass_precursors(model, Tulip.Optimizer)["BIOMASS_Ecoli_core_w_GAM"],
+        Biomass.find_blocked_biomass_precursors(model, GLPK.Optimizer)["BIOMASS_Ecoli_core_w_GAM"],
     ) == 3
 
     @test length(
@@ -91,10 +97,10 @@ end
 
 @testset "Consistency" begin
     # consistency
-    @test Consistency.model_is_consistent(model, Tulip.Optimizer)
+    @test Consistency.model_is_consistent(model, GLPK.Optimizer)
     temp_model = convert(StandardModel, model)
     temp_model.reactions["PFK"].metabolites["fdp_c"] = 2
-    @test !Consistency.model_is_consistent(temp_model, Tulip.Optimizer)
+    @test !Consistency.model_is_consistent(temp_model, GLPK.Optimizer)
 
     # use default conditions to exclude biomass and exchanges
     @test isempty(Consistency.reactions_charge_unbalanced(model))
@@ -106,6 +112,23 @@ end
     wrong_model.metabolites["pyr_c"].formula = "C2H3X"
     @test !isempty(Consistency.reactions_charge_unbalanced(wrong_model))
     @test !isempty(Consistency.reactions_mass_unbalanced(wrong_model))
+
+    # test metabolite connectivity
+    dm = Consistency.find_disconnected_metabolites(model)
+    @test isempty(dm)
+
+    # test unbounded flux
+    fva_result = flux_variability_analysis_dict(
+        model,
+        GLPK.Optimizer;
+        bounds = objective_bounds(0.99),
+    )
+    mb = Utils.median_bounds(model)
+    low_unlimited_flux, high_unlimited_flux =
+        Consistency.unbounded_flux_in_default_medium(model, fva_result)
+    @test mb == (-1000.0, 1000.0)
+    @test isempty(low_unlimited_flux)
+    @test isapprox(high_unlimited_flux["FRD7"][2], 1000.0, atol = 1e-07)
 end
 
 @testset "Energy metabolism" begin
@@ -115,9 +138,9 @@ end
     @test !Energy.model_has_atpm_reaction(wrong_model)
 
     # energy cycles
-    @test Energy.model_has_no_erroneous_energy_generating_cycles(model, Tulip.Optimizer)
+    @test Energy.model_has_no_erroneous_energy_generating_cycles(model, GLPK.Optimizer)
     memote_config.energy.ignored_energy_reactions = ["BIOMASS_KT_TEMP", "ATPM"]
-    @test !Energy.model_has_no_erroneous_energy_generating_cycles(iJN746, Tulip.Optimizer)
+    @test !Energy.model_has_no_erroneous_energy_generating_cycles(iJN746, GLPK.Optimizer)
 end
 
 @testset "GPR" begin
@@ -166,11 +189,11 @@ end
 @testset "Network" begin
     @test Network.stoichiometric_matrix_is_well_conditioned(model)
 
-    @test isempty(Network.find_all_universally_blocked_reactions(model, Tulip.Optimizer))
+    @test isempty(Network.find_all_universally_blocked_reactions(model, GLPK.Optimizer))
     wrong_model = convert(StandardModel, model)
     change_bound!(wrong_model, "MDH"; lower = 0.0, upper = 0.0)
     @test first(
-        Network.find_all_universally_blocked_reactions(wrong_model, Tulip.Optimizer),
+        Network.find_all_universally_blocked_reactions(wrong_model, GLPK.Optimizer),
     ) == "MDH"
 
     @test isempty(Network.find_orphan_metabolites(model))
@@ -179,10 +202,10 @@ end
     @test isempty(Network.find_deadend_metabolites(model))
     @test length(Network.find_deadend_metabolites(iJN746)) == 51
 
-    crs = Network.find_cycle_reactions(model, Tulip.Optimizer)
+    crs = Network.find_cycle_reactions(model, GLPK.Optimizer)
     @test "FRD7" in crs && "SUCDi" in crs
 
-    d = Network.find_complete_medium_orphans_and_deadends(model, Tulip.Optimizer)
+    d = Network.find_complete_medium_orphans_and_deadends(model, GLPK.Optimizer)
     @test length(d[:consume]) == 12
     @test length(d[:produce]) == 12
 end

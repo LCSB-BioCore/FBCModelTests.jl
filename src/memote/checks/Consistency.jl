@@ -10,6 +10,7 @@ using DocStringExtensions
 using JuMP
 
 import ..Config
+import ..Utils
 
 """
 $(TYPEDSIGNATURES)
@@ -127,6 +128,40 @@ function model_is_consistent(
     optimize!(opt_model)
     value.(m)
     termination_status(opt_model) == OPTIMAL
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Returns a list of all metabolites that aren't part of any reactions.
+"""
+find_disconnected_metabolites(model::MetabolicModel) =
+    metabolites(model)[all(stoichiometry(model) .== 0, dims = 2)[:]]
+
+"""
+$(TYPEDSIGNATURES)
+
+Finds reactions that can carry unlimited flux under default conditions.
+The function compares the fluxes of the model calculated by FVA (using `flux_variability_analysis_dict` from COBREXA)
+with the median bounds of the model (+/- treshold) and returns the fluxes which are grearter or smaller than
+the bounds in a two seperate dictionaries.
+"""
+function unbounded_flux_in_default_medium(
+    model::MetabolicModel,
+    fva_result::Tuple{Any,Any},
+    config = Config.memote_config,
+)
+    tol = config.consistency.tolerance_threshold
+
+    all(!isnothing, fva_result) || throw(ArgumentError("fva_result is empty"))
+
+    min_fluxes, max_fluxes = fva_result
+    lower_bound, upper_bound = Utils.median_bounds(model)
+
+    return (
+        Utils._compare_flux_bounds(min_fluxes, lower_bound, tol, <),
+        Utils._compare_flux_bounds(max_fluxes, upper_bound, tol, >),
+    )
 end
 
 end # module

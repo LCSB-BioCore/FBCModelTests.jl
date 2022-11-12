@@ -76,7 +76,7 @@ function save_report(
                         objstatus(r.variability_min),
                         objvalue(r.variability_min),
                         objvalue(r.variability_max),
-                    ] for (obj, o) = r if !isnothing(o.optimum) for (rxn, r) in o.reactions
+                    ] for (obj, o) in r if !isnothing(o.optimum) for (rxn, r) in o.reactions
                 )
             ],
             '\t',
@@ -142,7 +142,7 @@ function load_report(
     @assert objdata[1, :] == frog_report_tsv_headers[:objective][1, :]
     obj_vals = Dict(
         o => parse_objvalue(v) for
-        (m, o, _, v) = eachrow(objdata[2:end, :]) if m == basefilename
+        (m, o, _, v) in eachrow(objdata[2:end, :]) if m == basefilename
     )
 
     # FVA
@@ -153,7 +153,7 @@ function load_report(
     fva_vals = Dict(
         obj => Dict(
             r => parse_objvalue.((flx, min, max)) for
-            (m, o, r, flx, _, min, max) = eachrow(fvadata[2:end, :]) if
+            (m, o, r, flx, _, min, max) in eachrow(fvadata[2:end, :]) if
             m == basefilename && o == obj
         ) for obj in keys(obj_vals)
     )
@@ -165,8 +165,8 @@ function load_report(
     @assert gdata[1, :] == frog_report_tsv_headers[:gene_deletion][1, :]
     gene_vals = Dict(
         obj => Dict(
-            g => parse_objvalue(v) for (m, o, g, _, v) = eachrow(gdata[2:end, :]) if
-            m == basefilename && o == obj
+            g => parse_objvalue(v) for
+            (m, o, g, _, v) in eachrow(gdata[2:end, :]) if m == basefilename && o == obj
         ) for obj in keys(obj_vals)
     )
 
@@ -177,8 +177,8 @@ function load_report(
     @assert rdata[1, :] == frog_report_tsv_headers[:reaction_deletion][1, :]
     rxn_vals = Dict(
         obj => Dict(
-            r => parse_objvalue(v) for (m, o, r, _, v) = eachrow(rdata[2:end, :]) if
-            m == basefilename && o == obj
+            r => parse_objvalue(v) for
+            (m, o, r, _, v) in eachrow(rdata[2:end, :]) if m == basefilename && o == obj
         ) for obj in keys(obj_vals)
     )
 

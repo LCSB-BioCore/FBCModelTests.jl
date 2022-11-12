@@ -1,10 +1,9 @@
 using Test
 
 using FBCModelTests
-memote_config = FBCModelTests.Memote.Config.memote_config
 
-using Downloads, SHA, JSON
-using COBREXA, Tulip
+using Downloads, SHA
+using COBREXA
 
 # this loads some data
 include("data.jl")
