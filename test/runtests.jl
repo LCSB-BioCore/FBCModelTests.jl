@@ -2,8 +2,8 @@ using Test
 
 using FBCModelTests
 
-using Downloads, SHA, JSON
-using COBREXA, Tulip
+using Downloads, SHA
+using COBREXA
 
 # this loads some data
 include("data.jl")
