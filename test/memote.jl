@@ -145,6 +145,8 @@ end
     # test metabolite connectivity
     dm = Consistency.find_disconnected_metabolites(model)
     @test isempty(dm)
+    add_metabolite!(wrong_model, Metabolite("temp"))
+    @test "temp" in Consistency.find_disconnected_metabolites(wrong_model)
 
     # test unbounded flux
     fva_result = flux_variability_analysis_dict(
@@ -158,6 +160,30 @@ end
     @test mb == (-1000.0, 1000.0)
     @test isempty(low_unlimited_flux)
     @test isapprox(high_unlimited_flux["FRD7"][2], 1000.0, atol = 1e-07)
+
+    # linear model
+    linmodel = StandardModel()
+    mets = [Metabolite(x) for x in ["a", "b"]]
+    rxns = [
+        Reaction("r1", Dict("a" => 1), :forward; default_bound = 10),
+        Reaction("r2", Dict("a" => -1, "b" => 1), :forward),
+        Reaction("r2", Dict("b" => 1,), :forward),
+    ]
+    rxns[2].objective_coefficient = 1
+    add_metabolites!(linmodel, mets)
+    add_reactions!(linmodel, rxns)
+
+    fva_result = flux_variability_analysis_dict(
+        linmodel,
+        GLPK.Optimizer;
+        bounds = objective_bounds(0.99),
+    )
+    mb = Utils.median_bounds(linmodel)
+    low_unlimited_flux, high_unlimited_flux =
+        Consistency.unbounded_flux_in_default_medium(linmodel, fva_result)
+    @test mb == (-1000.0, 505.0)
+    @test isempty(low_unlimited_flux)
+    @test isempty(high_unlimited_flux)
 end
 
 @testset "Energy metabolism" begin
