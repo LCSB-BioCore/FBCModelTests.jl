@@ -41,6 +41,17 @@ end
     @test length(Basic.model_compartments(model)) == 2
     @test Basic.model_has_compartments(model)
     @test Basic.model_solves_in_default_medium(model, GLPK.Optimizer)
+
+    # Negative tests
+    empty_model = StandardModel("test") # should fail all of these tests as it has no reactions, genes or metabolites
+    @test Basic.model_has_name(empty_model) # id assigned above and function is specialized for StandardModels
+    @test !Basic.model_has_metabolites(empty_model)
+    @test !Basic.model_has_reactions(empty_model)
+    @test !Basic.model_has_genes(empty_model)
+    @test !Basic.model_metabolic_coverage_exceeds_minimum(empty_model)
+    @test isempty(Basic.model_compartments(empty_model))
+    @test !Basic.model_has_compartments(empty_model)
+    @test !Basic.model_solves_in_default_medium(empty_model, GLPK.Optimizer)
 end
 
 @testset "Annotations" begin
@@ -93,6 +104,34 @@ end
     @test length(
         Biomass.biomass_missing_essential_precursors(model)["BIOMASS_Ecoli_core_w_GAM"],
     ) == 32
+
+    # Negative tests
+    broken_model = deepcopy(convert(StandardModel, model))
+
+    delete!(broken_model.reactions["BIOMASS_Ecoli_core_w_GAM"].metabolites, "atp_c")
+    @test !all(values(Biomass.atp_present_in_biomass(broken_model)))
+
+    delete!(broken_model.reactions, "BIOMASS_Ecoli_core_w_GAM")
+    @test !("BIOMASS_Ecoli_core_w_GAM" in Biomass.model_biomass_reactions(broken_model))
+
+    # load a model that is better specified: iML1515
+    @test isapprox(
+        Biomass.model_biomass_molar_mass(iML1515)["BIOMASS_Ec_iML1515_WT_75p37M"],
+        0.9992745719378807;
+        atol = TEST_TOL,
+    )
+    @test Biomass.model_biomass_is_consistent(iML1515)
+    @test !haskey(
+        Biomass.find_blocked_biomass_precursors(iML1515, GLPK.Optimizer),
+        "BIOMASS_Ec_iML1515_core_75p37M",
+    )
+
+    modded_biomass = deepcopy(iML1515)
+    modded_biomass.reactions["BIOMASS_Ec_iML1515_WT_75p37M"].metabolites["fmn_c"] = -1.0
+    @test !haskey(
+        Biomass.biomass_missing_essential_precursors(modded_biomass),
+        "BIOMASS_Ec_iML1515_WT_75p37M",
+    )
 end
 
 @testset "Consistency" begin
@@ -107,15 +146,17 @@ end
     @test isempty(Consistency.reactions_mass_unbalanced(model))
 
     # test if biomass and exchanges are identified
-    wrong_model = convert(StandardModel, model)
-    wrong_model.metabolites["pyr_c"].charge = nothing
-    wrong_model.metabolites["pyr_c"].formula = "C2H3X"
-    @test !isempty(Consistency.reactions_charge_unbalanced(wrong_model))
-    @test !isempty(Consistency.reactions_mass_unbalanced(wrong_model))
+    negative_model = convert(StandardModel, model)
+    negative_model.metabolites["pyr_c"].charge = nothing
+    negative_model.metabolites["pyr_c"].formula = "C2H3X"
+    @test !isempty(Consistency.reactions_charge_unbalanced(negative_model))
+    @test !isempty(Consistency.reactions_mass_unbalanced(negative_model))
 
     # test metabolite connectivity
     dm = Consistency.find_disconnected_metabolites(model)
     @test isempty(dm)
+    add_metabolite!(negative_model, Metabolite("temp"))
+    @test "temp" in Consistency.find_disconnected_metabolites(negative_model)
 
     # test unbounded flux
     fva_result = flux_variability_analysis_dict(
@@ -129,13 +170,37 @@ end
     @test mb == (-1000.0, 1000.0)
     @test isempty(low_unlimited_flux)
     @test isapprox(high_unlimited_flux["FRD7"][2], 1000.0, atol = 1e-07)
+
+    # linear model
+    linmodel = StandardModel()
+    mets = [Metabolite(x) for x in ["a", "b"]]
+    rxns = [
+        Reaction("r1", Dict("a" => 1), :forward; default_bound = 10),
+        Reaction("r2", Dict("a" => -1, "b" => 1), :forward),
+        Reaction("r2", Dict("b" => 1), :forward),
+    ]
+    rxns[2].objective_coefficient = 1
+    add_metabolites!(linmodel, mets)
+    add_reactions!(linmodel, rxns)
+
+    fva_result = flux_variability_analysis_dict(
+        linmodel,
+        GLPK.Optimizer;
+        bounds = objective_bounds(0.99),
+    )
+    mb = Utils.median_bounds(linmodel)
+    low_unlimited_flux, high_unlimited_flux =
+        Consistency.unbounded_flux_in_default_medium(linmodel, fva_result)
+    @test mb == (-1000.0, 505.0)
+    @test isempty(low_unlimited_flux)
+    @test isempty(high_unlimited_flux)
 end
 
 @testset "Energy metabolism" begin
     @test Energy.model_has_atpm_reaction(model)
-    wrong_model = convert(StandardModel, model)
-    remove_reaction!(wrong_model, "ATPM")
-    @test !Energy.model_has_atpm_reaction(wrong_model)
+    negative_model = convert(StandardModel, model)
+    remove_reaction!(negative_model, "ATPM")
+    @test !Energy.model_has_atpm_reaction(negative_model)
 
     # energy cycles
     @test Energy.model_has_no_erroneous_energy_generating_cycles(model, GLPK.Optimizer)
@@ -147,6 +212,15 @@ end
     @test length(GPRAssociation.reactions_without_gpr(model)) == 6
     @test length(GPRAssociation.reactions_with_complexes(model)) == 15
     @test length(GPRAssociation.reactions_transport_no_gpr(model)) == 4
+
+    # fix the model to improve stats
+    new_model = deepcopy(convert(StandardModel, model))
+    new_model.reactions["GLUSy"].grr = [["b2097"]]
+    new_model.reactions["PYRt2"].grr = [["b2097"]]
+
+    @test length(GPRAssociation.reactions_without_gpr(new_model)) == 5
+    @test length(GPRAssociation.reactions_with_complexes(new_model)) == 14
+    @test length(GPRAssociation.reactions_transport_no_gpr(new_model)) == 3
 end
 
 @testset "Metabolite" begin
@@ -156,33 +230,35 @@ end
         config = memote_config,
     )
 
-    wrong_model = convert(StandardModel, model)
-    wrong_model.reactions["EX_h2o_e"].ub = 0
+    negative_model = convert(StandardModel, model)
+    negative_model.reactions["EX_h2o_e"].ub = 0
     @test "h2o_e" in
-          FBCModelTests.Memote.Metabolite.metabolites_medium_components(wrong_model)
+          FBCModelTests.Memote.Metabolite.metabolites_medium_components(negative_model)
 
     @test isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(model))
-    wrong_model.metabolites["pyr_c"].formula = ""
-    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(wrong_model))
-    wrong_model.metabolites["pyr_c"].formula = "C2X"
-    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(wrong_model))
+    negative_model.metabolites["pyr_c"].formula = ""
+    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(negative_model))
+    negative_model.metabolites["pyr_c"].formula = "C2X"
+    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_no_formula(negative_model))
 
     @test isempty(FBCModelTests.Memote.Metabolite.metabolites_no_charge(model))
-    wrong_model.metabolites["pyr_c"].charge = nothing
-    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_no_charge(wrong_model))
+    negative_model.metabolites["pyr_c"].charge = nothing
+    @test !isempty(FBCModelTests.Memote.Metabolite.metabolites_no_charge(negative_model))
 
     @test length(FBCModelTests.Memote.Metabolite.metabolites_unique(model)) == 54
-    wrong_model.metabolites["pyr_c"].annotations["inchi_key"] =
-        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
-    wrong_model.metabolites["pyr_e"].annotations["inchi_key"] =
-        wrong_model.metabolites["etoh_c"].annotations["inchi_key"]
-    @test length(FBCModelTests.Memote.Metabolite.metabolites_unique(wrong_model)) == 53
+    negative_model.metabolites["pyr_c"].annotations["inchi_key"] =
+        negative_model.metabolites["etoh_c"].annotations["inchi_key"]
+    negative_model.metabolites["pyr_e"].annotations["inchi_key"] =
+        negative_model.metabolites["etoh_c"].annotations["inchi_key"]
+    @test length(FBCModelTests.Memote.Metabolite.metabolites_unique(negative_model)) == 53
 
     @test isempty(
         FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(model),
     )
     @test !isempty(
-        FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(wrong_model),
+        FBCModelTests.Memote.Metabolite.metabolites_duplicated_in_compartment(
+            negative_model,
+        ),
     )
 end
 
@@ -190,11 +266,6 @@ end
     @test Network.stoichiometric_matrix_is_well_conditioned(model)
 
     @test isempty(Network.find_all_universally_blocked_reactions(model, GLPK.Optimizer))
-    wrong_model = convert(StandardModel, model)
-    change_bound!(wrong_model, "MDH"; lower = 0.0, upper = 0.0)
-    @test first(
-        Network.find_all_universally_blocked_reactions(wrong_model, GLPK.Optimizer),
-    ) == "MDH"
 
     @test isempty(Network.find_orphan_metabolites(model))
     @test length(Network.find_orphan_metabolites(iJN746)) == 40
@@ -202,12 +273,30 @@ end
     @test isempty(Network.find_deadend_metabolites(model))
     @test length(Network.find_deadend_metabolites(iJN746)) == 51
 
-    crs = Network.find_cycle_reactions(model, GLPK.Optimizer)
-    @test "FRD7" in crs && "SUCDi" in crs
-
     d = Network.find_complete_medium_orphans_and_deadends(model, GLPK.Optimizer)
     @test length(d[:consume]) == 12
     @test length(d[:produce]) == 12
+
+    crs = Network.find_cycle_reactions(model, GLPK.Optimizer)
+    @test "FRD7" in crs && "SUCDi" in crs
+
+    # negative tests
+    negative_model = convert(StandardModel, model)
+
+    change_bound!(negative_model, "MDH"; lower = 0.0, upper = 0.0)
+    @test first(
+        Network.find_all_universally_blocked_reactions(negative_model, GLPK.Optimizer),
+    ) == "MDH"
+
+    negative_model.reactions["FRD7"].ub = 0
+    negative_model.reactions["FRD7"].lb = -1000
+    crs = Network.find_cycle_reactions(negative_model, GLPK.Optimizer)
+    @test isempty(crs)
+
+    add_reaction!(negative_model, Reaction("temp", Dict("nad_c" => -1), :bidirectional))
+    d = Network.find_complete_medium_orphans_and_deadends(negative_model, GLPK.Optimizer)
+    @test length(d[:consume]) == 10 # able to consume nadp as well
+    @test length(d[:produce]) == 10 # able to produce nadp as well
 end
 
 @testset "Reactions" begin
@@ -233,4 +322,34 @@ end
         FBCModelTests.Memote.Reaction.duplicate_reactions(model),
         ["FRD7", "SUCDi"],
     )
+
+    # negative tests
+    negative_model = deepcopy(convert(StandardModel, model))
+    negative_model.reactions["NADTRHD"].grr = [["b1602"]]
+    ident_grrs =
+        FBCModelTests.Memote.Reaction.reactions_with_identical_genes(negative_model)
+    @test length(ident_grrs) == 10
+
+    delete!(negative_model.reactions, "ATPM")
+    delete!(negative_model.reactions, "ICL")
+    metabolic_reactions_unconstrained, metabolic_reactions_constrained =
+        FBCModelTests.Memote.Reaction.find_all_purely_metabolic_reactions(negative_model)
+    @test length(metabolic_reactions_unconstrained) == 49
+    @test isempty(metabolic_reactions_constrained)
+
+    negative_model.reactions["FORt"].lb = -10
+    transport_unconstrained, transport_constrained =
+        FBCModelTests.Memote.Reaction.find_all_transport_reactions(negative_model)
+    @test length(transport_unconstrained) == 22
+    @test length(transport_constrained) == 1
+
+    negative_model.reactions["NH4t"].annotations = Dict("rhea" => ["1234"])
+    @test length(
+        FBCModelTests.Memote.Reaction.reactions_with_partially_identical_annotations(
+            negative_model,
+        ),
+    ) == 12
+
+    negative_model.reactions["SUCDi"].metabolites["succ_c"] = -2
+    @test isempty(FBCModelTests.Memote.Reaction.duplicate_reactions(negative_model))
 end
