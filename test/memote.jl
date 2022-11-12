@@ -41,6 +41,16 @@ end
     @test length(Basic.model_compartments(model)) == 2
     @test Basic.model_has_compartments(model)
     @test Basic.model_solves_in_default_medium(model, GLPK.Optimizer)
+
+    empty_model = StandardModel("test") # should fail all of these tests as it has no content
+    @test Basic.model_has_name(empty_model) # id assigned above and function is specialized for StandardModels
+    @test !Basic.model_has_metabolites(empty_model)
+    @test !Basic.model_has_reactions(empty_model)
+    @test !Basic.model_has_genes(empty_model)
+    @test !Basic.model_metabolic_coverage_exceeds_minimum(empty_model)
+    @test isempty(Basic.model_compartments(empty_model))
+    @test !Basic.model_has_compartments(empty_model)
+    @test !Basic.model_solves_in_default_medium(empty_model, GLPK.Optimizer)
 end
 
 @testset "Annotations" begin
