@@ -91,7 +91,7 @@ end
     )
     mb = median_bounds(model)
     low_unlimited_flux, high_unlimited_flux =
-        unbounded_flux_in_default_medium(model, fva_result)
+        Consistency.unbounded_flux_in_default_medium(model, fva_result)
     @test mb == (-1000.0, 1000.0)
     @test isempty(low_unlimited_flux)
     @test isapprox(high_unlimited_flux["FRD7"][2], 1000.0, atol = 1e-07)
