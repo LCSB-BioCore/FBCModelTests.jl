@@ -80,7 +80,7 @@ end
     @test !isempty(Consistency.reactions_mass_unbalanced(wrong_model))
 
     # test metabolite connectivity
-    dm = find_disconnected_metabolites(model)
+    dm = Consistency.find_disconnected_metabolites(model)
     @test isempty(dm)
 
     # test unbounded flux
