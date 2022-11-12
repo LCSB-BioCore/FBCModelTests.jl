@@ -2,7 +2,7 @@ using Test
 
 using FBCModelTests
 
-using Downloads, SHA
+using Downloads, SHA, JSON
 using COBREXA, Tulip
 
 # this loads some data
@@ -12,6 +12,10 @@ include("data.jl")
 include("testcounter.jl")
 
 @testset "FBCModelTests test suite" begin
-    include("frog.jl")
-    include("memote.jl")
+    @testset "FROG" begin
+        include("frog.jl")
+    end
+    @testset "MEMOTE" begin
+        include("memote.jl")
+    end
 end
