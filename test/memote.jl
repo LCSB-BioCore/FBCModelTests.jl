@@ -118,7 +118,10 @@ end
     @test isapprox(Biomass.model_biomass_molar_mass(iML1515)["BIOMASS_Ec_iML1515_WT_75p37M"], 0.9992745719378807; atol = TEST_TOL)
     @test Biomass.model_biomass_is_consistent(iML1515)
     @test !haskey(Biomass.find_blocked_biomass_precursors(iML1515, GLPK.Optimizer), "BIOMASS_Ec_iML1515_core_75p37M")
-    @test length(Biomass.biomass_missing_essential_precursors(iML1515)["BIOMASS_Ec_iML1515_WT_75p37M"]) == 1
+    
+    modded_biomass = deepcopy(iML1515)
+    modded_biomass.reactions["BIOMASS_Ec_iML1515_WT_75p37M"].metabolites["fmn_c"] = -1.0
+    @test !haskey(Biomass.biomass_missing_essential_precursors(modded_biomass), "BIOMASS_Ec_iML1515_WT_75p37M") 
 end
 
 @testset "Consistency" begin

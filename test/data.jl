@@ -50,4 +50,4 @@ model_file = Dict(
 #TODO remove the globals
 model = load_model(model_file["e_coli_core.json"])
 iJN746 = load_model(model_file["iJN746.json"])
-iML1515 = load_model(model_file["iML1515.json"])
+iML1515 = load_model(StandardModel, model_file["iML1515.json"])
