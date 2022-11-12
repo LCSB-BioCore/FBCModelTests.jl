@@ -89,7 +89,7 @@ end
         Tulip.Optimizer;
         bounds = objective_bounds(0.99),
     )
-    mb = Consistency.median_bounds(model)
+    mb = Utils.median_bounds(model)
     low_unlimited_flux, high_unlimited_flux =
         Consistency.unbounded_flux_in_default_medium(model, fva_result)
     @test mb == (-1000.0, 1000.0)
