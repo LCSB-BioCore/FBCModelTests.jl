@@ -10,6 +10,7 @@ using DocStringExtensions
 using JuMP
 
 import ..Config
+import ..Utils
 
 """
 $(TYPEDSIGNATURES)
@@ -148,17 +149,19 @@ the bounds in a two seperate dictionaries.
 function unbounded_flux_in_default_medium(
     model::MetabolicModel,
     fva_result::Tuple{Any,Any},
-    config = memote_config,
+    config = Config.memote_config,
 )
     tol = config.consistency.tolerance_threshold
 
     all(!isnothing, fva_result) || throw(ArgumentError("fva_result is empty"))
 
     min_fluxes, max_fluxes = fva_result
-    lower_bound, upper_bound = median_bounds(model)
+    lower_bound, upper_bound = Utils.median_bounds(model)
 
-    return _compare_flux_bounds(min_fluxes, lower_bound, tol, <),
-    _compare_flux_bounds(max_fluxes, upper_bound, tol, >)
+    return (
+        Utils._compare_flux_bounds(min_fluxes, lower_bound, tol, <),
+        Utils._compare_flux_bounds(max_fluxes, upper_bound, tol, >),
+    )
 end
 
 end # module
