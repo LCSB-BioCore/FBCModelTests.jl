@@ -44,20 +44,20 @@ function save_report(
 )
     outname(x) = joinpath(report_dir, x)
     writeto(x::Function, fn) = open(x, outname(fn), "w")
-    squash(x) = permutedims(hcat(x...), (2, 1))
+    squash(cols, x) =
+        isempty(x) ? [cols; fill("", (0, length(cols)))] :
+        [cols; permutedims(hcat(x...), (2, 1))]
 
     mkpath(report_dir)
 
     writeto("01_objective.tsv") do f
         writedlm(
             f,
-            [
-                frog_report_tsv_headers[:objective]
-                squash(
-                    [basefilename, obj, objstatus(o.optimum), objvalue(o.optimum)] for
-                    (obj, o) in r
-                )
-            ],
+            squash(
+                frog_report_tsv_headers[:objective],
+                [basefilename, obj, objstatus(o.optimum), objvalue(o.optimum)] for
+                (obj, o) in r
+            ),
             '\t',
         )
     end
@@ -65,20 +65,18 @@ function save_report(
     writeto("02_fva.tsv") do f
         writedlm(
             f,
-            [
-                frog_report_tsv_headers[:fva]
-                squash(
-                    [
-                        basefilename,
-                        obj,
-                        rxn,
-                        objvalue(r.flux),
-                        objstatus(r.variability_min),
-                        objvalue(r.variability_min),
-                        objvalue(r.variability_max),
-                    ] for (obj, o) in r if !isnothing(o.optimum) for (rxn, r) in o.reactions
-                )
-            ],
+            squash(
+                frog_report_tsv_headers[:fva],
+                [
+                    basefilename,
+                    obj,
+                    rxn,
+                    objvalue(r.flux),
+                    objstatus(r.variability_min),
+                    objvalue(r.variability_min),
+                    objvalue(r.variability_max),
+                ] for (obj, o) in r if !isnothing(o.optimum) for (rxn, r) in o.reactions
+            ),
             '\t',
         )
     end
@@ -86,13 +84,11 @@ function save_report(
     writeto("03_gene_deletion.tsv") do f
         writedlm(
             f,
-            [
-                frog_report_tsv_headers[:gene_deletion]
-                squash(
-                    [basefilename, obj, gene, objstatus(geneval), objvalue(geneval)] for
-                    (obj, o) in r for (gene, geneval) in o.gene_deletions
-                )
-            ],
+            squash(
+                frog_report_tsv_headers[:gene_deletion],
+                [basefilename, obj, gene, objstatus(geneval), objvalue(geneval)] for
+                (obj, o) in r for (gene, geneval) in o.gene_deletions
+            ),
             '\t',
         )
     end
@@ -100,13 +96,11 @@ function save_report(
     writeto("04_reaction_deletion.tsv") do f
         writedlm(
             f,
-            [
-                frog_report_tsv_headers[:reaction_deletion]
-                squash(
-                    [basefilename, obj, rxn, objstatus(r.deletion), objvalue(r.deletion)]
-                    for (obj, o) in r for (rxn, r) in o.reactions
-                )
-            ],
+            squash(
+                frog_report_tsv_headers[:reaction_deletion],
+                [basefilename, obj, rxn, objstatus(r.deletion), objvalue(r.deletion)] for
+                (obj, o) in r for (rxn, r) in o.reactions
+            ),
             '\t',
         )
     end
