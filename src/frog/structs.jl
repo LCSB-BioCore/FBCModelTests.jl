@@ -6,7 +6,7 @@ const ObjectiveValue = Maybe{Float64}
 """
 $(TYPEDEF)
 """
-const FROGMetadata = Dict{String,String}
+const FROGMetadata = Dict{String,Any}
 
 """
 $(TYPEDEF)
