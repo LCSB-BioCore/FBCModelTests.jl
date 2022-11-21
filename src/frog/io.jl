@@ -107,7 +107,7 @@ function save_report(
         )
     end
 
-    writeto("00_metadata.json") do f
+    writeto("metadata.json") do f
         JSON.print(f, metadata, 2)
     end
 
@@ -125,7 +125,7 @@ function load_report(
     outname(x) = joinpath(report_dir, x)
     readfrom(x::Function, fn) = open(x, outname(fn), "r")
 
-    metadata = readfrom("00_metadata.json") do f
+    metadata = readfrom("metadata.json") do f
         FROGMetadata(JSON.parse(f))
     end
 
