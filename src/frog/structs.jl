@@ -15,7 +15,8 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct FROGReactionReport
-    flux::ObjectiveValue
+    objective_flux::ObjectiveValue
+    fraction_optimum::Float64
     variability_min::ObjectiveValue
     variability_max::ObjectiveValue
     deletion::ObjectiveValue
