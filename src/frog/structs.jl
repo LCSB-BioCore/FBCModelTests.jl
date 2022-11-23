@@ -6,7 +6,7 @@ const ObjectiveValue = Maybe{Float64}
 """
 $(TYPEDEF)
 """
-const FROGMetadata = Dict{String,String}
+const FROGMetadata = Dict{String,Any}
 
 """
 $(TYPEDEF)
@@ -15,7 +15,8 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct FROGReactionReport
-    flux::ObjectiveValue
+    objective_flux::ObjectiveValue
+    fraction_optimum::Float64
     variability_min::ObjectiveValue
     variability_max::ObjectiveValue
     deletion::ObjectiveValue
