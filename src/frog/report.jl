@@ -167,11 +167,7 @@ function test_report_compatibility(
         (isnothing(a) && isnothing(b)) || (
             !isnothing(a) &&
             !isnothing(b) &&
-            abs(a - b) <= absolute_tolerance &&
-            (
-                (a * b > 0) && abs(a * (1 + relative_tolerance)) >= abs(b) ||
-                abs(b * (1 + relative_tolerance)) >= abs(a)
-            )
+            abs(a - b) < absolute_tolerance + relative_tolerance * max(abs(a), abs(b))
         )
 
     @testset "Comparing objectives" begin
