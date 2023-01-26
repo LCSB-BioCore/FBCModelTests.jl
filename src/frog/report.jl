@@ -37,8 +37,8 @@ COBREXA.objective(x::ResetObjective) = x.objective
 
 get_objective(m::SBMLModel, objective::String) =
     let ds = Dict(keys(m.sbml.reactions) .=> SBML.fbc_flux_objective(m.sbml, objective))
-    sparse([ds[rid] for rid=reactions(m)])
-end
+        sparse([ds[rid] for rid in reactions(m)])
+    end
 
 """
 $(TYPEDSIGNATURES)
@@ -128,8 +128,7 @@ function frog_objective_report(
                 variability_min = isnothing(fvarow[1]) ? nothing : first(fvarow[1]),
                 variability_max = isnothing(fvarow[2]) ? nothing : first(fvarow[2]),
                 deletion = ko,
-            ) for (rid, fvarow, ko) in
-            zip(rids, eachrow(fvas), rs)
+            ) for (rid, fvarow, ko) in zip(rids, eachrow(fvas), rs)
         ),
         gene_deletions = Dict(gids .=> gs),
     )
