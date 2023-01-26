@@ -117,13 +117,13 @@ function frog_objective_report(
         optimum = optobj,
         reactions = Dict(
             rid => FROGReactionReport(
-                objective_flux = flx,
+                objective_flux = isnothing(fvarow[1]) ? nothing : last(fvarow[1]),
                 fraction_optimum = fraction_optimum,
-                variability_min = vmin,
-                variability_max = vmax,
+                variability_min = isnothing(fvarow[1]) ? nothing : first(fvarow[1]),
+                variability_max = isnothing(fvarow[2]) ? nothing : first(fvarow[2]),
                 deletion = ko,
-            ) for (rid, flx, vmin, vmax, ko) in
-            zip(rids, last.(fvas[:, 1]), first.(fvas[:, 1]), first.(fvas[:, 2]), rs)
+            ) for (rid, fvarow, ko) in
+            zip(rids, eachrow(fvas), rs)
         ),
         gene_deletions = Dict(gids .=> gs),
     )
