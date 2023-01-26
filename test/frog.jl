@@ -12,7 +12,7 @@ FROG.generate_report(
 
 @testset "Report generates expected files" begin
     @test isdir(report_path)
-    @test isfile(joinpath(report_path, "00_metadata.json"))
+    @test isfile(joinpath(report_path, "metadata.json"))
     @test isfile(joinpath(report_path, "01_objective.tsv"))
     @test isfile(joinpath(report_path, "02_fva.tsv"))
     @test isfile(joinpath(report_path, "03_gene_deletion.tsv"))
