@@ -17,6 +17,7 @@ using DocStringExtensions
 using MD5
 using SBML
 using SHA
+using SparseArrays
 
 import InteractiveUtils
 
@@ -34,6 +35,11 @@ end
 COBREXA.unwrap_model(x::ResetObjective) = x.model
 COBREXA.objective(x::ResetObjective) = x.objective
 
+get_objective(m::SBMLModel, objective::String) =
+    let ds = Dict(keys(m.sbml.reactions) .=> SBML.fbc_flux_objective(m.sbml, objective))
+    sparse([ds[rid] for rid=reactions(m)])
+end
+
 """
 $(TYPEDSIGNATURES)
 
@@ -50,7 +56,7 @@ function frog_objective_report(
 )::FROGObjectiveReport
     @info "Creating report for objective $objective ..."
     # this prevents the default SBMLModel fireworks in case there's multiple objectives
-    model = ResetObjective(sbml_model, SBML.fbc_flux_objective(sbml_model.sbml, objective))
+    model = ResetObjective(sbml_model, get_objective(sbml_model, objective))
 
     # run the first FBA
     @info "Finding model objective value ..."
