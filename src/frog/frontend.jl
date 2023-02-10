@@ -15,7 +15,7 @@ function generate_report(
     workers = [Distributed.myid()],
     basefilename::String = basename(filename),
 )
-    m = load_sbml_model(filename)
+    m = SBMLModel(readSBML(filename, throw_severities = ["Fatal"]))
     @info "Generating FROG report for $filename ..."
     r = ReportGenerators.generate_report_data(m; optimizer, modifications, workers)
 

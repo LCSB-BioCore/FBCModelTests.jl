@@ -14,6 +14,7 @@ using DelimitedFiles
 using Distributed
 using DocStringExtensions
 using JSON
+using SBML
 using Test
 
 using ..FBCModelTests: Maybe
