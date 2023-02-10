@@ -25,7 +25,8 @@ parse_objvalue(x::String) = x == "" ? nothing : parse(Float64, x)
 
 const frog_report_tsv_headers = Dict(
     :objective => ["model" "objective" "status" "value"],
-    :fva => ["model" "objective" "reaction" "flux" "status" "minimum" "maximum"],
+    :fva =>
+        ["model" "objective" "reaction" "flux" "status" "minimum" "maximum" "fraction_optimum"],
     :gene_deletion => ["model" "objective" "gene" "status" "value"],
     :reaction_deletion => ["model" "objective" "reaction" "status" "value"],
 )
@@ -71,10 +72,11 @@ function save_report(
                     basefilename,
                     obj,
                     rxn,
-                    objvalue(r.flux),
+                    objvalue(r.objective_flux),
                     objstatus(r.variability_min),
                     objvalue(r.variability_min),
                     objvalue(r.variability_max),
+                    string(r.fraction_optimum),
                 ] for (obj, o) in r if !isnothing(o.optimum) for (rxn, r) in o.reactions
             ),
             '\t',
@@ -105,7 +107,7 @@ function save_report(
         )
     end
 
-    writeto("00_metadata.json") do f
+    writeto("metadata.json") do f
         JSON.print(f, metadata, 2)
     end
 
@@ -123,7 +125,7 @@ function load_report(
     outname(x) = joinpath(report_dir, x)
     readfrom(x::Function, fn) = open(x, outname(fn), "r")
 
-    metadata = readfrom("00_metadata.json") do f
+    metadata = readfrom("metadata.json") do f
         FROGMetadata(JSON.parse(f))
     end
 
@@ -146,8 +148,8 @@ function load_report(
     @assert fvadata[1, :] == frog_report_tsv_headers[:fva][1, :]
     fva_vals = Dict(
         obj => Dict(
-            r => parse_objvalue.((flx, min, max)) for
-            (m, o, r, flx, _, min, max) in eachrow(fvadata[2:end, :]) if
+            r => parse_objvalue.((flx, min, max, frac)) for
+            (m, o, r, flx, _, min, max, frac) in eachrow(fvadata[2:end, :]) if
             m == basefilename && o == obj
         ) for obj in keys(obj_vals)
     )
@@ -190,9 +192,10 @@ function load_report(
                 optimum = opt,
                 reactions = Dict(
                     rxn => FROGReactionReport(
-                        flux = gets(fva_vals, nothing, obj, rxn, 1),
+                        objective_flux = gets(fva_vals, nothing, obj, rxn, 1),
                         variability_min = gets(fva_vals, nothing, obj, rxn, 2),
                         variability_max = gets(fva_vals, nothing, obj, rxn, 3),
+                        fraction_optimum = gets(fva_vals, NaN, obj, rxn, 4),
                         deletion = gets(rxn_vals, nothing, obj, rxn),
                     ) for rxn in all_rxns
                 ),

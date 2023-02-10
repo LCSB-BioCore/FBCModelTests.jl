@@ -11,11 +11,13 @@ using ..FROG: FROGReactionReport, FROGObjectiveReport, FROGMetadata, FROGReportD
 using ...FBCModelTests: FBCMT_VERSION
 
 using COBREXA
+using JuMP
 using Distributed
 using DocStringExtensions
 using MD5
 using SBML
 using SHA
+using SparseArrays
 
 import InteractiveUtils
 
@@ -33,6 +35,11 @@ end
 COBREXA.unwrap_model(x::ResetObjective) = x.model
 COBREXA.objective(x::ResetObjective) = x.objective
 
+get_objective(m::SBMLModel, objective::String) =
+    let ds = Dict(keys(m.sbml.reactions) .=> SBML.fbc_flux_objective(m.sbml, objective))
+        sparse([ds[rid] for rid in reactions(m)])
+    end
+
 """
 $(TYPEDSIGNATURES)
 
@@ -43,42 +50,55 @@ function frog_objective_report(
     sbml_model::SBMLModel,
     objective::String;
     optimizer,
-    workers,
+    modifications = [],
+    workers = [Distributed.myid()],
+    fraction_optimum = 1.0,
 )::FROGObjectiveReport
     @info "Creating report for objective $objective ..."
     # this prevents the default SBMLModel fireworks in case there's multiple objectives
-    model = ResetObjective(sbml_model, SBML.fbc_flux_objective(sbml_model.sbml, objective))
+    model = ResetObjective(sbml_model, get_objective(sbml_model, objective))
 
     # run the first FBA
     @info "Finding model objective value ..."
-    solved_model = flux_balance_analysis(model, optimizer)
-    obj = solved_objective_value(solved_model)
+    solved_model = flux_balance_analysis(model, optimizer; modifications)
+    optobj = solved_objective_value(solved_model)
 
-    fvas = if isnothing(obj)
+    fvas = if isnothing(optobj)
         @warn "Model does not have a feasible solution, skipping FVA."
         zeros(0, 2)
     else
-        @info "Optimal solution found." obj
+        @info "Optimal solution found." optobj
         @info "Calculating model variability ..."
         flux_variability_analysis(
             model,
             optimizer;
-            bounds = objective_bounds(1.0),
-            optimal_objective_value = obj,
+            bounds = objective_bounds(fraction_optimum),
+            optimal_objective_value = optobj,
             workers = workers,
+            modifications,
+            ret = m -> (JuMP.objective_value(m), JuMP.value.(m[:x])' * model.objective),
         )
     end
 
     @info "Calculating gene knockouts ..."
     gids = genes(model)
-    gs = screen(
-        model,
-        args = tuple.(gids),
-        analysis = (m, gene) -> solved_objective_value(
-            flux_balance_analysis(m, optimizer, modifications = [knockout(gene)]),
-        ),
-        workers = workers,
-    )
+    gs = if isempty(gids)
+        @info "Model has no genes"
+        zeros(0)
+    else
+        screen(
+            model,
+            args = tuple.(gids),
+            analysis = (m, gene) -> solved_objective_value(
+                flux_balance_analysis(
+                    m,
+                    optimizer,
+                    modifications = vcat(modifications, knockout(gene)),
+                ),
+            ),
+            workers = workers,
+        )
+    end
 
     @info "Calculating reaction knockouts ..."
     rids = reactions(model)
@@ -89,7 +109,10 @@ function frog_objective_report(
             flux_balance_analysis(
                 m,
                 optimizer,
-                modifications = [change_constraint(rid, lb = 0.0, ub = 0.0)],
+                modifications = vcat(
+                    modifications,
+                    change_constraint(rid, lb = 0.0, ub = 0.0),
+                ),
             ),
         ),
         workers = workers,
@@ -97,15 +120,15 @@ function frog_objective_report(
 
     @info "Objective $objective done."
     return FROGObjectiveReport(
-        optimum = obj,
+        optimum = optobj,
         reactions = Dict(
             rid => FROGReactionReport(
-                flux = flx,
-                variability_min = vmin,
-                variability_max = vmax,
+                objective_flux = isnothing(fvarow[1]) ? nothing : last(fvarow[1]),
+                fraction_optimum = fraction_optimum,
+                variability_min = isnothing(fvarow[1]) ? nothing : first(fvarow[1]),
+                variability_max = isnothing(fvarow[2]) ? nothing : first(fvarow[2]),
                 deletion = ko,
-            ) for (rid, flx, vmin, vmax, ko) in
-            zip(rids, flux_vector(model, solved_model), fvas[:, 1], fvas[:, 2], rs)
+            ) for (rid, fvarow, ko) in zip(rids, eachrow(fvas), rs)
         ),
         gene_deletions = Dict(gids .=> gs),
     )
@@ -116,8 +139,8 @@ $(TYPEDSIGNATURES)
 
 Generate [`FROGReportData`](@ref) for a model.
 """
-generate_report_data(model::SBMLModel; optimizer, workers = [Distributed.myid()]) = Dict([
-    objective => frog_objective_report(model, objective; optimizer, workers) for
+generate_report_data(model::SBMLModel; kwargs...) = Dict([
+    objective => frog_objective_report(model, objective; kwargs...) for
     (objective, _) in model.sbml.objectives
 ])
 
@@ -177,9 +200,10 @@ function test_report_compatibility(
                 @testset "Reactions" begin
                     test_dicts(
                         (_, a, b) -> begin
-                            @test intol(a.flux, b.flux)
+                            @test intol(a.objective_flux, b.objective_flux)
                             @test intol(a.variability_min, b.variability_min)
                             @test intol(a.variability_max, b.variability_max)
+                            @test intol(a.fraction_optimum, b.fraction_optimum)
                             @test intol(a.deletion, b.deletion)
                         end,
                         a.reactions,
