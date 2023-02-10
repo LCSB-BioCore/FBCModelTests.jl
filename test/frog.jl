@@ -26,7 +26,7 @@ end
         FROG.compare_reports(report_path, report_path)
     end
 
-    @test result.passes == 758
+    @test result.passes == 853
     @test result.fails == 0
     @test result.errs == 0
 end
@@ -36,17 +36,20 @@ end
         FROG.compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
     end
 
-    @test result.passes == 758
+    @test result.passes == 853
     @test result.fails == 0
     @test result.errs == 0
 end
 
 @testset "Broken report does not pass comparison" begin
     result = @testset CountTests "Different reports" begin
-        FROG.compare_reports(report_path, joinpath(datadir, "report-ecoli-damaged"))
+        FROG.compare_reports(
+            joinpath(datadir, "report-ecoli-good"),
+            joinpath(datadir, "report-ecoli-damaged"),
+        )
     end
 
-    @test result.passes == 745
-    @test result.fails == 13
+    @test result.passes == 839
+    @test result.fails == 14
     @test result.errs == 0
 end

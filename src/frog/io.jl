@@ -195,7 +195,7 @@ function load_report(
                         objective_flux = gets(fva_vals, nothing, obj, rxn, 1),
                         variability_min = gets(fva_vals, nothing, obj, rxn, 2),
                         variability_max = gets(fva_vals, nothing, obj, rxn, 3),
-                        fraction_optimum = gets(fva_vals, nothing, obj, rxn, 4),
+                        fraction_optimum = gets(fva_vals, NaN, obj, rxn, 4),
                         deletion = gets(rxn_vals, nothing, obj, rxn),
                     ) for rxn in all_rxns
                 ),
