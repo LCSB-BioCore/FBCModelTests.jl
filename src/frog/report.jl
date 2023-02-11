@@ -48,7 +48,7 @@ for a single objective in the SBML model.
 """
 function frog_objective_report(
     sbml_model::SBMLModel,
-    objective::String;
+    objective::Maybe{String} = nothing;
     optimizer,
     modifications = [],
     workers = [Distributed.myid()],
@@ -56,7 +56,9 @@ function frog_objective_report(
 )::FROGObjectiveReport
     @info "Creating report for objective $objective ..."
     # this prevents the default SBMLModel fireworks in case there's multiple objectives
-    model = ResetObjective(sbml_model, get_objective(sbml_model, objective))
+    model =
+        isnothing(objective) ? sbml_model :
+        ResetObjective(sbml_model, get_objective(sbml_model, objective))
 
     # run the first FBA
     @info "Finding model objective value ..."
@@ -76,7 +78,10 @@ function frog_objective_report(
             optimal_objective_value = optobj,
             workers = workers,
             modifications,
-            ret = m -> (JuMP.objective_value(m), JuMP.value.(m[:x])' * model.objective),
+            ret = m -> (
+                JuMP.objective_value(m),
+                JuMP.value.(m[:x])' * COBREXA.objective(model),
+            ),
         )
     end
 
@@ -139,10 +144,13 @@ $(TYPEDSIGNATURES)
 
 Generate [`FROGReportData`](@ref) for a model.
 """
-generate_report_data(model::SBMLModel; kwargs...) = Dict([
-    objective => frog_objective_report(model, objective; kwargs...) for
-    (objective, _) in model.sbml.objectives
-])
+generate_report_data(model::SBMLModel; kwargs...) =
+    isempty(model.sbml.objectives) ?
+    Dict("obj" => frog_objective_report(model; kwargs...)) :
+    Dict([
+        objective => frog_objective_report(model, objective; kwargs...) for
+        (objective, _) in model.sbml.objectives
+    ])
 
 """
 $(TYPEDSIGNATURES)
