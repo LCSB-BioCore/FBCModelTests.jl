@@ -20,7 +20,7 @@ jobs:
           image_name: lcsb-biocore/docker/fbcmodeltests.jl
           github_token: ${{ secrets.GITHUB_TOKEN }}
   docker_runfrog:
-    name: Push the generic docker image to ghcr
+    name: Push the run-frog docker image to ghcr
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -30,4 +30,16 @@ jobs:
         with:
           dockerfile: docker/Dockerfile.runfrog
           image_name: lcsb-biocore/docker/fbcmodeltests-run-frog
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+  docker_comparefrog:
+    name: Push the compare-frog docker image to ghcr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          dockerfile: docker/Dockerfile.comparefrog
+          image_name: lcsb-biocore/docker/fbcmodeltests-compare-frog
           github_token: ${{ secrets.GITHUB_TOKEN }}
