@@ -40,6 +40,8 @@ Mirek Kratochvíl ([@exaexa](https://github.com/exaexa))
 with parts contributed by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
+:frog:
+
 ### Running FROG from command line
 
 You can use the supplied scripts to conveniently run FROG from a commandline on
