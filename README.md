@@ -40,6 +40,27 @@ Mirek Kratochvíl ([@exaexa](https://github.com/exaexa))
 with parts contributed by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo)).
 
+### Running FROG from command line
+
+You can use the supplied scripts to conveniently run FROG from a commandline on
+a system that has FBCModelTests.jl (and possibly a solver) already installed.
+
+After copying the files from the `bin/` directory in this repository into your
+`$PATH`, you can use them to generate and compare FROG reports as follows:
+```sh
+$ fbcmt-run-frog -s GLPK model.xml report_dir
+$ fbcmt-compare-frog report_dir other_dir
+```
+
+### Running FROG with Docker
+
+A pre-packaged dockerized version of the commands is available from GHCR. The
+following commands run the dockerized versions of the above scripts:
+```
+$ docker run -u $UID -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-run-frog -s GLPK model.xml report_dir
+$ docker run -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-compare-frog report_dir other_dir
+```
+
 ## MEMOTE-style tests
 
 You can use a number of tests that automatically check various basic quality
