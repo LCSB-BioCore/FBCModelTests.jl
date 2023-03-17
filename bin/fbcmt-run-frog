@@ -1,0 +1,83 @@
+#!/usr/bin/env julia
+
+# process arguments
+help = false
+solver = "GLPK"
+model_file = nothing
+report_dir = nothing
+freeargs = String[]
+i = 1
+while i <= length(ARGS)
+    if ARGS[i] == "-s" || ARGS[i] == "--solver"
+        global i += 1
+        if i > length(ARGS)
+            @error "Option -s requires argument"
+            exit(1)
+        end
+        global solver = ARGS[i]
+    elseif ARGS[i] == "-h"
+        global help = true
+    else
+        push!(freeargs, ARGS[i])
+    end
+        
+    global i += 1
+end
+
+ok = true
+if length(freeargs) == 2
+    global model_file, report_dir = freeargs
+else
+    global ok = false
+    @error "Expected precisely 2 arguments"
+end
+
+isnothing(model_file) && begin
+    global ok = false
+    @error "Model file not specified"
+end
+
+isnothing(report_dir) && begin
+    global ok = false
+    @error "Output dir not specified"
+end
+
+if !ok
+    global help = true
+end
+
+if help
+    println("""Usage: fbcmt-run-frog [-s|--solver <solver>] [-h|--help] <model> <report_dir>""")
+    exit(ok ? 0 : 1)
+end
+
+if !isfile(model_file)
+    @error "model argument is not a name of a file"
+    global ok = false
+end
+
+if !ok
+    exit(1)
+end
+
+# try to set up the environment
+import Pkg
+ips = Set(pkg.name for (_,pkg) = Pkg.dependencies())
+inst_missing(x) = if !(x in ips)
+    @info "Missing package '$x', trying to auto-install..."
+    Pkg.add(x)
+end
+inst_missing(solver)
+inst_missing("FBCModelTests")
+
+solver = Symbol(solver)
+
+import FBCModelTests.FROG
+@eval import $solver
+
+optimizer = @eval $solver.Optimizer
+
+@info "Initialization done, starting FROG..." model_file report_dir optimizer
+
+# run the FROG
+FROG.generate_report(model_file; report_dir, optimizer)

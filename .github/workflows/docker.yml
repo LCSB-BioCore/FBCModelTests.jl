@@ -7,8 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  docker_publish:
-    name: Push Docker image to GitHub Packages
+  docker_generic:
+    name: Push the generic docker image to ghcr
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -16,5 +16,18 @@ jobs:
       - name: Build and publish a Docker image for ${{ github.repository }}
         uses: macbre/push-to-ghcr@master
         with:
+          dockerfile: docker/Dockerfile.generic
           image_name: lcsb-biocore/docker/fbcmodeltests.jl
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+  docker_runfrog:
+    name: Push the generic docker image to ghcr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          dockerfile: docker/Dockerfile.runfrog
+          image_name: lcsb-biocore/docker/fbcmodeltests-run-frog
           github_token: ${{ secrets.GITHUB_TOKEN }}
