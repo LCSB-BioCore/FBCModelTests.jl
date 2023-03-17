@@ -6,4 +6,4 @@ ADD bin/fbcmt-compare-frog /usr/bin
 
 RUN julia -e 'import Pkg; Pkg.develop(path="/pkg/"); Pkg.resolve(); Pkg.status(); Pkg.instantiate(); Pkg.precompile()'
 
-ENTRYPOINT fbcmt-compare-frog
+ENTRYPOINT ["/usr/bin/fbcmt-compare-frog"]

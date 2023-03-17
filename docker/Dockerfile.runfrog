@@ -6,4 +6,4 @@ ADD bin/fbcmt-run-frog /usr/bin
 
 RUN julia -e 'import Pkg; Pkg.add(["GLPK", "Tulip", "Clarabel", "OSQP", "Clp"]); Pkg.develop(path="/pkg/"); Pkg.resolve(); Pkg.status(); Pkg.instantiate(); Pkg.precompile()'
 
-ENTRYPOINT fbcmt-run-frog
+ENTRYPOINT ["/usr/bin/fbcmt-run-frog"]
