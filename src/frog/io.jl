@@ -129,7 +129,8 @@ function load_report(
         FROGMetadata(JSON.parse(f))
     end
 
-    basefilename = metadata["model.filename"]
+    basefilename = get(metadata, "model_filename", get(metadata, "model.filename", nothing))
+    isnothing(basefilename) && error("report does not list its filename")
 
     # objectives
     objdata = readfrom("01_objective.tsv") do f
