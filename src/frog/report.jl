@@ -12,6 +12,7 @@ using ...FBCModelTests: FBCMT_VERSION
 
 using COBREXA
 using JuMP
+using Dates
 using Distributed
 using DocStringExtensions
 using MD5
@@ -157,18 +158,35 @@ $(TYPEDSIGNATURES)
 """
 generate_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
     FROGMetadata(
-        "software.name" => "FBCModelTests.jl",
-        "software.version" => string(FBCMT_VERSION),
-        "software.url" => "https://github.com/LCSB-BioCore/FBCModelTests.jl/",
+        "frog_version" => "0.1.2",
+        "frog_date" => string(Dates.today()),
+        "model_filename" => basefilename,
+        "model_md5" => bytes2hex(open(f -> md5(f), filename, "r")),
+        "model_sha256" => bytes2hex(open(f -> sha256(f), filename, "r")),
         "environment" => begin
             x = IOBuffer()
             InteractiveUtils.versioninfo(x)
             replace(String(take!(x)), r"\n *" => " ")
         end,
-        "model.filename" => basefilename,
-        "model.md5" => bytes2hex(open(f -> md5(f), filename, "r")),
-        "model.sha256" => bytes2hex(open(f -> sha256(f), filename, "r")),
-        "solver.name" => "COBREXA.jl $COBREXA_VERSION ($(COBREXA.JuMP.MOI.get(optimizer(), COBREXA.JuMP.MOI.SolverName())))",
+        "software" => Dict(
+            "frog" => Dict(
+                "name" => "FBCModelTests.jl",
+                "version" => string(FBCMT_VERSION),
+                "url" => "https://github.com/LCSB-BioCore/FBCModelTests.jl",
+            ),
+            "toolbox" => Dict(
+                "name" => "COBREXA.jl",
+                "version" => string(COBREXA_VERSION),
+                "url" => "https://github.com/LCSB-BioCore/COBREXA.jl",
+            ),
+            "solver" => Dict(
+                "name" => COBREXA.JuMP.MOI.get(optimizer(), COBREXA.JuMP.MOI.SolverName()),
+                "version" => COBREXA.JuMP.MOI.get(
+                    optimizer(),
+                    COBREXA.JuMP.MOI.SolverVersion(),
+                ),
+            ),
+        ),
     )
 
 end
@@ -238,14 +256,14 @@ end
 $(TYPEDSIGNATURES)
 """
 function test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
-    for k in ["model.filename", "model.md5"]
+    for k in ["model_filename", "model_md5"]
         @testset "$k is present" begin
             @test haskey(a, k)
             @test haskey(b, k)
         end
     end
 
-    for k in ["model.filename", "model.md5", "model.sha256"]
+    for k in ["model_filename", "model_md5", "model_sha256"]
         if haskey(a, k) && haskey(b, k)
             @testset "$k matches" begin
                 @test a[k] == b[k]

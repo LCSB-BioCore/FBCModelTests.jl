@@ -1,10 +1,24 @@
 {
-  "model.sha256": "b4db506aeed0e434c1f5f0fdd35feda0dfe5d82badcfda0e9d1342335ab31116",
-  "model.md5": "4574760460afe9e1b3388dc16f354706",
-  "software.name": "FBCModelTests.jl",
-  "environment": "Julia Version 1.9.0-beta2 Commit 7daffeecb8c (2022-12-29 07:45 UTC) Platform Info: OS: Linux (x86_64-linux-gnu) CPU: 16 × Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz WORD_SIZE: 64 LIBM: libopenlibm LLVM: libLLVM-14.0.6 (ORCJIT, skylake) Threads: 1 on 16 virtual cores Environment: JULIA_LOAD_PATH = @:/tmp/jl_acZx63 ",
-  "software.version": "0.1.0",
-  "software.url": "https://github.com/LCSB-BioCore/FBCModelTests.jl/",
-  "model.filename": "e_coli_core.xml",
-  "solver.name": "COBREXA.jl 1.4.3 (GLPK)"
+  "software": {
+    "frog": {
+      "name": "FBCModelTests.jl",
+      "version": "0.2.1",
+      "url": "https://github.com/LCSB-BioCore/FBCModelTests.jl"
+    },
+    "toolbox": {
+      "name": "COBREXA.jl",
+      "version": "1.4.4",
+      "url": "https://github.com/LCSB-BioCore/COBREXA.jl"
+    },
+    "solver": {
+      "name": "GLPK",
+      "version": "5.0"
+    }
+  },
+  "model_filename": "e_coli_core.xml",
+  "frog_date": "2023-03-24",
+  "model_sha256": "b4db506aeed0e434c1f5f0fdd35feda0dfe5d82badcfda0e9d1342335ab31116",
+  "model_md5": "4574760460afe9e1b3388dc16f354706",
+  "environment": "Julia Version 1.9.0-beta3 Commit 24204a73447 (2023-01-18 07:20 UTC) Platform Info: OS: Linux (x86_64-linux-gnu) CPU: 8 × AMD Ryzen 7 2700U with Radeon Vega Mobile Gfx WORD_SIZE: 64 LIBM: libopenlibm LLVM: libLLVM-14.0.6 (ORCJIT, znver1) Threads: 1 on 8 virtual cores Environment: JULIA_LOAD_PATH = @:/tmp/jl_icHaNw ",
+  "frog_version": "0.1.2"
 }
