@@ -158,8 +158,8 @@ generate_metadata(filename::String; optimizer, basefilename::String = basename(f
         "frog_version" => "0.1.3",
         "frog_date" => string(Dates.today()),
         "model_filename" => basefilename,
-        "model_md5" => bytes2hex(open(f -> md5(f), filename, "r")),
-        "model_sha256" => bytes2hex(open(f -> sha256(f), filename, "r")),
+        "model_md5" => bytes2hex(open(md5, filename, "r")),
+        "model_sha256" => bytes2hex(open(sha256, filename, "r")),
         "environment" => begin
             x = IOBuffer()
             InteractiveUtils.versioninfo(x)
