@@ -16,9 +16,9 @@
     }
   },
   "model_filename": "e_coli_core.xml",
-  "frog_date": "2023-03-24",
+  "frog_date": "2023-03-26",
   "model_sha256": "b4db506aeed0e434c1f5f0fdd35feda0dfe5d82badcfda0e9d1342335ab31116",
   "model_md5": "4574760460afe9e1b3388dc16f354706",
-  "environment": "Julia Version 1.9.0-beta3 Commit 24204a73447 (2023-01-18 07:20 UTC) Platform Info: OS: Linux (x86_64-linux-gnu) CPU: 8 × AMD Ryzen 7 2700U with Radeon Vega Mobile Gfx WORD_SIZE: 64 LIBM: libopenlibm LLVM: libLLVM-14.0.6 (ORCJIT, znver1) Threads: 1 on 8 virtual cores Environment: JULIA_LOAD_PATH = @:/tmp/jl_icHaNw ",
-  "frog_version": "0.1.2"
+  "environment": "Julia Version 1.9.0-beta3 Commit 24204a73447 (2023-01-18 07:20 UTC) Platform Info: OS: Linux (x86_64-linux-gnu) CPU: 8 × AMD Ryzen 7 2700U with Radeon Vega Mobile Gfx WORD_SIZE: 64 LIBM: libopenlibm LLVM: libLLVM-14.0.6 (ORCJIT, znver1) Threads: 1 on 8 virtual cores Environment: JULIA_LOAD_PATH = @:/tmp/jl_A8NwSi ",
+  "frog_version": "0.1.3"
 }

@@ -49,7 +49,7 @@ end
         )
     end
 
-    @test result.passes == 839
-    @test result.fails == 14
+    @test result.passes == 838
+    @test result.fails == 15
     @test result.errs == 0
 end
