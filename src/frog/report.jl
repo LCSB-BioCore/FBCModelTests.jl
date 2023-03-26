@@ -64,6 +64,7 @@ function frog_objective_report(
     # run the first FBA
     @info "Finding model objective value ..."
     solved_model = flux_balance_analysis(model, optimizer; modifications)
+    fbas = flux_vector(model, solved_model)
     optobj = solved_objective_value(solved_model)
 
     fvas = if isnothing(optobj)
@@ -79,10 +80,6 @@ function frog_objective_report(
             optimal_objective_value = optobj,
             workers = workers,
             modifications,
-            ret = m -> (
-                JuMP.objective_value(m),
-                JuMP.value.(m[:x])' * COBREXA.objective(model),
-            ),
         )
     end
 
@@ -129,12 +126,12 @@ function frog_objective_report(
         optimum = optobj,
         reactions = Dict(
             rid => FROGReactionReport(
-                objective_flux = isnothing(fvarow[1]) ? nothing : last(fvarow[1]),
+                objective_flux = fba,
                 fraction_optimum = fraction_optimum,
-                variability_min = isnothing(fvarow[1]) ? nothing : first(fvarow[1]),
-                variability_max = isnothing(fvarow[2]) ? nothing : first(fvarow[2]),
+                variability_min = fvarow[1],
+                variability_max = fvarow[2],
                 deletion = ko,
-            ) for (rid, fvarow, ko) in zip(rids, eachrow(fvas), rs)
+            ) for (rid, fba, fvarow, ko) in zip(rids, fbas, eachrow(fvas), rs)
         ),
         gene_deletions = Dict(gids .=> gs),
     )
@@ -158,7 +155,7 @@ $(TYPEDSIGNATURES)
 """
 generate_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
     FROGMetadata(
-        "frog_version" => "0.1.2",
+        "frog_version" => "0.1.3",
         "frog_date" => string(Dates.today()),
         "model_filename" => basefilename,
         "model_md5" => bytes2hex(open(f -> md5(f), filename, "r")),
