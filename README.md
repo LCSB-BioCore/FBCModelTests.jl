@@ -59,7 +59,7 @@ $ fbcmt-compare-frog report_dir other_dir
 A pre-packaged dockerized version of the commands is available from GHCR. The
 following commands run the dockerized versions of the above scripts:
 ```
-$ docker run -u $UID -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-run-frog -s GLPK model.xml report_dir
+$ docker run -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-run-frog -s GLPK model.xml report_dir
 $ docker run -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-compare-frog report_dir other_dir
 ```
 
