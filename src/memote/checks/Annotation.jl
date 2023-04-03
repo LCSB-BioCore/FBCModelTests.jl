@@ -10,52 +10,27 @@ using DocStringExtensions
 using COBREXA
 
 import ..Config
+import ..Utils: parse_annotations
+
+is_annotated_reaction(model, rid) = !isempty(reaction_annotations(model, rid))
+is_annotated_metabolite(model, mid) = !isempty(metabolite_annotations(model, mid))
+is_annotated_gene(model, gid) = !isempty(gene_annotations(model, gid))
 
 """
 $(TYPEDSIGNATURES)
 
-Checks if every gene has an annotation and returns an array of genes that do not
-have annotatons.
-"""
-find_all_unannotated_genes(model::MetabolicModel) =
-    [gid for gid in genes(model) if isempty(gene_annotations(model, gid))]
-
-"""
-$(TYPEDSIGNATURES)
-
-Checks if every metabolite has an annotation and returns an array of metabolites
-that do not have annotatons.
-"""
-find_all_unannotated_metabolites(model::MetabolicModel) =
-    [mid for mid in metabolites(model) if isempty(metabolite_annotations(model, mid))]
-
-"""
-$(TYPEDSIGNATURES)
-
-Checks if every reaction has an annotation and returns an array of reactions
-that do not have annotatons.
-"""
-find_all_unannotated_reactions(model::MetabolicModel) =
-    [rid for rid in reactions(model) if isempty(reaction_annotations(model, rid))]
-
-"""
-$(TYPEDSIGNATURES)
-
-Helper function to find all the unannotated components in the model.
+Helper function to find all the annotations that are missing for a component in a model.
 """
 function _find_unannotated_components(
     model::MetabolicModel,
-    id_accessor,
+    id_accessor::String,
     annotation_accessor,
     annotation_kws,
 )
-    missing_annos = Dict{String,Vector{String}}()
+    missing_annos = String[]
     for anno_kw in annotation_kws
-        missing_annos[anno_kw] = String[]
-        for id in id_accessor(model)
-            annos = annotation_accessor(model, id)
-            !haskey(annos, anno_kw) && push!(missing_annos[anno_kw], id)
-        end
+        annos = parse_annotations(annotation_accessor(model, id_accessor))
+        !haskey(annos, anno_kw) && push!(missing_annos, anno_kw)
     end
     return missing_annos
 end
@@ -64,13 +39,13 @@ end
 $(TYPEDSIGNATURES)
 
 Checks if the databases listed in `config.annotation.gene_annotation_keywords`
-are present in the gene annotations. Returns a dictionary of annotation keywords
-mapped to a list of genes that do not include the keyword.
+are present in the gene annotations. Returns a vector of annotation keywords
+that were not found.
 """
-find_database_unannotated_genes(model; config = Config.memote_config) =
+findall_unannotated_gene_databases(model, gid::String; config = Config.memote_config) =
     _find_unannotated_components(
         model,
-        genes,
+        gid,
         gene_annotations,
         config.annotation.gene_annotation_keywords,
     )
@@ -78,31 +53,32 @@ find_database_unannotated_genes(model; config = Config.memote_config) =
 """
 $(TYPEDSIGNATURES)
 
-Checks if the databases listed in
-`config.annotation.metabolite_annotation_keywords` are present in the metabolite
-annotations. Returns a dictionary of annotation keywords mapped to a list of
-metabolites that do not include the keyword.
+Checks if the databases listed in `config.annotation.metabolite_annotation_keywords`
+are present in the metabolite annotations. Returns a vector of annotation keywords
+that were not found.
 """
-find_database_unannotated_metabolites(model; config = Config.memote_config) =
-    _find_unannotated_components(
-        model,
-        metabolites,
-        metabolite_annotations,
-        config.annotation.metabolite_annotation_keywords,
-    )
+findall_unannotated_metabolite_databases(
+    model,
+    mid::String;
+    config = Config.memote_config,
+) = _find_unannotated_components(
+    model,
+    mid,
+    metabolite_annotations,
+    config.annotation.metabolite_annotation_keywords,
+)
 
 """
 $(TYPEDSIGNATURES)
 
-Checks if the databases listed in
-`config.annotation.reaction_annotation_keywords` are present in the reaction
-annotations. Returns a dictionary of annotation keywords mapped to a list of
-reactions that do not include the keyword.
+Checks if the databases listed in `config.annotation.reaction_annotation_keywords`
+are present in the reaction annotations. Returns a vector of annotation keywords
+that were not found.
 """
-find_database_unannotated_reactions(model; config = Config.memote_config) =
+findall_unannotated_reaction_databases(model, rid::String; config = Config.memote_config) =
     _find_unannotated_components(
         model,
-        reactions,
+        rid,
         reaction_annotations,
         config.annotation.reaction_annotation_keywords,
     )
@@ -110,23 +86,20 @@ find_database_unannotated_reactions(model; config = Config.memote_config) =
 """
 $(TYPEDSIGNATURES)
 
-Helper function to find all the annotations that do not conform in the model.
+Helper function to find all the annotations for a component that do not conform in the model.
 """
-function _find_nonconformal_components(
+function _find_nonconformal_annotations(
     model::MetabolicModel,
-    id_accessor,
+    id_accessor::String,
     annotation_accessor,
     annotation_regex,
 )
-    no_annos = Dict{String,Vector{String}}()
+    no_annos = String[]
     for (anno_kw, anno_regex) in annotation_regex
-        no_annos[anno_kw] = String[]
-        for id in id_accessor(model)
-            annos = annotation_accessor(model, id)
-            if haskey(annos, anno_kw)
-                in.(nothing, Ref(match.(anno_regex, annos[anno_kw]))) &&
-                    push!(no_annos[anno_kw], id)
-            end
+        annos = parse_annotations(annotation_accessor(model, id_accessor))
+        if haskey(annos, anno_kw)
+            in.(nothing, Ref(match.(anno_regex, annos[anno_kw]))) &&
+                push!(no_annos, anno_kw)
         end
     end
     return no_annos
@@ -138,12 +111,12 @@ $(TYPEDSIGNATURES)
 Check if the gene annotation entry conforms to commonly recognized formats of
 annotation database using regex patterns. Uses the database formats listed in
 `config.annotation.gene_annotation_regexes` to test the conformity. Returns a
-dictionary mapping the database id to a list of genes that do not conform.
+string vector of database ids do not conform.
 """
-find_nonconformal_gene_annotations(model; config = Config.memote_config) =
-    _find_nonconformal_components(
+findall_nonconformal_gene_annotations(model, gid::String; config = Config.memote_config) =
+    _find_nonconformal_annotations(
         model,
-        genes,
+        gid,
         gene_annotations,
         config.annotation.gene_annotation_regexes,
     )
@@ -154,16 +127,18 @@ $(TYPEDSIGNATURES)
 Check if the metabolite annotation entry conforms to commonly recognized formats
 of annotation database using regex patterns. Uses the database formats listed in
 `config.annotation.metabolite_annotation_regexes` to test the conformity.
-Returns a dictionary mapping the database id to a list of metabolites that do
-not conform.
+Returns a string vector of database ids do not conform.
 """
-find_nonconformal_metabolite_annotations(model; config = Config.memote_config) =
-    _find_nonconformal_components(
-        model,
-        genes,
-        gene_annotations,
-        config.annotation.metabolite_annotation_regexes,
-    )
+findall_nonconformal_metabolite_annotations(
+    model,
+    mid::String;
+    config = Config.memote_config,
+) = _find_nonconformal_annotations(
+    model,
+    mid,
+    metabolite_annotations,
+    config.annotation.metabolite_annotation_regexes,
+)
 
 """
 $(TYPEDSIGNATURES)
@@ -171,14 +146,17 @@ $(TYPEDSIGNATURES)
 Check if the reaction annotation entry conforms to commonly recognized formats
 of annotation database using regex patterns. Uses the database formats listed in
 `config.annotation.reaction_annotation_regexes` to test the conformity. Returns
-a dictionary mapping the database id to a list of reactions that do not conform.
+a string vector of database ids do not conform.
 """
-find_nonconformal_reaction_annotations(model; config = Config.memote_config) =
-    _find_nonconformal_components(
-        model,
-        reactions,
-        reaction_annotations,
-        config.annotation.reaction_annotation_regexes,
-    )
+findall_nonconformal_reaction_annotations(
+    model,
+    rid::String;
+    config = Config.memote_config,
+) = _find_nonconformal_annotations(
+    model,
+    rid,
+    reaction_annotations,
+    config.annotation.reaction_annotation_regexes,
+)
 
 end # module

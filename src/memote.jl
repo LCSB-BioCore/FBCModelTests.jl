@@ -12,6 +12,7 @@ using DocStringExtensions
 using COBREXA
 using Test
 using JuMP
+using Distributed
 
 include(joinpath("memote", "utils.jl")) # memote utils
 include(joinpath("memote", "config.jl")) # memote test parameters
@@ -25,9 +26,9 @@ include.(
             "Consistency.jl",
             "Energy.jl",
             "GPRAssociation.jl",
-            "Metabolite.jl",
+            "Metabolites.jl",
             "Network.jl",
-            "Reaction.jl",
+            "Reactions.jl",
         ],
     )
 )

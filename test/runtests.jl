@@ -6,7 +6,7 @@ using Downloads, SHA
 using COBREXA
 
 # test tolerance
-TEST_TOL = 1e-6
+const TEST_TOL = 1e-6
 
 # this loads some data
 include("data.jl")

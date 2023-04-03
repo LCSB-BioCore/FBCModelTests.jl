@@ -13,98 +13,23 @@ using Statistics
 """
 $(TYPEDSIGNATURES)
 
-Internal helper function that determines if a reaction has a gene reaction rule
-and that each gene in the rule is contained in the model.
-"""
-function _has_sensible_gpr(model::MetabolicModel, rid)
-    grrs = reaction_gene_association(model, rid)
-    isnothing(grrs) && return false
-    isempty(grrs) && return false
-    any(isempty.(grrs)) && return false
-    any("" in grr for grr in grrs) && return false
-
-    gids = Set(reduce(vcat, grrs))
-    all(in.(gids, Ref(genes(model))))
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Determine if a reaction is probably a transport reaction by checking if:
-1. it has sbo annotations corresponding to a transport reaction
-2. the reaction contains metabolites from at least 2 different compartments
-3. if at least 1 metabolite does not undergo a chemical transformation (via
-   formula or annotation checks)
-Note, PTS type transport reactions will be missed if they do not have sbo
-annotations. This test may yield false negatives.
-"""
-function _probably_transport_reaction(model::MetabolicModel, rid, test_annotation)
-    is_transport_reaction(model, rid) && return true
-    allequal(x) = all(isequal(first(x), x)) #  TODO remove when Julia LTS is > v1.8
-    allequal(
-        metabolite_compartment(model, mid) for
-        mid in keys(reaction_stoichiometry(model, rid))
-    ) && return false
-
-    comp_mid = Dict{String,Set{String}}()
-    for mid in keys(reaction_stoichiometry(model, rid))
-        push!(get!(comp_mid, metabolite_compartment(model, mid), Set{String}()), mid)
-    end
-
-    # must have annotations for all metabolites
-    any(
-        !haskey(metabolite_annotations(model, mid), test_annotation) for
-        mid in keys(reaction_stoichiometry(model, rid))
-    ) && return false
-    # must have formula for all metabolites
-    any(
-        isnothing(metabolite_formula(model, mid)) for
-        mid in keys(reaction_stoichiometry(model, rid))
-    ) && return false
-
-    get_annotation(mid) = metabolite_annotations(model, mid)[test_annotation]
-    get_formula(mid) = begin
-        d = metabolite_formula(model, mid)
-        ks = sort(collect(keys(d)))
-        [join(k * string(d[k]) for k in ks)]
-    end
-
-    #=
-    Compare the formulas and annotations of metabolites in different
-    compartments. If the any metabolite has the same formula or same annotation
-    but occurs in different comparments, then assume that it is probably a
-    transported.
-    =#
-    for (k1, v1) in comp_mid
-        for (k2, v2) in comp_mid
-            k1 == k2 && continue
-            any(
-                in.(
-                    reduce(vcat, get_formula(x) for x in v1),
-                    Ref(reduce(vcat, get_formula(x) for x in v2)),
-                ),
-            ) && return true
-            any(
-                in.(
-                    reduce(vcat, get_annotation(x) for x in v1),
-                    Ref(reduce(vcat, get_annotation(x) for x in v2)),
-                ),
-            ) && return true
-        end
-    end
-
-    return false
-end
-
-"""
-$(TYPEDSIGNATURES)
-
 Return the chemical element of `x`.
 """
 to_element(x::String) = begin
     sym =
         length(x) > 1 ? Symbol(uppercase(first(x)) * x[2:end]) : Symbol(uppercase(first(x)))
     elements[sym]
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Return molar mass of `mid`. Return `NaN` if formula does not exist.
+"""
+get_molar_mass(model, mid) = begin
+    rs = metabolite_formula(model, mid)
+    isnothing(rs) && return NaN # if metabolite has no molar mass
+    sum(v * to_element(k).atomic_mass for (k, v) in rs).val
 end
 
 """
@@ -136,6 +61,48 @@ function _compare_flux_bounds(fluxes, bound, tol, comparison_operator)
         end
     end
     return unlimited_flux
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Ensure annotations are in a standardized format. Some models represent
+annotations like:
+```
+Dict{String, Vector{String}} with 2 entries:
+  "sbo"          => ["SBO:0000176"]
+  "RESOURCE_URI" => ["https://identifiers.org/ec-code/4.1.99.12", "https://identifiers.org/bigg.reaction/DB4PS", ...]
+```
+but the key used to map to URI annotations is not standarized. This helper
+function constructs a new annotation dictionary to ensure that all annotations
+looks like:
+```
+Dict{String, Vector{String}} with 7 entries:
+  "bigg.reaction"     => ["DB4PS"]
+  "pubmed"            => ["12595523"]
+  "sbo"               => ["SBO:0000176"]
+  "kegg.pathway"      => ["sce00740", "sce01110"]
+  "metanetx.reaction" => ["MNXR97178"]
+  "kegg.reaction"     => ["R07281"]
+  "ec-code"           => ["4.1.99.12"]
+```
+"""
+function parse_annotations(annos)
+    parsed_annos = Dict{String,Vector{String}}()
+    for (k, vs) in annos
+        for v in vs
+            if contains(v, "https://identifiers.org")
+                s = split(v, "/")
+                new_k = s[end-1]
+                new_v = last(s)
+            else
+                new_k = k
+                new_v = v
+            end
+            push!(get!(parsed_annos, new_k, String[]), new_v)
+        end
+    end
+    return parsed_annos
 end
 
 end # module
