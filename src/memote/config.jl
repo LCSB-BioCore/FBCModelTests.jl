@@ -14,7 +14,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct AnnotationConfig
+Base.@kwdef mutable struct AnnotationConfig
     gene_annotation_keywords::Vector{String}
     gene_annotation_regexes::Dict{String,Regex}
     metabolite_annotation_keywords::Vector{String}
@@ -26,7 +26,7 @@ mutable struct AnnotationConfig
 end
 
 annotation_config = AnnotationConfig(
-    [
+    gene_annotation_keywords = [
         "kegg.genes",
         "refseq",
         "uniprot",
@@ -38,7 +38,7 @@ annotation_config = AnnotationConfig(
         "hprd",
         "asap",
     ],
-    Dict(
+    gene_annotation_regexes = Dict(
         "refseq" =>
             r"^((AC|AP|NC|NG|NM|NP|NR|NT|NW|XM|XP|XR|YP|ZP)_\d+|(NZ\_[A-Z]{4}\d+))(\.\d+)?$",
         "uniprot" =>
@@ -52,7 +52,7 @@ annotation_config = AnnotationConfig(
         "hprd" => r"^\d+$",
         "asap" => r"^[A-Za-z0-9-]+$",
     ),
-    [
+    metabolite_annotation_keywords = [
         "pubchem.compound",
         "kegg.compound",
         "seed.compound",
@@ -65,7 +65,7 @@ annotation_config = AnnotationConfig(
         "bigg.metabolite",
         "biocyc",
     ],
-    Dict(
+    metabolite_annotation_regexes = Dict(
         "pubchem.compound" => r"^\d+$",
         "kegg.compound" => r"^C\d+$",
         "seed.compound" => r"^cpd\d+$",
@@ -79,7 +79,7 @@ annotation_config = AnnotationConfig(
         "bigg.metabolite" => r"^[a-z_A-Z0-9]+$",
         "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
     ),
-    [
+    reaction_annotation_keywords = [
         "rhea",
         "kegg.reaction",
         "seed.reaction",
@@ -90,7 +90,7 @@ annotation_config = AnnotationConfig(
         "brenda",
         "biocyc",
     ],
-    Dict(
+    reaction_annotation_regexes = Dict(
         "rhea" => r"^\d{5}$",
         "kegg.reaction" => r"^R\d+$",
         "seed.reaction" => r"^rxn\d+$",
@@ -103,8 +103,8 @@ annotation_config = AnnotationConfig(
             r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
         "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
     ),
-    0.9,
-    0.9,
+    minimum_fraction_database_conformity = 0.9,
+    minimum_fraction_database_annotations = 0.9,
 )
 
 """
@@ -113,14 +113,19 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct BasicConfig
+Base.@kwdef mutable struct BasicConfig
     minimum_metabolic_coverage::Float64
     minimum_growth_rate::Float64
     maximum_growth_rate::Float64
     optimizer_modifications::Vector{Function}
 end
 
-basic_config = BasicConfig(0.1, 0.01, 5.0, Function[])
+basic_config = BasicConfig(
+    minimum_metabolic_coverage = 0.1,
+    minimum_growth_rate = 0.01,
+    maximum_growth_rate = 5.0,
+    optimizer_modifications = Function[],
+)
 
 """
 $(TYPEDEF)
@@ -128,7 +133,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct BiomassConfig
+Base.@kwdef mutable struct BiomassConfig
     biomass_strings::Vector{String}
     growth_metabolites::Dict{String,String}
     ignored_precursors::Vector{String}
@@ -138,10 +143,15 @@ mutable struct BiomassConfig
 end
 
 biomass_config = BiomassConfig(
-    ["BIOMASS", "biomass", "Biomass"],
-    Dict("atp" => "atp_c", "adp" => "adp_c", "h2o" => "h2o_c", "pi" => "pi_c"),
-    ["atp_c", "h2o_c"],
-    Dict(
+    biomass_strings = ["BIOMASS", "biomass", "Biomass"],
+    growth_metabolites = Dict(
+        "atp" => "atp_c",
+        "adp" => "adp_c",
+        "h2o" => "h2o_c",
+        "pi" => "pi_c",
+    ),
+    ignored_precursors = ["atp_c", "h2o_c"],
+    essential_precursors = Dict(
         "trp__L" => "trp__L_c",
         "cys__L" => "cys__L_c",
         "his__L" => "his__L_c",
@@ -180,8 +190,8 @@ biomass_config = BiomassConfig(
         "fmn" => "fmn_c",
         "h2o" => "h2o_c",
     ),
-    0.01,
-    Function[],
+    minimum_growth_rate = 0.01,
+    optimizer_modifications = Function[],
 )
 
 """
@@ -190,14 +200,19 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct ConsistencyConfig
+Base.@kwdef mutable struct ConsistencyConfig
     mass_ignored_reactions::Vector{String}
     charge_ignored_reactions::Vector{String}
     consistency_ignored_reactions::Vector{String}
     tolerance_threshold::Float64
 end
 
-consistency_config = ConsistencyConfig(String[], String[], String[], 1e-07)
+consistency_config = ConsistencyConfig(
+    mass_ignored_reactions = String[],
+    charge_ignored_reactions = String[],
+    consistency_ignored_reactions = String[],
+    tolerance_threshold = 1e-07,
+)
 
 """
 $(TYPEDEF)
@@ -205,7 +220,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct EnergyConfig
+Base.@kwdef mutable struct EnergyConfig
     atpm_strings::Vector{String}
     energy_dissipating_metabolites::Dict{String,String}
     additional_energy_generating_reactions::Vector{Reaction}
@@ -214,8 +229,8 @@ mutable struct EnergyConfig
 end
 
 energy_config = EnergyConfig(
-    ["ATPM", "Maintenance", "maintenance"],
-    Dict(
+    atpm_strings = ["ATPM", "Maintenance", "maintenance"],
+    energy_dissipating_metabolites = Dict(
         "ATP" => "atp_c",
         "CTP" => "ctp_c",
         "GTP" => "gtp_c",
@@ -251,9 +266,9 @@ energy_config = EnergyConfig(
         "Phosphate" => "pi_c",
         "Acetate" => "ac_c",
     ),
-    Reaction[],
-    ["ATPM"],
-    Function[],
+    additional_energy_generating_reactions = Reaction[],
+    ignored_energy_reactions = ["ATPM"],
+    optimizer_modifications = Function[],
 )
 
 """
@@ -262,11 +277,11 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct GPRAssociationConfig
+Base.@kwdef mutable struct GPRAssociationConfig
     test_annotation::String
 end
 
-gpra_config = GPRAssociationConfig("inchi_key")
+gpra_config = GPRAssociationConfig(test_annotation = "inchi_key")
 
 """
 $(TYPEDEF)
@@ -274,14 +289,19 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct MetaboliteConfig
+Base.@kwdef mutable struct MetaboliteConfig
     formula_corner_cases::Vector{String}
     charge_corner_cases::Vector{Int64}
     medium_only_imported::Bool
     test_annotation::String
 end
 
-metabolite_config = MetaboliteConfig(["X", "x", ""], Int64[], true, "inchi_key")
+metabolite_config = MetaboliteConfig(
+    formula_corner_cases = ["X", "x", ""],
+    charge_corner_cases = Int64[],
+    medium_only_imported = true,
+    test_annotation = "inchi_key",
+)
 
 """
 $(TYPEDEF)
@@ -289,7 +309,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct NetworkConfig
+Base.@kwdef mutable struct NetworkConfig
     condition_number::Float64
     fva_bound::Float64
     cycle_tol::Float64
@@ -297,7 +317,13 @@ mutable struct NetworkConfig
     optimizer_modifications::Vector{Function}
 end
 
-network_config = NetworkConfig(1e9, 0.01, 1e-3, 1e-3, Function[])
+network_config = NetworkConfig(
+    condition_number = 1e9,
+    fva_bound = 0.01,
+    cycle_tol = 1e-3,
+    minimum_metabolite_flux = 1e-3,
+    optimizer_modifications = Function[],
+)
 
 """
 $(TYPEDEF)
@@ -305,13 +331,17 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct ReactionConfig
+Base.@kwdef mutable struct ReactionConfig
     test_annotation::String
     ignore_annotations::Vector{String}
     bound_default::Float64
 end
 
-reaction_config = ReactionConfig("inchi_key", ["sbo", "ec-code"], 1000.0)
+reaction_config = ReactionConfig(
+    test_annotation = "inchi_key",
+    ignore_annotations = ["sbo", "ec-code"],
+    bound_default = 1000.0,
+)
 
 """
 $(TYPEDEF)
@@ -321,7 +351,7 @@ A grouping of parameters used by the metabolic testing infrastructure.
 # Fields
 $(TYPEDFIELDS)
 """
-mutable struct MemoteConfig
+Base.@kwdef mutable struct MemoteConfig
     annotation::AnnotationConfig
     basic::BasicConfig
     biomass::BiomassConfig
@@ -334,15 +364,15 @@ mutable struct MemoteConfig
 end
 
 memote_config = MemoteConfig(
-    annotation_config,
-    basic_config,
-    biomass_config,
-    consistency_config,
-    energy_config,
-    gpra_config,
-    metabolite_config,
-    network_config,
-    reaction_config,
+    annotation = annotation_config,
+    basic = basic_config,
+    biomass = biomass_config,
+    consistency = consistency_config,
+    energy = energy_config,
+    gpra = gpra_config,
+    metabolite = metabolite_config,
+    network = network_config,
+    reaction = reaction_config,
 )
 
 end # module
