@@ -26,7 +26,7 @@ end
         FROG.compare_reports(report_path, report_path)
     end
 
-    @test result.passes == 853
+    @test result.passes == 948
     @test result.fails == 0
     @test result.errs == 0
 end
@@ -36,7 +36,7 @@ end
         FROG.compare_reports(report_path, joinpath(datadir, "report-ecoli-good"))
     end
 
-    @test result.passes == 853
+    @test result.passes == 948
     @test result.fails == 0
     @test result.errs == 0
 end
@@ -49,7 +49,7 @@ end
         )
     end
 
-    @test result.passes == 838
-    @test result.fails == 15
+    @test result.passes == 931
+    @test result.fails == 17
     @test result.errs == 0
 end
