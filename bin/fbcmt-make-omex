@@ -1,0 +1,38 @@
+#!/bin/bash
+
+[[ -f "$1" && -d "$2" && -n "$3" ]] || {
+	echo "usage: $0 <sbml_model_XML> <FROG_report_directory> <OMEX_output>" >&1
+	exit 1
+}
+
+modelfile="$1"
+reportdir="$2"
+tempdir=`mktemp -d`
+cp -v "$1" \
+      "$reportdir"/metadata.json \
+      "$reportdir"/01_objective.tsv \
+      "$reportdir"/02_fva.tsv \
+      "$reportdir"/03_gene_deletion.tsv \
+      "$reportdir"/04_reaction_deletion.tsv \
+      "$tempdir" || exit 3
+[ -e "$tempdir/manifest.xml" ] && {
+	echo "$0: fatal: manifest already present?" >&1
+	exit 4
+}
+cat > "$tempdir/manifest.xml" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<omexManifest xmlns="http://identifiers.org/combine.specifications/omex-manifest">
+ <content location="." format="https://identifiers.org/combine.specifications:omex" />
+ <content location="./manifest.xml" format="https://identifiers.org/combine.specifications:omex-manifest" />
+ <content location="./`basename "$1"`" format="https://identifiers.org/combine.specifications:sbml" master="true" />
+ <content location="./metadata.json" format="https://identifiers.org/combine.specifications:frog-metadata-version-1" />
+ <content location="./01_objective.tsv" format="https://identifiers.org/combine.specifications:frog-objective-version-1" />
+ <content location="./02_fva.tsv" format="https://identifiers.org/combine.specifications:frog-fva-version-1" />
+ <content location="./03_gene_deletion.tsv" format="https://identifiers.org/combine.specifications:frog-genedeletion-version-1" />
+ <content location="./04_reaction_deletion.tsv" format="https://identifiers.org/combine.specifications:frog-reactiondeletion-version-1" />
+</omexManifest>
+EOF
+( cd "$tempdir" ; zip -r output.omex . ; ) || exit 5
+mv -v "$tempdir/output.omex" "$3"
+rm -fr "$tempdir"
+exit 0
