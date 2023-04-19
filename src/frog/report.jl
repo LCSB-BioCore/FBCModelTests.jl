@@ -216,6 +216,12 @@ function test_report_compatibility(
             abs(a - b) < absolute_tolerance + relative_tolerance * max(abs(a), abs(b))
         )
 
+    invar(a, min, max) =
+        all(isnothing.((a, min, max))) || (
+            !any(isnothing.((a, min, max))) &&
+            (intol(a, min) || intol(a, max) || (min <= a && a <= max))
+        )
+
     @testset "Comparing objectives" begin
         test_dicts(
             (_, a, b) -> begin
@@ -223,9 +229,18 @@ function test_report_compatibility(
                 @testset "Reactions" begin
                     test_dicts(
                         (_, a, b) -> begin
-                            @test intol(a.objective_flux, b.objective_flux)
                             @test intol(a.variability_min, b.variability_min)
                             @test intol(a.variability_max, b.variability_max)
+                            @test invar(
+                                a.objective_flux,
+                                b.variability_min,
+                                b.variability_max,
+                            )
+                            @test invar(
+                                b.objective_flux,
+                                a.variability_min,
+                                a.variability_max,
+                            )
                             @test intol(a.fraction_optimum, b.fraction_optimum)
                             @test intol(a.deletion, b.deletion)
                         end,
