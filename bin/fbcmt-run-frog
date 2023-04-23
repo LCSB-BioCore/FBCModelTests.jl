@@ -6,22 +6,22 @@ solver = "GLPK"
 model_file = nothing
 report_dir = nothing
 freeargs = String[]
-i = 1
-while i <= length(ARGS)
-    if ARGS[i] == "-s" || ARGS[i] == "--solver"
-        global i += 1
-        if i > length(ARGS)
+optind = 1
+while optind <= length(ARGS)
+    if ARGS[optind] in ("-s", "--solver")
+        global optind += 1
+        if optind > length(ARGS)
             @error "Option -s requires argument"
             exit(1)
         end
-        global solver = ARGS[i]
-    elseif ARGS[i] == "-h"
+        global solver = ARGS[optind]
+    elseif ARGS[optind] == "-h"
         global help = true
     else
-        push!(freeargs, ARGS[i])
+        push!(freeargs, ARGS[optind])
     end
 
-    global i += 1
+    global optind += 1
 end
 
 ok = true
