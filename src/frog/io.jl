@@ -76,7 +76,10 @@ function save_report(
                     obj,
                     rxn,
                     objvalue(r.objective_flux),
-                    objstatus(r.variability_min),
+                    (
+                        isnothing(r.variability_min) ? objstatus(r.variability_max) :
+                        objstatus(r.variability_min)
+                    ),
                     objvalue(r.variability_min),
                     objvalue(r.variability_max),
                     string(r.fraction_optimum),

@@ -155,7 +155,7 @@ $(TYPEDSIGNATURES)
 """
 generate_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
     FROGMetadata(
-        "frog_version" => "0.1.3",
+        "frog_version" => "0.1.4",
         "frog_date" => string(Dates.today()),
         "model_filename" => basefilename,
         "model_md5" => bytes2hex(open(md5, filename, "r")),
