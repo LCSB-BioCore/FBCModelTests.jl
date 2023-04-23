@@ -54,11 +54,12 @@ end
 
 # try to set up the environment
 import Pkg
-ips = Set(pkg.name for (_,pkg) = Pkg.dependencies())
-inst_missing(x) = if !(x in ips)
-    @info "Missing package '$x', trying to auto-install..."
-    Pkg.add(x)
-end
+ips = Set(pkg.name for (_, pkg) in Pkg.dependencies())
+inst_missing(x) =
+    if !(x in ips)
+        @info "Missing package '$x', trying to auto-install..."
+        Pkg.add(x)
+    end
 inst_missing("FBCModelTests")
 
 import FBCModelTests.FROG
