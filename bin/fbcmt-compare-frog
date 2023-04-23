@@ -3,15 +3,27 @@
 # process arguments
 help = false
 reports = String[]
-i = 1
-while i <= length(ARGS)
-    if ARGS[i] == "-h"
+absolute_tolerance = 1e-6
+relative_tolerance = 1e-4
+
+optind = 1
+
+while optind <= length(ARGS)
+    if ARGS[optind] == "-h" || ARGS[optind] == "--help"
         global help = true
+    elseif ARGS[optind] in ("-a", "--absolute-tolerance")
+        global optind += 1
+        @assert optind <= length(ARGS)
+        global absolute_tolerance = parse(Float64, ARGS[optind])
+    elseif ARGS[optind] in ("-r", "--relative-tolerance")
+        global optind += 1
+        @assert optind <= length(ARGS)
+        global relative_tolerance = parse(Float64, ARGS[optind])
     else
-        push!(reports, ARGS[i])
+        push!(reports, ARGS[optind])
     end
-        
-    global i += 1
+
+    global optind += 1
 end
 
 ok = true
@@ -25,7 +37,9 @@ if !ok
 end
 
 if help
-    println("""Usage: fbcmt-run-frog [-h|--help] <report1> <report2>""")
+    println(
+        """Usage: fbcmt-run-frog [-h|--help] [<-a|--absolute-tolerance> tolerance] [<-r|--relative-tolerance> tolerance] <report1> <report2>""",
+    )
     exit(ok ? 0 : 1)
 end
 
@@ -40,16 +54,17 @@ end
 
 # try to set up the environment
 import Pkg
-ips = Set(pkg.name for (_,pkg) = Pkg.dependencies())
-inst_missing(x) = if !(x in ips)
-    @info "Missing package '$x', trying to auto-install..."
-    Pkg.add(x)
-end
+ips = Set(pkg.name for (_, pkg) in Pkg.dependencies())
+inst_missing(x) =
+    if !(x in ips)
+        @info "Missing package '$x', trying to auto-install..."
+        Pkg.add(x)
+    end
 inst_missing("FBCModelTests")
 
 import FBCModelTests.FROG
 
-@info "Initialization done, starting FROG..." reports
+@info "Initialization done, starting FROG comparison..." reports
 
 # run the FROG
-FROG.compare_reports(reports[1], reports[2])
+FROG.compare_reports(reports[1], reports[2]; absolute_tolerance, relative_tolerance)

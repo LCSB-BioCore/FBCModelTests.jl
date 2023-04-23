@@ -21,7 +21,10 @@ objstatus(::Any) = "optimal"
 objvalue(::Nothing) = ""
 objvalue(x::Number) = string(x)
 
-parse_objvalue(x::String) = x == "" ? nothing : parse(Float64, x)
+parse_objvalue(fld::String) =
+    let s = strip(isspace, fld)
+        s == "" ? nothing : parse(Float64, s)
+    end
 
 const frog_report_tsv_headers = Dict(
     :objective => ["model" "objective" "status" "value"],
@@ -73,7 +76,10 @@ function save_report(
                     obj,
                     rxn,
                     objvalue(r.objective_flux),
-                    objstatus(r.variability_min),
+                    (
+                        isnothing(r.variability_min) ? objstatus(r.variability_max) :
+                        objstatus(r.variability_min)
+                    ),
                     objvalue(r.variability_min),
                     objvalue(r.variability_max),
                     string(r.fraction_optimum),

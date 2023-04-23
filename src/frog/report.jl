@@ -155,7 +155,7 @@ $(TYPEDSIGNATURES)
 """
 generate_metadata(filename::String; optimizer, basefilename::String = basename(filename)) =
     FROGMetadata(
-        "frog_version" => "0.1.3",
+        "frog_version" => "0.1.4",
         "frog_date" => string(Dates.today()),
         "model_filename" => basefilename,
         "model_md5" => bytes2hex(open(md5, filename, "r")),
@@ -228,21 +228,27 @@ function test_report_compatibility(
                 @test intol(a.optimum, b.optimum)
                 @testset "Reactions" begin
                     test_dicts(
-                        (_, a, b) -> begin
-                            @test intol(a.variability_min, b.variability_min)
-                            @test intol(a.variability_max, b.variability_max)
-                            @test invar(
-                                a.objective_flux,
-                                b.variability_min,
-                                b.variability_max,
-                            )
-                            @test invar(
-                                b.objective_flux,
-                                a.variability_min,
-                                a.variability_max,
-                            )
+                        (rid, a, b) -> begin
+                            @testset "Variability range for $rid" begin
+                                @test intol(a.variability_min, b.variability_min)
+                                @test intol(a.variability_max, b.variability_max)
+                            end
+                            @testset "Reported flux through $rid is in variability range" begin
+                                @test invar(
+                                    a.objective_flux,
+                                    b.variability_min,
+                                    b.variability_max,
+                                )
+                                @test invar(
+                                    b.objective_flux,
+                                    a.variability_min,
+                                    a.variability_max,
+                                )
+                            end
                             @test intol(a.fraction_optimum, b.fraction_optimum)
-                            @test intol(a.deletion, b.deletion)
+                            @testset "Deletion of reaction $rid" begin
+                                @test intol(a.deletion, b.deletion)
+                            end
                         end,
                         a.reactions,
                         b.reactions,
@@ -250,8 +256,10 @@ function test_report_compatibility(
                 end
                 @testset "Gene deletions" begin
                     test_dicts(
-                        (_, a, b) -> begin
-                            @test intol(a, b)
+                        (gid, a, b) -> begin
+                            @testset "Deletion of gene $gid" begin
+                                @test intol(a, b)
+                            end
                         end,
                         a.gene_deletions,
                         b.gene_deletions,
