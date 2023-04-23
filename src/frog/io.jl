@@ -21,7 +21,10 @@ objstatus(::Any) = "optimal"
 objvalue(::Nothing) = ""
 objvalue(x::Number) = string(x)
 
-parse_objvalue(x::String) = x == "" ? nothing : parse(Float64, x)
+parse_objvalue(fld::String) =
+    let s = strip(isspace, fld)
+        s == "" ? nothing : parse(Float64, s)
+    end
 
 const frog_report_tsv_headers = Dict(
     :objective => ["model" "objective" "status" "value"],
