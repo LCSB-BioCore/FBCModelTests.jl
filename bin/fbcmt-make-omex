@@ -9,15 +9,17 @@ modelfile="$1"
 reportdir="$2"
 tempdir=`mktemp -d`
 cp -v "$1" \
-      "$reportdir"/metadata.json \
+      "$tempdir" || exit 3
+mkdir -v "$tempdir"/FROG || exit 4
+cp -v "$reportdir"/metadata.json \
       "$reportdir"/01_objective.tsv \
       "$reportdir"/02_fva.tsv \
       "$reportdir"/03_gene_deletion.tsv \
       "$reportdir"/04_reaction_deletion.tsv \
-      "$tempdir" || exit 3
+      "$tempdir"/FROG/ || exit 4
 [ -e "$tempdir/manifest.xml" ] && {
 	echo "$0: fatal: manifest already present?" >&1
-	exit 4
+	exit 5
 }
 cat > "$tempdir/manifest.xml" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -25,14 +27,14 @@ cat > "$tempdir/manifest.xml" << EOF
  <content location="." format="https://identifiers.org/combine.specifications:omex" />
  <content location="./manifest.xml" format="https://identifiers.org/combine.specifications:omex-manifest" />
  <content location="./`basename "$1"`" format="https://identifiers.org/combine.specifications:sbml" master="true" />
- <content location="./metadata.json" format="https://identifiers.org/combine.specifications:frog-metadata-version-1" />
- <content location="./01_objective.tsv" format="https://identifiers.org/combine.specifications:frog-objective-version-1" />
- <content location="./02_fva.tsv" format="https://identifiers.org/combine.specifications:frog-fva-version-1" />
- <content location="./03_gene_deletion.tsv" format="https://identifiers.org/combine.specifications:frog-genedeletion-version-1" />
- <content location="./04_reaction_deletion.tsv" format="https://identifiers.org/combine.specifications:frog-reactiondeletion-version-1" />
+ <content location="./FROG/metadata.json" format="https://identifiers.org/combine.specifications:frog-metadata-version-1" />
+ <content location="./FROG/01_objective.tsv" format="https://identifiers.org/combine.specifications:frog-objective-version-1" />
+ <content location="./FROG/02_fva.tsv" format="https://identifiers.org/combine.specifications:frog-fva-version-1" />
+ <content location="./FROG/03_gene_deletion.tsv" format="https://identifiers.org/combine.specifications:frog-genedeletion-version-1" />
+ <content location="./FROG/04_reaction_deletion.tsv" format="https://identifiers.org/combine.specifications:frog-reactiondeletion-version-1" />
 </omexManifest>
 EOF
-( cd "$tempdir" ; zip -r output.omex . ; ) || exit 5
+( cd "$tempdir" ; zip -r output.omex . ; ) || exit 6
 mv -v "$tempdir/output.omex" "$3"
 rm -fr "$tempdir"
 exit 0
