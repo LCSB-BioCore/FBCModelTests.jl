@@ -14,6 +14,8 @@ import ..Config
 """
 $(TYPEDSIGNATURES)
 
+NOTE: this test is currently skipped and will appear as `broken` in the output.
+
 Attempts to detect if the `model` contains any erroneous energy generating
 cycles by closing all exchange reactions and using flux balance analysis to
 maximize the sum of fluxes through a set of energy dissipating reactions. The

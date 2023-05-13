@@ -56,18 +56,30 @@ function run_tests(
                 @testset "Has SBO annotated metabolic reactions" begin
                     @test any(is_metabolic_reaction(model, rid) for rid in reactions(model))
                 end
-                @testset "Has SBO annotationed transport reactions" begin
+                @testset "Has SBO annotated transport reactions" begin
                     @test any(is_transport_reaction(model, rid) for rid in reactions(model))
                 end
+                @testset "Has SBO annotated biomass reactions" begin
+                    @test any(is_biomass_reaction(model, rid) for rid in reactions(model))
+                end
+                @testset "Has SBO annotated exchange reactions" begin
+                    @test any(is_exchange_reaction(model, rid) for rid in reactions(model))
+                end
+                @testset "Has SBO annotated atp maintenance reactions" begin
+                    @test any(
+                        is_atp_maintenance_reaction(model, rid) for rid in reactions(model)
+                    )
+                end
             end
+
             @testset "Reactions" begin
-                @testset "Any annotations" begin
+                @testset "Any annotations present" begin
                     for rid in reactions(model)
                         @test Annotation.is_annotated_reaction(model, rid)
                     end
                 end
 
-                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references" begin
+                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references per entry" begin
                     for rid in reactions(model)
                         @test length(
                             Annotation.findall_unannotated_reaction_databases(
@@ -78,7 +90,7 @@ function run_tests(
                         ) <= config.annotation.maximum_missing_databases
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references" begin
+                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references per entry" begin
                     for rid in reactions(model)
                         @test length(
                             Annotation.findall_nonconformal_reaction_annotations(
@@ -92,13 +104,13 @@ function run_tests(
             end
 
             @testset "Metabolites" begin
-                @testset "Any annotations" begin
+                @testset "Any annotations present" begin
                     for mid in metabolites(model)
                         @test Annotation.is_annotated_metabolite(model, mid)
                     end
                 end
 
-                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references" begin
+                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references per entry" begin
                     for mid in metabolites(model)
                         @test length(
                             Annotation.findall_unannotated_metabolite_databases(
@@ -109,7 +121,7 @@ function run_tests(
                         ) <= config.annotation.maximum_missing_databases
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references" begin
+                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references per entry" begin
                     for mid in metabolites(model)
                         @test length(
                             Annotation.findall_nonconformal_metabolite_annotations(
@@ -124,13 +136,13 @@ function run_tests(
 
 
             @testset "Genes" begin
-                @testset "Any annotations" begin
+                @testset "Any annotations present" begin
                     for gid in genes(model)
                         @test Annotation.is_annotated_gene(model, gid)
                     end
                 end
 
-                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references" begin
+                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references per entry" begin
                     for gid in genes(model)
                         @test length(
                             Annotation.findall_unannotated_gene_databases(
@@ -141,7 +153,7 @@ function run_tests(
                         ) <= config.annotation.maximum_missing_databases
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references" begin
+                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references per entry" begin
                     for gid in genes(model)
                         @test length(
                             Annotation.findall_nonconformal_gene_annotations(
@@ -305,4 +317,5 @@ function run_tests(
             end
         end
     end
+    return testres
 end

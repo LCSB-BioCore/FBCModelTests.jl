@@ -10,16 +10,17 @@ using FBCModelTests.Memote.Consistency
 using FBCModelTests.Memote.Energy
 using FBCModelTests.Memote.GPRAssociation
 using FBCModelTests.Memote.Network
-using FBCModelTests.Memote.Utils
+using FBCModelTests.Memote.Reactions
+using FBCModelTests.Memote.Metabolites
 
 @testset "Front-end" begin
     result = @testset CountTests "Testing a model that _should_ be OK" begin
         Memote.run_tests(model_file["e_coli_core.json"], GLPK.Optimizer)
     end
 
-    @test result.passes == 1781
-    @test result.fails == 11
-    @test result.errs == 0
+    @test result.passes == 1783
+    @test result.fails == 12
+    @test result.errs == 1
 
     # @testset "Report can be written successfully as JSON" begin
     #     r = Memote.generate_report(model_file["e_coli_core.json"], GLPK.Optimizer)
@@ -132,26 +133,19 @@ end
 end
 
 @testset "Metabolite" begin
-    @test isempty(
-        FBCModelTests.Memote.Metabolites.metabolites_duplicated_in_compartment(model),
-    )
-    @test isempty(FBCModelTests.Memote.Metabolites.find_orphan_metabolites(model))
-    @test isempty(FBCModelTests.Memote.Metabolites.find_deadend_metabolites(model))
-    @test isempty(FBCModelTests.Memote.Metabolites.find_disconnected_metabolites(model))
+    @test isempty(Metabolites.metabolites_duplicated_in_compartment(model))
+    @test isempty(Metabolites.find_orphan_metabolites(model))
+    @test isempty(Metabolites.find_deadend_metabolites(model))
+    @test isempty(Metabolites.find_disconnected_metabolites(model))
 
     negative_model = convert(StandardModel, deepcopy(model))
     dup = deepcopy(negative_model.metabolites["atp_c"])
     dup.id = "atp_dup"
     add_metabolite!(negative_model, dup)
-    @test "atp_dup" in
-          FBCModelTests.Memote.Metabolites.metabolites_duplicated_in_compartment(
-        negative_model,
-    )
-    @test !isempty(FBCModelTests.Memote.Metabolites.find_orphan_metabolites(iJN746))
-    @test !isempty(FBCModelTests.Memote.Metabolites.find_deadend_metabolites(iJN746))
-    @test !isempty(
-        FBCModelTests.Memote.Metabolites.find_disconnected_metabolites(negative_model),
-    )
+    @test "atp_dup" in Metabolites.metabolites_duplicated_in_compartment(negative_model)
+    @test !isempty(Metabolites.find_orphan_metabolites(iJN746))
+    @test !isempty(Metabolites.find_deadend_metabolites(iJN746))
+    @test !isempty(Metabolites.find_disconnected_metabolites(negative_model))
 end
 
 @testset "Network" begin
@@ -179,10 +173,7 @@ end
 end
 
 @testset "Reactions" begin
-    @test issetequal(
-        FBCModelTests.Memote.Reactions.duplicate_reactions(model),
-        ["FRD7", "SUCDi"],
-    ) # TODO should be empty, will be broken once #785 in COBREXA gets fixed
+    @test issetequal(Reactions.duplicate_reactions(model), ["FRD7", "SUCDi"]) # TODO should be empty, will be broken once #785 in COBREXA gets fixed
 
     @test !Reactions.model_has_atpm_reaction(model)
     @test Reactions.reaction_is_charge_balanced(model, "ENO")

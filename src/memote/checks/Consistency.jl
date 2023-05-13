@@ -17,11 +17,11 @@ $(TYPEDSIGNATURES)
 
 Determines if the model is stoichiometrically consistent. Note, stoichiometric
 consistency does not guarantee that mass balances must hold in the model. A more
-robust check is [`reactions_mass_unbalanced`](@ref), but this works if not all
-metabolites have mass assigned to them.
-Based on Gevorgyan, Albert, Mark G. Poolman, and David A. Fell. "Detection of
-stoichiometric inconsistencies in biomolecular models." Bioinformatics (2008).
-Optionally ignore some reactions in this analysis by adding reaction IDs to
+robust check is to ensure that each reaction is mass balanced, but this only
+works if all metabolites have masses assigned to them. Test based on Gevorgyan,
+Albert, Mark G. Poolman, and David A. Fell. "Detection of stoichiometric
+inconsistencies in biomolecular models." Bioinformatics (2008). Optionally
+ignore some reactions in this analysis by adding reaction IDs to
 `config.consistency.consistency_ignored_reactions`.
 """
 function model_is_consistent(
