@@ -92,7 +92,7 @@ basic_config = BasicConfig(
     minimum_metabolic_coverage = 0.1,
     minimum_growth_rate = 0.01,
     maximum_growth_rate = 5.0,
-    optimizer_modifications = Function[],
+    optimizer_modifications = [silence],
 )
 
 """
@@ -309,7 +309,7 @@ energy_config = EnergyConfig(
     ],
     additional_energy_generating_reactions = Reaction[],
     ignored_energy_reactions = String[],
-    optimizer_modifications = Function[],
+    optimizer_modifications = [silence],
 )
 
 """
@@ -341,7 +341,7 @@ network_config = NetworkConfig(
     condition_number = 1e9,
     cycle_tol = 1e-3,
     blocked_tol = 1e-3,
-    optimizer_modifications = Function[],
+    optimizer_modifications = [silence],
 )
 
 """

@@ -57,6 +57,7 @@ function model_is_consistent(
     n_mets, _ = size(N)
 
     opt_model = Model(optimizer)
+    set_silent(opt_model)
     m = @variable(opt_model, 1 <= m[1:n_mets])
     @constraint(opt_model, N' * m .== 0)
     @objective(opt_model, Min, sum(m))
