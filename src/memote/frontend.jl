@@ -90,7 +90,7 @@ function run_tests(
                         ) <= config.annotation.maximum_missing_databases
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references per entry" begin
+                @testset "At most $(config.annotation.maximum_nonconformal_references) unrecognizable cross-references per entry" begin
                     for rid in reactions(model)
                         @test length(
                             Annotation.findall_nonconformal_reaction_annotations(
@@ -121,7 +121,7 @@ function run_tests(
                         ) <= config.annotation.maximum_missing_databases
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references per entry" begin
+                @testset "At most $(config.annotation.maximum_nonconformal_references) unrecognizable cross-references per entry" begin
                     for mid in metabolites(model)
                         @test length(
                             Annotation.findall_nonconformal_metabolite_annotations(
@@ -153,7 +153,7 @@ function run_tests(
                         ) <= config.annotation.maximum_missing_databases
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) recognizable cross-references per entry" begin
+                @testset "At most $(config.annotation.maximum_nonconformal_references) unrecognizable cross-references per entry" begin
                     for gid in genes(model)
                         @test length(
                             Annotation.findall_nonconformal_gene_annotations(
