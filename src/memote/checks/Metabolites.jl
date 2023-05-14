@@ -26,9 +26,17 @@ function metabolites_are_duplicated(
     m2;
     config = Config.memote_config,
 )
-    k1s = get(parse_annotations(metabolite_annotations(model, m1)), config.metabolite.test_annotation, nothing)
+    k1s = get(
+        parse_annotations(metabolite_annotations(model, m1)),
+        config.metabolite.test_annotation,
+        nothing,
+    )
     isnothing(k1s) && return true
-    k2s = get(parse_annotations(metabolite_annotations(model, m2)), config.metabolite.test_annotation, nothing)
+    k2s = get(
+        parse_annotations(metabolite_annotations(model, m2)),
+        config.metabolite.test_annotation,
+        nothing,
+    )
     isnothing(k2s) && return true
     any(in.(k1s, Ref(k2s)))
 end
