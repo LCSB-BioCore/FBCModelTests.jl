@@ -28,11 +28,11 @@ metabolites in the underlying model.
 """
 function atp_present_in_biomass_reaction(model::MetabolicModel, rid::String;)
 
-    atp_check = false
-    adp_check = false
-    phos_check = false
-    water_check = true
-    proton_check = false
+    atp_found = false
+    adp_found = false
+    phos_found = false
+    water_found = true
+    proton_found = false
 
     for (mid, v) in reaction_stoichiometry(model, rid)
         annos = get(
@@ -42,25 +42,25 @@ function atp_present_in_biomass_reaction(model::MetabolicModel, rid::String;)
         ) # return safe fallback
 
         # consume
-        if any(in(Config.atp, annos)) && v < 0
-            atp_check = true
+        if any(in.(Config.atp, annos)) && v < 0
+            atp_found = true
         end
-        if any(in(Config.h2o, annos)) && v < 0
-            water_check = true
+        if any(in.(Config.h2o, annos)) && v < 0
+            water_found = true
         end
         # produce
-        if any(in(Config.adp, annos)) && v > 0
-            adp_check = true
+        if any(in.(Config.adp, annos)) && v > 0
+            adp_found = true
         end
-        if any(in(Config.phosphate, annos)) && v > 0
-            phos_check = true
+        if any(in.(Config.phosphate, annos)) && v > 0
+            phos_found = true
         end
-        if any(in(Config.H, annos)) && v > 0
-            proton_check = true
+        if any(in.(Config.H, annos)) && v > 0
+            proton_found = true
         end
     end
 
-    return atp_check && adp_check && phos_check && water_check && proton_check
+    return atp_found && adp_found && phos_found && water_found && proton_found
 end
 
 """
@@ -68,7 +68,7 @@ $(TYPEDSIGNATURES)
 
 For a biomass reaction `rid`, calculate the molar weight of the reaction by
 summing the products of the associated metabolite coefficients with their molar
-masses.
+masses (g/mol).
 """
 function biomass_reaction_molar_mass(model::MetabolicModel, rid::String;)
     d = reaction_stoichiometry(model, rid)

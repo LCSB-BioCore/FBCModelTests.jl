@@ -17,7 +17,7 @@ $(TYPEDSIGNATURES)
 
 Return a list of all reactions that are duplicated.
 """
-function duplicate_reactions(model::MetabolicModel)
+function findall_duplicated_reactions(model::MetabolicModel)
     stdmodel = convert(StandardModel, model) # not modified
     duplicated_rxns = Set{String}()
     for rid in reactions(stdmodel)

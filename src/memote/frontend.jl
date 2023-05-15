@@ -245,7 +245,7 @@ function run_tests(
                 end
             end
             @testset "No duplicated reactions" begin
-                dup_rxns = Reactions.duplicate_reactions(model)
+                dup_rxns = Reactions.findall_duplicated_reactions(model)
                 for rid in reactions(model)
                     @test rid ∉ dup_rxns
                 end

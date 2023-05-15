@@ -173,7 +173,7 @@ end
 end
 
 @testset "Reactions" begin
-    @test issetequal(Reactions.duplicate_reactions(model), ["FRD7", "SUCDi"]) # TODO should be empty, will be broken once #785 in COBREXA gets fixed
+    @test issetequal(Reactions.findall_duplicated_reactions(model), ["FRD7", "SUCDi"]) # TODO should be empty, will be broken once #785 in COBREXA gets fixed
 
     @test !Reactions.model_has_atpm_reaction(model)
     @test Reactions.reaction_is_charge_balanced(model, "ENO")
