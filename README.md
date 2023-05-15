@@ -70,20 +70,21 @@ use the command line functionality, and save the output for later analysis.
 
 To run the test suite on a toy model, use `run_tests`:
 ```julia
-using FBCModelTests, GLPK
-FBCModelTests.Memote.run_tests("e_coli_core.json", GLPK.Optimizer)
+using FBCModelTests, GLPK, Distributed
+addprocs(10)
+FBCModelTests.Memote.run_tests("e_coli_core.json", GLPK.Optimizer; workers=workers())
 ```
 Any optimizer supported by [JuMP](https://jump.dev/) can be used. The output of
 `run_tests` is the standard Julia unit testing scheme. However, in the repl the
 full output is usually truncated, and only a summary is shown. If you want more
-details about where your model failed certain tests, it is best to capture the
+details about where/why your model failed certain tests, it is best to capture the
 output, and save it to a file. A convenient way to do this is with
 [ansi2html](https://github.com/agnoster/ansi2html).
 
 An example workflow entails using the scripts located in `bin/`:
 ```
 fbcmt-memote-run -s GLPK e_coli_core.xml output_dir 10 > e_coli_core.test.out
-fbcmt-memote-report e_coli_core.test.out e_coli_core.test.html
+
 ```
 The resultant `html` can be inspected in any browser.
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env julia --color=yes --project=.
+#!/usr/bin/env julia
 
 # process arguments
 help = false
