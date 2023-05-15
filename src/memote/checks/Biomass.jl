@@ -42,20 +42,20 @@ function atp_present_in_biomass_reaction(model::MetabolicModel, rid::String;)
         ) # return safe fallback
 
         # consume
-        if any(in.(Config.atp, annos)) && v < 0
+        if in(Config.atp, annos) && v < 0
             atp_found = true
         end
-        if any(in.(Config.h2o, annos)) && v < 0
+        if in(Config.h2o, annos) && v < 0
             water_found = true
         end
         # produce
-        if any(in.(Config.adp, annos)) && v > 0
+        if in(Config.adp, annos) && v > 0
             adp_found = true
         end
-        if any(in.(Config.phosphate, annos)) && v > 0
+        if in(Config.phosphate, annos) && v > 0
             phos_found = true
         end
-        if any(in.(Config.H, annos)) && v > 0
+        if in(Config.H, annos) && v > 0
             proton_found = true
         end
     end
