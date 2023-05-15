@@ -58,15 +58,15 @@ Pages = ["src/memote/checks/Consistency.jl"]
 ### Metabolite checks
 
 ```@autodocs
-Modules = [FBCModelTests.Memote.Metabolite]
-Pages = ["src/memote/checks/Metabolite.jl"]
+Modules = [FBCModelTests.Memote.Metabolites]
+Pages = ["src/memote/checks/Metabolites.jl"]
 ```
 
 ### Reaction checks
 
 ```@autodocs
-Modules = [FBCModelTests.Memote.Reaction]
-Pages = ["src/memote/checks/Reaction.jl"]
+Modules = [FBCModelTests.Memote.Reactions]
+Pages = ["src/memote/checks/Reactions.jl"]
 ```
 
 ### GPRAssociation checks

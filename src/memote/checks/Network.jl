@@ -9,6 +9,7 @@ using COBREXA
 using DocStringExtensions
 using JuMP
 using SparseArrays
+using Distributed
 
 import ..Config
 
@@ -24,94 +25,6 @@ stoichiometric_max_min_ratio(model::MetabolicModel) =
 """
 $(TYPEDSIGNATURES)
 
-Test if the stoichiometric matrix is well conditioned by determining if
-[`stoichiometric_max_min_ratio`](@ref) is less than 10⁹ (which can be set in `config.network.condition_number`).
-"""
-stoichiometric_matrix_is_well_conditioned(
-    model::MetabolicModel;
-    config = Config.memote_config,
-) = stoichiometric_max_min_ratio(model) < config.network.condition_number
-
-"""
-$(TYPEDSIGNATURES)
-
-Make all boundary reactions reversible and run FVA on the model to find all
-reactions that are universally blocked. Optimizer modifications can be passed
-through `config.network.optimizer_modifications`
-"""
-function find_all_universally_blocked_reactions(
-    model::MetabolicModel,
-    optimizer;
-    config = Config.memote_config,
-)
-    stdmodel = convert(StandardModel, model)
-    for rid in reactions(stdmodel)
-        if is_boundary(stdmodel, rid)
-            change_bound!(stdmodel, rid, lower = -1000, upper = 1000)
-        end
-    end
-    mins, maxs = flux_variability_analysis_dict(
-        stdmodel,
-        optimizer;
-        bounds = objective_bounds(config.network.fva_bound),
-        modifications = config.network.optimizer_modifications,
-    )
-    return [
-        rid for rid in reactions(stdmodel) if
-        isapprox(abs(mins[rid][rid]), 0.0) && isapprox(abs(maxs[rid][rid]), 0.0)
-    ]
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Helper function to find orphan or deadend metabolites. Specify `consumed=true`
-to consider orphan metabolites or `false` to consider deadend metabolites. Set
-`complete_medium=true` to open all boundary reactions to simulate a complete
-medium.
-"""
-function _find_orphan_or_deadend_metabolites(model::MetabolicModel; consumed = true)
-    mids = metabolites(model)
-    mets = String[]
-    S = stoichiometry(model)
-    lbs, ubs = bounds(model)
-    for idx in axes(S, 1)
-        rids, vals = findnz(S[idx, :])
-        if length(vals) == 1 && (consumed ? first(vals) < 0 : first(vals) > 0)
-            ridx = first(rids)
-            rid = reactions(model)[ridx]
-            met = mids[idx]
-            v = reaction_stoichiometry(model, rid)[met]
-            # check if reaction can actually make or consume the metabolite
-            lbs[ridx] < 0 < ubs[ridx] && continue # ignore reversible reactions
-            consumed && lbs[ridx] * v <= 0 && push!(mets, met)
-            !consumed && ubs[ridx] * v >= 0 && push!(mets, met)
-        end
-    end
-    return mets
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Find all metabolites that can only (excludes reversible reactions) be consumed
-in the `model` by inspecting the stoichiometric matrix.
-"""
-find_orphan_metabolites(model::MetabolicModel) =
-    _find_orphan_or_deadend_metabolites(model, consumed = true)
-
-"""
-$(TYPEDSIGNATURES)
-
-Find all metabolites that can only (excludes reversible reactions) be produced
-in the `model` by inspecting the stoichiometric matrix.
-"""
-find_deadend_metabolites(model::MetabolicModel) =
-    _find_orphan_or_deadend_metabolites(model, consumed = false)
-
-"""
-$(TYPEDSIGNATURES)
-
 Find all reactions that participate in stoichiometrically balanced cycles by
 closing all boundary reactions and running fva on the resultant model.
 """
@@ -119,8 +32,14 @@ function find_cycle_reactions(
     model::MetabolicModel,
     optimizer;
     config = Config.memote_config,
+    workers = [myid()],
 )
-    stdmodel = convert(StandardModel, model)
+    if model isa StandardModel
+        stdmodel = deepcopy(model) # copy because will add stuff to it
+    else
+        stdmodel = convert(StandardModel, deepcopy(model))
+    end
+
     for rid in reactions(stdmodel)
         if is_boundary(stdmodel, rid)
             change_bound!(stdmodel, rid, lower = 0, upper = 0)
@@ -137,69 +56,75 @@ function find_cycle_reactions(
             end
         end
     end
-    cycle_reactions = Set(String[])
-    for rid in filter(x -> !is_boundary(model, x), reactions(model))
-        for sense in [JuMP.MIN_SENSE, JuMP.MAX_SENSE]
-            mu = solved_objective_value(
-                flux_balance_analysis(
-                    stdmodel,
-                    optimizer;
-                    modifications = [
-                        config.network.optimizer_modifications
-                        change_objective(rid)
-                        change_sense(sense)
-                    ],
-                ),
-            )
-            isnothing(mu) && continue
-            abs(mu) > config.network.cycle_tol && (push!(cycle_reactions, rid); break)
+
+    idx_id = Dict(
+        idx => id for (idx, id) in enumerate(reactions(model)) if !is_boundary(model, id)
+    )
+    fvas = flux_variability_analysis(
+        stdmodel,
+        collect(keys(idx_id)),
+        optimizer;
+        modifications = config.network.optimizer_modifications,
+        workers,
+        optimal_objective_value = -Inf,
+    )
+
+    cycle_reactions = Int64[]
+    for (i, vs) in zip(collect(keys(idx_id)), eachrow(fvas))
+        for v in vs
+            isnothing(v) && continue
+            abs(v) > config.network.cycle_tol && (push!(cycle_reactions, i); break)
         end
     end
-    return cycle_reactions
+
+    [idx_id[idx] for idx in cycle_reactions]
 end
 
 """
 $(TYPEDSIGNATURES)
 
-Return a dictionary mapping orphan and deadend metabolites that occur in the
-model in complete medium. Complete medium is modeled by opening all the bounday
-reactions. For each metabolite FBA is run with a temporary reaction either
-consuming or producing the metabolite in question. At minimum a flux of
-`config.network.minimum_metabolite_flux` must be attained for the metabolite to
-pass the test.
+Make all boundary reactions reversible and run FVA on the model to find all
+reactions that are universally blocked. Optimizer modifications can be passed
+through `config.network.optimizer_modifications`
 """
-function find_complete_medium_orphans_and_deadends(
+function find_all_universally_blocked_reactions(
     model::MetabolicModel,
     optimizer;
     config = Config.memote_config,
+    workers = [myid()],
 )
-    stdmodel = convert(StandardModel, model)
-    for rid in reactions(stdmodel)
-        change_bound!(stdmodel, rid, lower = -1000.0, upper = 1000.0)
+
+    if model isa StandardModel
+        stdmodel = deepcopy(model) # copy because will add stuff to it
+    else
+        stdmodel = convert(StandardModel, deepcopy(model))
     end
 
-    found_mets = Dict{Symbol,Vector{String}}()
-    for mid in metabolites(model)
-        for (k, v) in [(:produce, -1), (:consume, 1)]
-            temp_rid = "MEMOTE_TEMP_RXN"
-            add_reaction!(stdmodel, Reaction(temp_rid, Dict(mid => v), :forward))
-            mu = solved_objective_value(
-                flux_balance_analysis(
-                    stdmodel,
-                    optimizer;
-                    modifications = [
-                        config.network.optimizer_modifications
-                        change_objective(temp_rid)
-                    ],
-                ),
-            )
-            remove_reaction!(stdmodel, temp_rid)
-            if isnothing(mu) || mu < config.network.minimum_metabolite_flux
-                push!(get!(found_mets, k, String[]), mid)
-            end
+    for rid in reactions(stdmodel)
+        if is_boundary(stdmodel, rid)
+            change_bound!(stdmodel, rid, lower = -1000, upper = 1000)
         end
     end
-    return found_mets
+
+    fvas = flux_variability_analysis(
+        stdmodel,
+        collect(1:n_reactions(model)),
+        optimizer;
+        modifications = config.network.optimizer_modifications,
+        workers,
+        optimal_objective_value = -Inf,
+    )
+
+    blocked_rxns = String[]
+    for (vs, rid) in zip(eachrow(fvas), reactions(model))
+        isnothing(vs[1]) && continue
+        isnothing(vs[2]) && continue
+        abs(vs[1]) <= config.network.blocked_tol &&
+            abs(vs[2]) <= config.network.blocked_tol &&
+            (push!(blocked_rxns, rid); break)
+    end
+
+    blocked_rxns
 end
 
 end # module

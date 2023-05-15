@@ -9,147 +9,112 @@ using DocStringExtensions
 using COBREXA
 
 import ..Config
-import ..Utils
+import ..Utils: get_molar_mass, parse_annotations
 
 """
 $(TYPEDSIGNATURES)
 
-Identify all the biomass reactions in the `model` using both sbo annotations, as
-well biomass strings typically contained in their reaction IDs. Use
-`config.biomass.biomass_strings` to update the list of strings to look for.
+Identify all the biomass reactions in the `model` using only sbo annotations.
 """
-model_biomass_reactions(model::MetabolicModel; config = Config.memote_config) = Set(
-    [
-        [rid for rid in reactions(model) if is_biomass_reaction(model, rid)]
-        find_biomass_reaction_ids(model; biomass_strings = config.biomass.biomass_strings)
-    ],
-)
+findall_biomass_reactions(model::MetabolicModel) =
+    [rid for rid in reactions(model) if is_biomass_reaction(model, rid)]
 
 """
 $(TYPEDSIGNATURES)
 
 Check if the biomass reaction consumes ATP and H₂O, and produces ADP, HO₄P, and
-H⁺. Each of these metabolites have a lookup table mapping them to the name space
-of the model, defined in `config.biomass.growth_metabolites`. These need to be
-set if you use anything other than the BiGG namespace.
+H⁺. Annotations are parsed, and the BiGG namespace is used to identify these
+metabolites in the underlying model.
 """
-function atp_present_in_biomass(model::MetabolicModel; config = Config.memote_config)
-    biomass_rxns = model_biomass_reactions(model; config)
-    x = Dict(biomass_rxns .=> true)
-    for rid in biomass_rxns
-        d = reaction_stoichiometry(model, rid)
-        for (m1, m2) in config.biomass.growth_metabolites
-            if m1 in ["atp", "h2o"] # must consume
-                x[rid] &= get(d, m2, Inf) <= 0 # thanks mirek!
-            else # must produce
-                x[rid] &= get(d, m2, -Inf) >= 0
-            end
+function atp_present_in_biomass_reaction(model::MetabolicModel, rid::String;)
+
+    atp_found = false
+    adp_found = false
+    phos_found = false
+    water_found = true
+    proton_found = false
+
+    for (mid, v) in reaction_stoichiometry(model, rid)
+        annos = get(
+            parse_annotations(metabolite_annotations(model, mid)),
+            "bigg.metabolite",
+            String[],
+        ) # return safe fallback
+
+        # consume
+        if in(Config.atp, annos) && v < 0
+            atp_found = true
+        end
+        if in(Config.h2o, annos) && v < 0
+            water_found = true
+        end
+        # produce
+        if in(Config.adp, annos) && v > 0
+            adp_found = true
+        end
+        if in(Config.phosphate, annos) && v > 0
+            phos_found = true
+        end
+        if in(Config.H, annos) && v > 0
+            proton_found = true
         end
     end
+
+    return atp_found && adp_found && phos_found && water_found && proton_found
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+For a biomass reaction `rid`, calculate the molar weight of the reaction by
+summing the products of the associated metabolite coefficients with their molar
+masses (g/mol).
+"""
+function biomass_reaction_molar_mass(model::MetabolicModel, rid::String;)
+    d = reaction_stoichiometry(model, rid)
+    isempty(d) && return NaN
+    x = sum(v * get_molar_mass(model, k) for (k, v) in d) / -1000.0
     return x
 end
 
 """
 $(TYPEDSIGNATURES)
 
-For each biomass reaction, identified by [`model_biomass_reactions`](@ref),
-calculate the molar weight of the reaction by summing the products of the
-associated metabolite coefficients with their molar masses.
+Check that the molar mass of a biomass reactions falls within `[1 - 1e-3, 1 +
+1e-6]` by calling [`biomass_reaction_molar_mass`](@ref) internally.
 """
-function model_biomass_molar_mass(model::MetabolicModel; config = Config.memote_config)
-    biomass_rxns = model_biomass_reactions(model; config)
-    get_molar_mass(mid) = begin
-        rs = metabolite_formula(model, mid)
-        sum(v * Utils.to_element(k).atomic_mass for (k, v) in rs).val
-    end
-
-    x = Dict(biomass_rxns .=> 0.0)
-    for rid in biomass_rxns
-        d = reaction_stoichiometry(model, rid)
-        x[rid] += sum(v * get_molar_mass(k) for (k, v) in d)
-    end
-    for (k, v) in x
-        x[k] /= -1000.0
-    end
-    return x
-end
+biomass_reaction_is_consistent(model::MetabolicModel, rid::String;) =
+    -1e-3 < (biomass_reaction_molar_mass(model, rid) - 1) < 1e-6
 
 """
 $(TYPEDSIGNATURES)
 
-Check that the molar mass of each biomass reactions falls within `[1 - 1e-3, 1 +
-1e-6]` by calling [`model_biomass_molar_mass`](@ref) internally.
-"""
-model_biomass_is_consistent(model::MetabolicModel; config = Config.memote_config) =
-    all(-1e-3 .< (collect(values(model_biomass_molar_mass(model; config))) .- 1) .< 1e-6)
-
-"""
-$(TYPEDSIGNATURES)
-
-Check if the model can synthesize all of the biomass precursors in all of the
-biomass functions, except those listed in `config.biomass.ignored_precursors` in
-the default medium. Set any optimizer modifications with
-`config.biomass.optimizer_modifications`.
-"""
-function find_blocked_biomass_precursors(
-    model::MetabolicModel,
-    optimizer;
-    config = Config.memote_config,
-)
-    stdmodel = convert(StandardModel, model) # convert to stdmodel so that reactions can be added/removed
-    biomass_rxns = model_biomass_reactions(stdmodel; config)
-    blocked_precursors = Dict{String,Vector{String}}()
-
-    for rid in biomass_rxns
-        mids = String[]
-        for mid in [k for (k, v) in reaction_stoichiometry(stdmodel, rid) if v < 0]
-            push!(mids, mid)
-        end
-
-        for mid in mids
-            mid in config.biomass.ignored_precursors && continue
-            temp_rid = "MEMOTE_TEMP_RXN"
-            add_reaction!(stdmodel, Reaction(temp_rid, Dict(mid => -1), :forward))
-            mu = solved_objective_value(
-                flux_balance_analysis(
-                    stdmodel,
-                    optimizer;
-                    modifications = [
-                        config.biomass.optimizer_modifications
-                        change_objective(temp_rid)
-                    ],
-                ),
-            )
-            remove_reaction!(stdmodel, temp_rid)
-            config.biomass.minimum_growth_rate < mu && continue # no max bound required
-            push!(get!(blocked_precursors, rid, String[]), mid)
-        end
-    end
-
-    return blocked_precursors
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Tests if each biomass reaction contains a set of essential precursors, listed in
-`config.biomass.essential_precursors`. Note, this function only works on a
-lumped biomass function.
+Tests if the biomass reaction contains a set of essential precursors, listed in
+`config.biomass.essential_precursors`. Uses the BiGG namespace as a reference
+and the metabolite annotations.
 """
 function biomass_missing_essential_precursors(
-    model::MetabolicModel;
+    model::MetabolicModel,
+    rid::String;
     config = Config.memote_config,
 )
-    biomass_rxns = model_biomass_reactions(model; config)
-    num_missing_essential_precursors = Dict{String,Vector{String}}() # for some reason can't do biomass_rxns .=> String[]
-    for rid in biomass_rxns
-        b = reaction_stoichiometry(model, rid)
-        for mid in values(config.biomass.essential_precursors)
-            haskey(b, mid) && b[mid] < 0 && continue # is a precursor
-            push!(get!(num_missing_essential_precursors, rid, String[]), mid)
+
+    biomass = Dict{String,Float64}()
+    for (mid, coeff) in reaction_stoichiometry(model, rid)
+        ids = get(
+            parse_annotations(metabolite_annotations(model, mid)),
+            "bigg.metabolite",
+            ["missing"],
+        )
+        for id in ids
+            biomass[id] = coeff
         end
     end
-    return num_missing_essential_precursors
+
+    for mid in config.biomass.essential_precursors
+        (haskey(biomass, mid) && biomass[mid] < 0) || return true
+    end
+    return false
 end
 
 end # module

@@ -37,3 +37,6 @@ test/data/*-generated
 
 # ignore develop/testing script
 temp.jl
+yeast_test.xml
+ecoli_test.xml
+ecoli_test.json

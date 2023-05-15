@@ -8,6 +8,93 @@ module Config
 using COBREXA
 using DocStringExtensions
 
+# Add all metabolite identifier constants. Use BiGG namespace.
+const trp__L = "trp__L"
+const cys__L = "cys__L"
+const his__L = "his__L"
+const tyr__L = "tyr__L"
+const met__L = "met__L"
+const phe__L = "phe__L"
+const ser__L = "ser__L"
+const pro__L = "pro__L"
+const asp__L = "asp__L"
+const thr__L = "thr__L"
+const gln__L = "gln__L"
+const glu__L = "glu__L"
+const ile__L = "ile__L"
+const arg__L = "arg__L"
+const lys__L = "lys__L"
+const val__L = "val__L"
+const leu__L = "leu__L"
+const ala__L = "ala__L"
+const gly = "gly"
+const asn__L = "asn__L"
+
+
+const datp = "datp"
+const dctp = "dctp"
+const dttp = "dttp"
+const dgtp = "dgtp"
+
+const atp = "atp"
+const ctp = "ctp"
+const gtp = "gtp"
+const utp = "utp"
+const itp = "itp"
+
+const udp = "udp"
+const idp = "idp"
+const adp = "adp"
+const cdp = "cdp"
+const gdp = "gdp"
+
+const fmn = "fmn"
+const fmnh2 = "fmnh2"
+const nad = "nad"
+const nadp = "nadp"
+const nadh = "nadh"
+const nadph = "nadph"
+const fad = "fad"
+const fadh2 = "fadh2"
+const q8h2 = "q8h2"
+const q8 = "q8"
+const mql8 = "mql8"
+const mqn8 = "mqn8"
+const dmmql8 = "2dmmql8"
+const dmmq8 = "2dmmq8"
+
+const h2o = "h2o"
+const phosphate = "pi"
+const amet = "amet"
+const pydx5p = "pydx5p"
+const thmpp = "thmpp"
+const accoa = "accoa"
+const coa = "coa"
+const akg = "akg"
+const nh4 = "nh4"
+const H = "h"
+const ac = "ac"
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef mutable struct BasicConfig
+    minimum_metabolic_coverage::Float64
+    minimum_growth_rate::Float64
+    maximum_growth_rate::Float64
+    optimizer_modifications::Vector{Function}
+end
+
+basic_config = BasicConfig(
+    minimum_metabolic_coverage = 0.1,
+    minimum_growth_rate = 0.01,
+    maximum_growth_rate = 5.0,
+    optimizer_modifications = [silence],
+)
+
 """
 $(TYPEDEF)
 
@@ -21,8 +108,8 @@ Base.@kwdef mutable struct AnnotationConfig
     metabolite_annotation_regexes::Dict{String,Regex}
     reaction_annotation_keywords::Vector{String}
     reaction_annotation_regexes::Dict{String,Regex}
-    minimum_fraction_database_conformity::Float64
-    minimum_fraction_database_annotations::Float64
+    maximum_nonconformal_references::Int64
+    maximum_missing_databases::Int64
 end
 
 annotation_config = AnnotationConfig(
@@ -103,28 +190,8 @@ annotation_config = AnnotationConfig(
             r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
         "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
     ),
-    minimum_fraction_database_conformity = 0.9,
-    minimum_fraction_database_annotations = 0.9,
-)
-
-"""
-$(TYPEDEF)
-
-# Fields
-$(TYPEDFIELDS)
-"""
-Base.@kwdef mutable struct BasicConfig
-    minimum_metabolic_coverage::Float64
-    minimum_growth_rate::Float64
-    maximum_growth_rate::Float64
-    optimizer_modifications::Vector{Function}
-end
-
-basic_config = BasicConfig(
-    minimum_metabolic_coverage = 0.1,
-    minimum_growth_rate = 0.01,
-    maximum_growth_rate = 5.0,
-    optimizer_modifications = Function[],
+    maximum_nonconformal_references = 5,
+    maximum_missing_databases = 6,
 )
 
 """
@@ -134,64 +201,49 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct BiomassConfig
-    biomass_strings::Vector{String}
-    growth_metabolites::Dict{String,String}
-    ignored_precursors::Vector{String}
-    essential_precursors::Dict{String,String}
-    minimum_growth_rate::Float64
-    optimizer_modifications::Vector{Function}
+    essential_precursors::Vector{String}
 end
 
 biomass_config = BiomassConfig(
-    biomass_strings = ["BIOMASS", "biomass", "Biomass"],
-    growth_metabolites = Dict(
-        "atp" => "atp_c",
-        "adp" => "adp_c",
-        "h2o" => "h2o_c",
-        "pi" => "pi_c",
-    ),
-    ignored_precursors = ["atp_c", "h2o_c"],
-    essential_precursors = Dict(
-        "trp__L" => "trp__L_c",
-        "cys__L" => "cys__L_c",
-        "his__L" => "his__L_c",
-        "tyr__L" => "tyr__L_c",
-        "met__L" => "met__L_c",
-        "phe__L" => "phe__L_c",
-        "ser__L" => "ser__L_c",
-        "pro__L" => "pro__L_c",
-        "asp__L" => "asp__L_c",
-        "thr__L" => "thr__L_c",
-        "gln__L" => "gln__L_c",
-        "glu__L" => "glu__L_c",
-        "ile__L" => "ile__L_c",
-        "arg__L" => "arg__L_c",
-        "lys__L" => "lys__L_c",
-        "val__L" => "val__L_c",
-        "leu__L" => "leu__L_c",
-        "ala__L" => "ala__L_c",
-        "gly" => "gly_c",
-        "asn__L" => "asn__L_c",
-        "datp" => "datp_c",
-        "dctp" => "dctp_c",
-        "dttp" => "dttp_c",
-        "dgtp" => "dgtp_c",
-        "atp" => "atp_c",
-        "ctp" => "ctp_c",
-        "utp" => "utp_c",
-        "gtp" => "gtp_c",
-        "nad" => "nad_c",
-        "nadp" => "nadp_c",
-        "amet" => "amet_c",
-        "fad" => "fad_c",
-        "pydx5p" => "pydx5p_c",
-        "coa" => "coa_c",
-        "thmpp" => "thmpp_c",
-        "fmn" => "fmn_c",
-        "h2o" => "h2o_c",
-    ),
-    minimum_growth_rate = 0.01,
-    optimizer_modifications = Function[],
+    essential_precursors = [
+        trp__L,
+        cys__L,
+        his__L,
+        tyr__L,
+        met__L,
+        phe__L,
+        ser__L,
+        pro__L,
+        asp__L,
+        thr__L,
+        gln__L,
+        glu__L,
+        ile__L,
+        arg__L,
+        lys__L,
+        val__L,
+        leu__L,
+        ala__L,
+        gly,
+        asn__L,
+        datp,
+        dctp,
+        dttp,
+        dgtp,
+        atp,
+        ctp,
+        utp,
+        gtp,
+        nad,
+        nadp,
+        # amet,
+        # fad,
+        # pydx5p,
+        coa,
+        # thmpp,
+        # fmn,
+        h2o,
+    ],
 )
 
 """
@@ -201,18 +253,12 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct ConsistencyConfig
-    mass_ignored_reactions::Vector{String}
-    charge_ignored_reactions::Vector{String}
     consistency_ignored_reactions::Vector{String}
     tolerance_threshold::Float64
 end
 
-consistency_config = ConsistencyConfig(
-    mass_ignored_reactions = String[],
-    charge_ignored_reactions = String[],
-    consistency_ignored_reactions = String[],
-    tolerance_threshold = 1e-07,
-)
+consistency_config =
+    ConsistencyConfig(consistency_ignored_reactions = String[], tolerance_threshold = 1e-07)
 
 """
 $(TYPEDEF)
@@ -221,67 +267,50 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct EnergyConfig
-    atpm_strings::Vector{String}
-    energy_dissipating_metabolites::Dict{String,String}
+    energy_dissipating_metabolites::Vector{String}
     additional_energy_generating_reactions::Vector{Reaction}
     ignored_energy_reactions::Vector{String}
     optimizer_modifications::Vector{Function}
 end
 
 energy_config = EnergyConfig(
-    atpm_strings = ["ATPM", "Maintenance", "maintenance"],
-    energy_dissipating_metabolites = Dict(
-        "ATP" => "atp_c",
-        "CTP" => "ctp_c",
-        "GTP" => "gtp_c",
-        "UTP" => "utp_c",
-        "ITP" => "itp_c",
-        "ADP" => "adp_c",
-        "CDP" => "cdp_c",
-        "GDP" => "gdp_c",
-        "UDP" => "udp_c",
-        "IDP" => "idp_c",
-        "NADH" => "nadh_c",
-        "NAD" => "nad_c",
-        "NADPH" => "nadph_c",
-        "NADP" => "nadp_c",
-        "FADH2" => "fadh2_c",
-        "FAD" => "fad_c",
-        "FMNH2" => "fmn_c",
-        "FMN" => "fmnh2_c",
-        "Ubiquinol-8" => "q8h2_c",
-        "Ubiquinone-8" => "q8_c",
-        "Menaquinol-8" => "mql8_c",
-        "Menaquinone-8" => "mqn8_c",
-        "2-Demethylmenaquinol-8" => "2dmmql8_c",
-        "2-Demethylmenaquinone-8" => "2dmmq8_c",
-        "ACCOA" => "accoa_c",
-        "COA" => "coa_c",
-        "L-Glutamate" => "glu__L_c",
-        "2-Oxoglutarate" => "akg_c",
-        "Ammonium" => "nh4_c",
-        "H" => "h_c",
-        "H[external]" => "h_e",
-        "H2O" => "h2o_c",
-        "Phosphate" => "pi_c",
-        "Acetate" => "ac_c",
-    ),
+    energy_dissipating_metabolites = [
+        atp,
+        ctp,
+        gtp,
+        utp,
+        itp,
+        adp,
+        cdp,
+        gdp,
+        udp,
+        idp,
+        nadh,
+        nad,
+        nadph,
+        nadp,
+        fadh2,
+        fad,
+        fmnh2,
+        fmn,
+        q8h2,
+        q8,
+        mql8,
+        mqn8,
+        dmmql8,
+        dmmq8,
+        h2o,
+        phosphate,
+        accoa,
+        coa,
+        akg,
+        H,
+        ac,
+    ],
     additional_energy_generating_reactions = Reaction[],
-    ignored_energy_reactions = ["ATPM"],
-    optimizer_modifications = Function[],
+    ignored_energy_reactions = String[],
+    optimizer_modifications = [silence],
 )
-
-"""
-$(TYPEDEF)
-
-# Fields
-$(TYPEDFIELDS)
-"""
-Base.@kwdef mutable struct GPRAssociationConfig
-    test_annotation::String
-end
-
-gpra_config = GPRAssociationConfig(test_annotation = "inchi_key")
 
 """
 $(TYPEDEF)
@@ -290,18 +319,10 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct MetaboliteConfig
-    formula_corner_cases::Vector{String}
-    charge_corner_cases::Vector{Int64}
-    medium_only_imported::Bool
     test_annotation::String
 end
 
-metabolite_config = MetaboliteConfig(
-    formula_corner_cases = ["X", "x", ""],
-    charge_corner_cases = Int64[],
-    medium_only_imported = true,
-    test_annotation = "inchi_key",
-)
+metabolite_config = MetaboliteConfig(test_annotation = "inchi_key")
 
 """
 $(TYPEDEF)
@@ -311,18 +332,16 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct NetworkConfig
     condition_number::Float64
-    fva_bound::Float64
     cycle_tol::Float64
-    minimum_metabolite_flux::Float64
+    blocked_tol::Float64
     optimizer_modifications::Vector{Function}
 end
 
 network_config = NetworkConfig(
     condition_number = 1e9,
-    fva_bound = 0.01,
     cycle_tol = 1e-3,
-    minimum_metabolite_flux = 1e-3,
-    optimizer_modifications = Function[],
+    blocked_tol = 1e-3,
+    optimizer_modifications = [silence],
 )
 
 """
@@ -332,16 +351,12 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct ReactionConfig
-    test_annotation::String
-    ignore_annotations::Vector{String}
-    bound_default::Float64
+    mass_ignored_reactions::Vector{String}
+    charge_ignored_reactions::Vector{String}
 end
 
-reaction_config = ReactionConfig(
-    test_annotation = "inchi_key",
-    ignore_annotations = ["sbo", "ec-code"],
-    bound_default = 1000.0,
-)
+reaction_config =
+    ReactionConfig(mass_ignored_reactions = String[], charge_ignored_reactions = String[])
 
 """
 $(TYPEDEF)
@@ -357,7 +372,6 @@ Base.@kwdef mutable struct MemoteConfig
     biomass::BiomassConfig
     consistency::ConsistencyConfig
     energy::EnergyConfig
-    gpra::GPRAssociationConfig
     metabolite::MetaboliteConfig
     network::NetworkConfig
     reaction::ReactionConfig
@@ -369,7 +383,6 @@ memote_config = MemoteConfig(
     biomass = biomass_config,
     consistency = consistency_config,
     energy = energy_config,
-    gpra = gpra_config,
     metabolite = metabolite_config,
     network = network_config,
     reaction = reaction_config,
