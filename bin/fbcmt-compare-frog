@@ -67,4 +67,4 @@ import FBCModelTests.FROG
 @info "Initialization done, starting FROG comparison..." reports
 
 # run the FROG
-FROG.compare_reports(reports[1], reports[2]; absolute_tolerance, relative_tolerance)
+FROG.compare_reports_toplevel(reports[1], reports[2]; absolute_tolerance, relative_tolerance)
