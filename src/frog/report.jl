@@ -8,7 +8,7 @@ module ReportGenerators
 
 using ..FROG: FROGReactionReport, FROGObjectiveReport, FROGMetadata, FROGReportData
 
-using ...FBCModelTests: FBCMT_VERSION, @atest
+using ...FBCModelTests: FBCMT_VERSION
 
 using COBREXA
 using JuMP
@@ -197,7 +197,7 @@ Function for testing the compatibility of FROG report data.
 module ReportTests
 
 using ..FROG: FROGReportData, FROGMetadata
-using ...FBCModelTests: test_dicts
+using ...FBCModelTests: test_dicts, @atest
 
 using Test, DocStringExtensions
 
@@ -223,12 +223,12 @@ function test_report_compatibility(
             (intol(a, min) || intol(a, max) || (min <= a && a <= max))
         )
 
-    @testset "Comparing objectives" begin
-        test_dicts(
-            (_, a, b) -> begin
+    test_dicts(
+        (objid, a, b) -> begin
+            @testset "Objective $objid" begin
                 @atest intol(a.optimum, b.optimum) "objective values are the same"
                 @testset "Reactions" begin
-                    test_dicts_plain(
+                    test_dicts(
                         (rid, a, b) -> begin
                             @atest intol(a.variability_min, b.variability_min) "lower variability bound of $rid matches"
                             @atest intol(a.variability_max, b.variability_max) "upper variability bound of $rid matches"
@@ -250,7 +250,7 @@ function test_report_compatibility(
                     )
                 end
                 @testset "Gene deletions" begin
-                    test_dicts_plain(
+                    test_dicts(
                         (gid, a, b) -> begin
                             @atest intol(a, b) "deletion of gene $gid gives the same objective value"
                         end,
@@ -258,11 +258,11 @@ function test_report_compatibility(
                         b.gene_deletions,
                     )
                 end
-            end,
-            a,
-            b,
-        )
-    end
+            end
+        end,
+        a,
+        b,
+    )
 end
 
 """

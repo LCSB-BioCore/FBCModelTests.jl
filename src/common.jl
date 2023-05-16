@@ -48,25 +48,15 @@ macro atest(ex, desc)
     end
     Base.remove_linenums!(result)
     quote
-        $(Test.do_test)($result, $desc)
+        $(Test.do_test)($result, $(esc(desc)))
     end
 end
 
-test_dicts_plain(match::Function, a::Dict, b::Dict) =
+test_dicts(match::Function, a::Dict, b::Dict) =
     for k in union(keys(a), keys(b))
         @atest haskey(a, k) && haskey(b, k) "$k is present"
         if haskey(a, k) && haskey(b, k)
             match(k, a[k], b[k])
-        end
-    end
-
-test_dicts(match::Function, a::Dict, b::Dict) =
-    for k in union(keys(a), keys(b))
-        @testset "$k" begin
-            @atest haskey(a, k) && haskey(b, k) "$k is present"
-            if haskey(a, k) && haskey(b, k)
-                match(k, a[k], b[k])
-            end
         end
     end
 
