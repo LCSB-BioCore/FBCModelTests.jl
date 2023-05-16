@@ -4,16 +4,16 @@
 help = false
 solver = "GLPK"
 model_file = nothing
-report_dir = nothing
-numworkers = "1"
+nworkers = "1"
+freeargs = String[]
 optind = 1
 while optind <= length(ARGS)
     if ARGS[optind] in ("-s", "--solver")
         global optind += 1
         global solver = ARGS[optind]
-    elseif ARGS[optind] in ("-n", "--numworkers")
+    elseif ARGS[optind] in ("-w", "--nworkers")
         global optind +=1
-        global numworkers = ARGS[optind]    
+        global nworkers = ARGS[optind]    
     elseif ARGS[optind] == "-h"
         global help = true
     else
@@ -22,60 +22,41 @@ while optind <= length(ARGS)
     global optind += 1
 end
 
-ok = true
-if length(freeargs) == 2
-    global model_file, report_dir = freeargs
-else
-    global ok = false
-    @error "Expected precisely 2 arguments: the model and the output directory."
-end
-
-isnothing(model_file) && begin
-    global ok = false
-    @error "Model file not specified"
-end
-
-isnothing(report_dir) && begin
-    global ok = false
-    @error "Output dir not specified"
-end
-
-if !ok
-    global help = true
-end
-
 if help
     println(
-        """Usage: fbcmt-memote-run [-s|--solver <solver>] [-h|--help] [-n|--numworkers <1>] <model> <report_dir>""",
+        """Usage: fbcmt-memote-run [-s|--solver <GLPK>] [-h|--help] [-w|--nworkers <1>] <model>""",
     )
-    exit(ok ? 0 : 1)
+    exit(1)
+end
+
+if length(freeargs) == 1
+    global model_file = first(freeargs)
+else
+    @error "Expected precisely 1 non-keyword argument: the model location."
+    exit(1)
 end
 
 if !isfile(model_file)
-    @error "model argument is not a name of a file"
-    global ok = false
-end
-
-if !ok
+    @error "model location argument is not a name of a file"
     exit(1)
 end
 
 solver = Symbol(solver)
-nw = parse(Int64, numworkers)
+nw = parse(Int64, nworkers)
 
-import FBCModelTests.Memote
-@eval import $solver
-using Distributed
+using FBCModelTests, FBCModelTests.Memote
+@eval using $solver
+import Distributed
 
 if nw > 1
-    addprocs(nw)
-    @everywhere FBCModelTests, FBCModelTests.Memote
-    @everywhere @eval using $solver
+    Distributed.addprocs(nw)
+    Distributed.@everywhere using FBCModelTests, FBCModelTests.Memote
+    Distributed.@everywhere @eval using $solver
 end
 
 optimizer = @eval $solver.Optimizer
 
-@info "Initialization done, starting MEMOTE..." model_file report_dir optimizer numworkers
+@info "Initialization done, starting MEMOTE..." model_file optimizer nworkers
 
 # run the Memote
-Memote.run_tests(model_file, optimizer; workers=workers())
+Memote.run_tests(model_file, optimizer; workers=Distributed.workers())

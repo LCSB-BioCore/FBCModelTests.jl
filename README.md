@@ -83,8 +83,8 @@ output, and save it to a file. A convenient way to do this is with
 
 An example workflow entails using the scripts located in `bin/`:
 ```
-fbcmt-memote-run -s GLPK e_coli_core.xml output_dir 10 > e_coli_core.test.out
-
+fbcmt-memote-run --color=yes -s GLPK -w 6 e_coli_core.xml > e_coli_core.test.out
+ansi2html < e_coli_core.test.out > e_coli_core.test.html
 ```
 The resultant `html` can be inspected in any browser.
 
@@ -100,7 +100,8 @@ this is not incorporated in a model.
 The implementation in FBCModelTests.jl is mostly authored by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo))
 with parts contributed by
-Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh))
+Mirek Kratochvíl ([@exaexa](https://github.com/exaexa)),
+Vincent M. von Häfen ([@vm-vh](https://github.com/vm-vh)),
 and Flora Schlüter ([@Fl-Sch](https://github.com/Fl-Sch)).
 
 # Acknowledgements

@@ -20,7 +20,7 @@ using FBCModelTests.Memote.Metabolites
 
     @test result.passes == 1783
     @test result.fails == 12
-    @test result.errs == 1
+    @test result.errs == 0
 
     # @testset "Report can be written successfully as JSON" begin
     #     r = Memote.generate_report(model_file["e_coli_core.json"], GLPK.Optimizer)

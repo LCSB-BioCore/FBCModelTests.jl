@@ -25,7 +25,7 @@ function run_tests(
     optimizer;
     config = Config.memote_config,
     filename = nothing,
-    workers = [myid(),],
+    workers = [myid()],
 )
     @testset "Metabolic Model Tests$(isnothing(filename) ? "" : ": $filename")" begin
 
