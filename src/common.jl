@@ -50,3 +50,18 @@ Test.get_alignment(ts::QuietTestSet, depth = 0) = Test.get_alignment(ts.inner, d
 Test.filter_errors(ts::QuietTestSet) = Test.filter_errors(ts.inner)
 Test.get_test_counts(ts::QuietTestSet) = Test.get_test_counts(ts.inner)
 Test.print_counts(ts::QuietTestSet, args...) = Test.print_counts(ts.inner, args...)
+
+macro atest(ex, desc)
+    result = quote
+        try
+            $(Test.Returned)($(esc(ex)), nothing, $(QuoteNode(__source__)))
+        catch _e
+            _e isa InterruptException && rethrow()
+            $(Test.Threw)(_e, Base.current_exceptions(), $(QuoteNode(__source__)))
+        end
+    end
+    Base.remove_linenums!(result)
+    quote
+        $(Test.do_test)($result, $desc)
+    end
+end
