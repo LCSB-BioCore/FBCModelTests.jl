@@ -29,12 +29,7 @@ if help
     exit(1)
 end
 
-if length(freeargs) == 1
-    global model_file = first(freeargs)
-else
-    @error "Expected precisely 1 non-keyword argument: the model location."
-    exit(1)
-end
+global model_file = last(freeargs)
 
 if !isfile(model_file)
     @error "model location argument is not a name of a file"
