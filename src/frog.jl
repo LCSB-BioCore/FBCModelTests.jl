@@ -17,7 +17,7 @@ using JSON
 using SBML
 using Test
 
-using ..FBCModelTests: Maybe
+using ..FBCModelTests: Maybe, QuietTestSet
 
 include("frog/structs.jl")
 include("frog/report.jl")

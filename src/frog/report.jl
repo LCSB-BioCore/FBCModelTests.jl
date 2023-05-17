@@ -19,6 +19,7 @@ using MD5
 using SBML
 using SHA
 using SparseArrays
+using Test
 
 import InteractiveUtils
 
@@ -196,7 +197,7 @@ Function for testing the compatibility of FROG report data.
 module ReportTests
 
 using ..FROG: FROGReportData, FROGMetadata
-using ...FBCModelTests: test_dicts
+using ...FBCModelTests: test_dicts, @atest
 
 using Test, DocStringExtensions
 
@@ -222,33 +223,27 @@ function test_report_compatibility(
             (intol(a, min) || intol(a, max) || (min <= a && a <= max))
         )
 
-    @testset "Comparing objectives" begin
-        test_dicts(
-            (_, a, b) -> begin
-                @test intol(a.optimum, b.optimum)
+    test_dicts(
+        (objid, a, b) -> begin
+            @testset "Objective $objid" begin
+                @atest intol(a.optimum, b.optimum) "objective values are the same"
                 @testset "Reactions" begin
                     test_dicts(
                         (rid, a, b) -> begin
-                            @testset "Variability range for $rid" begin
-                                @test intol(a.variability_min, b.variability_min)
-                                @test intol(a.variability_max, b.variability_max)
-                            end
-                            @testset "Reported flux through $rid is in variability range" begin
-                                @test invar(
-                                    a.objective_flux,
-                                    b.variability_min,
-                                    b.variability_max,
-                                )
-                                @test invar(
-                                    b.objective_flux,
-                                    a.variability_min,
-                                    a.variability_max,
-                                )
-                            end
-                            @test intol(a.fraction_optimum, b.fraction_optimum)
-                            @testset "Deletion of reaction $rid" begin
-                                @test intol(a.deletion, b.deletion)
-                            end
+                            @atest intol(a.variability_min, b.variability_min) "lower variability bound of $rid matches"
+                            @atest intol(a.variability_max, b.variability_max) "upper variability bound of $rid matches"
+                            @atest invar(
+                                a.objective_flux,
+                                b.variability_min,
+                                b.variability_max,
+                            ) "flux through $rid ($(a.objective_flux)) is in variability range $((b.variability_min, b.variability_max))"
+                            @atest invar(
+                                b.objective_flux,
+                                a.variability_min,
+                                a.variability_max,
+                            ) "flux through $rid ($(b.objective_flux)) is in variability range $((a.variability_min,a.variability_max))"
+                            @atest intol(a.fraction_optimum, b.fraction_optimum) "optimum fraction at $rid is the same"
+                            @atest intol(a.deletion, b.deletion) "deletion of reaction $rid gives the same objective value"
                         end,
                         a.reactions,
                         b.reactions,
@@ -257,19 +252,17 @@ function test_report_compatibility(
                 @testset "Gene deletions" begin
                     test_dicts(
                         (gid, a, b) -> begin
-                            @testset "Deletion of gene $gid" begin
-                                @test intol(a, b)
-                            end
+                            @atest intol(a, b) "deletion of gene $gid gives the same objective value"
                         end,
                         a.gene_deletions,
                         b.gene_deletions,
                     )
                 end
-            end,
-            a,
-            b,
-        )
-    end
+            end
+        end,
+        a,
+        b,
+    )
 end
 
 """
@@ -277,17 +270,13 @@ $(TYPEDSIGNATURES)
 """
 function test_metadata_compatibility(a::FROGMetadata, b::FROGMetadata)
     for k in ["model_filename", "model_md5"]
-        @testset "$k is present" begin
-            @test haskey(a, k)
-            @test haskey(b, k)
-        end
+        @atest haskey(a, k) "$k is present in metadata"
+        @atest haskey(b, k) "$k is present in metadata"
     end
 
     for k in ["model_filename", "model_md5", "model_sha256"]
         if haskey(a, k) && haskey(b, k)
-            @testset "$k matches" begin
-                @test a[k] == b[k]
-            end
+            @atest a[k] == b[k] "$k matches $((a[k], b[k]))"
         end
     end
 end

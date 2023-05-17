@@ -39,12 +39,22 @@ function compare_reports(report_dir_a::String, report_dir_b::String; kwargs...)
     a = ReportIO.load_report(report_dir_a)
     b = ReportIO.load_report(report_dir_b)
 
-    @testset "Comparing FROG reports in $report_dir_a and $report_dir_b" begin
-        @testset "Metadata" begin
-            ReportTests.test_metadata_compatibility(a.metadata, b.metadata)
-        end
-        @testset "Objectives and solution values" begin
-            ReportTests.test_report_compatibility(a.report, b.report; kwargs...)
-        end
+    @testset "Metadata" begin
+        ReportTests.test_metadata_compatibility(a.metadata, b.metadata)
+    end
+    @testset "Objectives and solution values" begin
+        ReportTests.test_report_compatibility(a.report, b.report; kwargs...)
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Like [`compare_reports`](@ref), but with a specific testset settings that
+provide better user-facing reports.
+"""
+function compare_reports_toplevel(report_dir_a::String, report_dir_b::String; kwargs...)
+    @testset QuietTestSet "Comparison of FROG reports $report_dir_a and $report_dir_b" begin
+        compare_reports(report_dir_a, report_dir_b; kwargs...)
     end
 end
