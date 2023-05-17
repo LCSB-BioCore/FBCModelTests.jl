@@ -1,0 +1,62 @@
+#!/usr/bin/env julia
+
+# process arguments
+help = false
+solver = "GLPK"
+model_file = nothing
+nworkers = "1"
+freeargs = String[]
+optind = 1
+while optind <= length(ARGS)
+    if ARGS[optind] in ("-s", "--solver")
+        global optind += 1
+        global solver = ARGS[optind]
+    elseif ARGS[optind] in ("-w", "--nworkers")
+        global optind +=1
+        global nworkers = ARGS[optind]    
+    elseif ARGS[optind] == "-h"
+        global help = true
+    else
+        push!(freeargs, ARGS[optind])
+    end
+    global optind += 1
+end
+
+if help
+    println(
+        """Usage: fbcmt-memote-run [-s|--solver <GLPK>] [-h|--help] [-w|--nworkers <1>] <model>""",
+    )
+    exit(1)
+end
+
+if length(freeargs) == 1
+    global model_file = first(freeargs)
+else
+    @error "Expected precisely 1 non-keyword argument: the model location."
+    exit(1)
+end
+
+if !isfile(model_file)
+    @error "model location argument is not a name of a file"
+    exit(1)
+end
+
+solver = Symbol(solver)
+nw = parse(Int64, nworkers)
+
+using FBCModelTests, FBCModelTests.Memote
+@eval using $solver
+import Distributed
+
+if nw > 1
+    Distributed.addprocs(nw)
+    Distributed.@everywhere using FBCModelTests, FBCModelTests.Memote
+    Distributed.@everywhere @eval using $solver
+end
+
+optimizer = @eval $solver.Optimizer
+
+@info "Initialization done, starting MEMOTE..." model_file optimizer nworkers
+
+# run the Memote
+Memote.run_tests(model_file, optimizer; workers=Distributed.workers())

@@ -25,7 +25,7 @@ function run_tests(
     optimizer;
     config = Config.memote_config,
     filename = nothing,
-    workers = workers(),
+    workers = [myid()],
 )
     @testset "Metabolic Model Tests$(isnothing(filename) ? "" : ": $filename")" begin
 
@@ -317,5 +317,4 @@ function run_tests(
             end
         end
     end
-    return testres
 end
