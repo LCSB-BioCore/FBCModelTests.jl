@@ -77,9 +77,11 @@ FBCModelTests.Memote.run_tests("e_coli_core.json", GLPK.Optimizer; workers=worke
 Any optimizer supported by [JuMP](https://jump.dev/) can be used. The output of
 `run_tests` is the standard Julia unit testing scheme. However, in the repl the
 full output is usually truncated, and only a summary is shown. If you want more
-details about where/why your model failed certain tests, it is best to capture the
-output, and save it to a file. A convenient way to do this is with
-[ansi2html](https://github.com/agnoster/ansi2html).
+details about where/why your model failed certain tests, it is best to capture
+the output, and save it to a file. A convenient way to do this is with
+[ansi2html](https://github.com/agnoster/ansi2html). Additionally, to make the
+output more display friendly, we recommend `run_tests_toplevel` is used instead
+of `run_tests`.
 
 An example workflow entails using the scripts located in `bin/`:
 ```

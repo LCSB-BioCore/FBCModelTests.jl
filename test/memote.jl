@@ -15,7 +15,7 @@ using FBCModelTests.Memote.Metabolites
 
 @testset "Front-end" begin
     result = @testset CountTests "Testing a model that _should_ be OK" begin
-        @test Memote.run_testsets(
+        @test Memote.run_tests(
             load_model(StandardModel, model_file["e_coli_core.json"]),
             GLPK.Optimizer,
         )

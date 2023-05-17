@@ -59,4 +59,4 @@ optimizer = @eval $solver.Optimizer
 @info "Initialization done, starting MEMOTE..." model_file optimizer nworkers
 
 # run the Memote
-Memote.run_tests(model_file, optimizer; workers=Distributed.workers())
+Memote.run_tests_toplevel(model_file, optimizer; workers=Distributed.workers())
