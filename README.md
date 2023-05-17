@@ -90,12 +90,12 @@ The resultant `html` can be inspected in any browser.
 
 See the function documentation for additional test configuration information.
 Note, the tests implemented here are significantly more conservative than in the
-original Memote. In particular, no heuristics are used to guess reactions types,
-e.g. biomass, atp maintenance, transporters, exchanges, etc. Only [SBO
+original Memote. In particular, no heuristics are used to guess reaction types,
+e.g. biomass, atp maintenance, transporter, exchange, etc. Only [SBO
 annotations](https://github.com/EBI-BioModels/SBO/blob/master/SBO_OBO.obo) are
 used for this purpose, because only these are actually standardized.
 Consequently, all tests that rely on properly annotated reactions will fail if
-this is not incorporated in a model.
+this is not incorporated into the model being tested.
 
 The implementation in FBCModelTests.jl is mostly authored by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo))
