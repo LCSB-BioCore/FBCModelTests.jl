@@ -120,7 +120,8 @@ function find_all_universally_blocked_reactions(
         isnothing(vs[1]) && continue
         isnothing(vs[2]) && continue
         abs(vs[1]) <= config.network.blocked_tol &&
-            abs(vs[2]) <= config.network.blocked_tol && push!(blocked_rxns, rid)
+            abs(vs[2]) <= config.network.blocked_tol &&
+            push!(blocked_rxns, rid)
     end
 
     blocked_rxns

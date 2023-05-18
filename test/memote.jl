@@ -21,8 +21,8 @@ using FBCModelTests.Memote.Metabolites
         )
     end
 
-    @test result.passes == 1861
-    @test result.fails == 29
+    @test result.passes == 1857
+    @test result.fails == 33
     @test result.errs == 1 # broken test is the skipped test: model_has_no_erroneous_energy_generating_cycles
 end
 
@@ -133,7 +133,7 @@ end
     @test isempty(Metabolites.find_deadend_metabolites(model))
     @test isempty(Metabolites.find_disconnected_metabolites(model))
     @test length(Metabolites.find_orphan_metabolites(iML1515)) == 65
-    @test length(Metabolites.find_deadend_metabolites(iML1515)) == 63    
+    @test length(Metabolites.find_deadend_metabolites(iML1515)) == 63
 
     negative_model = convert(StandardModel, deepcopy(model))
     dup = deepcopy(negative_model.metabolites["atp_c"])

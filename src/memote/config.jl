@@ -341,7 +341,7 @@ end
 network_config = NetworkConfig(
     condition_number = 1e9,
     cycle_tol = 1e-3,
-    blocked_tol = 1e-3,
+    blocked_tol = 1e-8,
     optimizer_modifications = [silence],
 )
 

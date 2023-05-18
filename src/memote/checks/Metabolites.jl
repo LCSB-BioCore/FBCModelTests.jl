@@ -81,10 +81,12 @@ function _find_orphan_or_deadend_metabolites(model::MetabolicModel; only_consume
             rs = reaction_stoichiometry(model, rid)[mid]
             if only_consumed # consumed only
                 (rs < 0 && lbs[ridx] >= 0) ||
-                (rs > 0 && ubs[ridx] <= 0) || (one_sided_metabolite=false; break)
+                    (rs > 0 && ubs[ridx] <= 0) ||
+                    (one_sided_metabolite = false; break)
             else # produced only
                 (rs > 0 && lbs[ridx] >= 0) ||
-                (rs < 0 && ubs[ridx] <= 0) || (one_sided_metabolite=false; break)
+                    (rs < 0 && ubs[ridx] <= 0) ||
+                    (one_sided_metabolite = false; break)
             end
         end
         one_sided_metabolite && push!(mets, mid)
