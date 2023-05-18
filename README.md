@@ -85,7 +85,7 @@ of `run_tests`.
 
 An example workflow entails using the scripts located in `bin/`:
 ```
-fbcmt-memote-run --color=yes -s GLPK -w 6 e_coli_core.xml > e_coli_core.test.out
+julia --color=yes --project=. fbcmt-memote-run -s GLPK -w 6 e_coli_core.xml > e_coli_core.test.out
 ansi2html < e_coli_core.test.out > e_coli_core.test.html
 ```
 The resultant `html` can be inspected in any browser.
