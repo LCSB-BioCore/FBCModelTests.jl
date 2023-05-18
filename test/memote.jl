@@ -23,7 +23,7 @@ using FBCModelTests.Memote.Metabolites
 
     @test result.passes == 1783
     @test result.fails == 12
-    @test result.errs == 1 # broken counts here I think...
+    @test result.errs == 1 # broken test is the skipped test: model_has_no_erroneous_energy_generating_cycles
 end
 
 @testset "Basic" begin

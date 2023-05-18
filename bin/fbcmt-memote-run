@@ -16,6 +16,7 @@ while optind <= length(ARGS)
         global nworkers = ARGS[optind]    
     elseif ARGS[optind] == "-h"
         global help = true
+        break
     else
         push!(freeargs, ARGS[optind])
     end
@@ -26,10 +27,15 @@ if help
     println(
         """Usage: fbcmt-memote-run [-s|--solver <GLPK>] [-h|--help] [-w|--nworkers <1>] <model>""",
     )
-    exit(1)
+    exit(0)
 end
 
-global model_file = last(freeargs)
+if length(freeargs) == 1
+    global model_file = last(freeargs)
+else
+    @error "Expected only one argument, the model location, got $(length(freeargs)) instead."
+    exit(1) 
+end
 
 if !isfile(model_file)
     @error "model location argument is not a name of a file"
@@ -44,7 +50,7 @@ using FBCModelTests, FBCModelTests.Memote
 import Distributed
 
 if nw > 1
-    Distributed.addprocs(nw)
+    Distributed.addprocs(nw, exeflags=`--project=$(Base.active_project())`) # necessary due to issue #48217 in julialang
     Distributed.@everywhere using FBCModelTests, FBCModelTests.Memote
     Distributed.@everywhere @eval using $solver
 end
@@ -56,3 +62,4 @@ optimizer = @eval $solver.Optimizer
 # run the Memote
 Memote.run_tests_toplevel(model_file, optimizer; workers=Distributed.workers())
 exit(0)
+
