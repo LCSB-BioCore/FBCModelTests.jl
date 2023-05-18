@@ -21,8 +21,8 @@ using FBCModelTests.Memote.Metabolites
         )
     end
 
-    @test result.passes == 1878
-    @test result.fails == 12
+    @test result.passes == 1861
+    @test result.fails == 29
     @test result.errs == 1 # broken test is the skipped test: model_has_no_erroneous_energy_generating_cycles
 end
 
@@ -60,14 +60,14 @@ end
     @test Annotation.is_annotated_metabolite(model, mid)
     @test Annotation.is_annotated_gene(model, gid)
 
-    @test "ncbiprotein" in Annotation.findall_unannotated_gene_databases(model, gid)
-    @test "inchi" in Annotation.findall_unannotated_metabolite_databases(model, mid)
-    @test "brenda" in Annotation.findall_unannotated_reaction_databases(model, rid)
+    @test "ncbiprotein" ∉ Annotation.findall_annotated_gene_databases(model, gid)
+    @test "inchi" ∉ Annotation.findall_annotated_metabolite_databases(model, mid)
+    @test "brenda" ∉ Annotation.findall_annotated_reaction_databases(model, rid)
 
-    @test "ncbigi" in Annotation.findall_nonconformal_gene_annotations(model, gid)
-    @test "reactome.compound" in
-          Annotation.findall_nonconformal_metabolite_annotations(model, mid)
-    @test isempty(Annotation.findall_nonconformal_reaction_annotations(model, rid))
+    @test "ncbigi" ∉ Annotation.findall_conformal_gene_annotations(model, gid)
+    @test "reactome.compound" ∉
+          Annotation.findall_conformal_metabolite_annotations(model, mid)
+    @test length(Annotation.findall_conformal_reaction_annotations(model, rid)) == 7
 end
 
 @testset "Biomass" begin

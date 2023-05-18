@@ -108,8 +108,8 @@ Base.@kwdef mutable struct AnnotationConfig
     metabolite_annotation_regexes::Dict{String,Regex}
     reaction_annotation_keywords::Vector{String}
     reaction_annotation_regexes::Dict{String,Regex}
-    maximum_nonconformal_references::Int64
-    maximum_missing_databases::Int64
+    minimum_conformal_crossreferences::Int64
+    minimum_crossreferences::Int64
 end
 
 annotation_config = AnnotationConfig(
@@ -190,8 +190,8 @@ annotation_config = AnnotationConfig(
             r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
         "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
     ),
-    maximum_nonconformal_references = 5,
-    maximum_missing_databases = 6,
+    minimum_conformal_crossreferences = 3,
+    minimum_crossreferences = 4,
 )
 
 """

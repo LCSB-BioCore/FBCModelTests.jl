@@ -102,26 +102,27 @@ function run_tests(
                     end
                 end
 
-                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references per entry" begin
+                @testset "At least $(config.annotation.minimum_crossreferences) cross-references per entry" begin
                     for rid in reactions(model)
-                        @atest length(
-                            Annotation.findall_unannotated_reaction_databases(
+                        @atest config.annotation.minimum_crossreferences <= length(
+                            Annotation.findall_annotated_reaction_databases(
                                 model,
                                 rid;
                                 config,
                             ),
-                        ) <= config.annotation.maximum_missing_databases "$rid needs at least $(config.annotation.maximum_missing_databases) cross-references"
+                        ) "$rid needs at least $(config.annotation.minimum_crossreferences) cross-references"
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) unrecognizable cross-references per entry" begin
+                @testset "At least $(config.annotation.minimum_conformal_crossreferences) recognizable cross-references per entry" begin
                     for rid in reactions(model)
-                        @atest length(
-                            Annotation.findall_nonconformal_reaction_annotations(
+                        @atest config.annotation.minimum_conformal_crossreferences <=
+                               length(
+                            Annotation.findall_conformal_reaction_annotations(
                                 model,
                                 rid;
                                 config,
                             ),
-                        ) <= config.annotation.maximum_nonconformal_references "$rid needs at least $(config.annotation.maximum_nonconformal_references) recognizable cross-references"
+                        ) "$rid needs at least $(config.annotation.minimum_conformal_crossreferences) recognizable cross-references"
                     end
                 end
             end
@@ -133,30 +134,30 @@ function run_tests(
                     end
                 end
 
-                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references per entry" begin
+                @testset "At least $(config.annotation.minimum_crossreferences) cross-references per entry" begin
                     for mid in metabolites(model)
-                        @atest length(
-                            Annotation.findall_unannotated_metabolite_databases(
+                        @atest config.annotation.minimum_crossreferences <= length(
+                            Annotation.findall_annotated_metabolite_databases(
                                 model,
                                 mid;
                                 config,
                             ),
-                        ) <= config.annotation.maximum_missing_databases "$mid dneeds at least $(config.annotation.maximum_missing_databases) cross-references"
+                        ) "$mid dneeds at least $(config.annotation.minimum_crossreferences) cross-references"
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) unrecognizable cross-references per entry" begin
+                @testset "At least $(config.annotation.minimum_conformal_crossreferences) recognizable cross-references per entry" begin
                     for mid in metabolites(model)
-                        @atest length(
-                            Annotation.findall_nonconformal_metabolite_annotations(
+                        @atest config.annotation.minimum_conformal_crossreferences <=
+                               length(
+                            Annotation.findall_conformal_metabolite_annotations(
                                 model,
                                 mid;
                                 config,
                             ),
-                        ) <= config.annotation.maximum_nonconformal_references "$mid needs at least $(config.annotation.maximum_nonconformal_references) recognizable cross-references"
+                        ) "$mid needs at least $(config.annotation.minimum_conformal_crossreferences) recognizable cross-references"
                     end
                 end
             end
-
 
             @testset "Genes" begin
                 @testset "Any annotations present" begin
@@ -165,26 +166,23 @@ function run_tests(
                     end
                 end
 
-                @testset "At most $(config.annotation.maximum_missing_databases) missing cross-references per entry" begin
+                @testset "At least $(config.annotation.minimum_crossreferences) cross-references per entry" begin
                     for gid in genes(model)
-                        @atest length(
-                            Annotation.findall_unannotated_gene_databases(
-                                model,
-                                gid;
-                                config,
-                            ),
-                        ) <= config.annotation.maximum_missing_databases "$gid needs at least $(config.annotation.maximum_missing_databases) cross-references"
+                        @atest config.annotation.minimum_crossreferences <= length(
+                            Annotation.findall_annotated_gene_databases(model, gid; config),
+                        ) "$gid needs at least $(config.annotation.minimum_crossreferences) cross-references"
                     end
                 end
-                @testset "At most $(config.annotation.maximum_nonconformal_references) unrecognizable cross-references per entry" begin
+                @testset "At least $(config.annotation.minimum_conformal_crossreferences) recognizable cross-references per entry" begin
                     for gid in genes(model)
-                        @atest length(
-                            Annotation.findall_nonconformal_gene_annotations(
+                        @atest config.annotation.minimum_conformal_crossreferences <=
+                               length(
+                            Annotation.findall_conformal_gene_annotations(
                                 model,
                                 gid;
                                 config,
                             ),
-                        ) <= config.annotation.maximum_nonconformal_references "$gid needs at least $(config.annotation.maximum_nonconformal_references) recognizable cross-references"
+                        ) "$gid needs at least $(config.annotation.minimum_conformal_crossreferences) recognizable cross-references"
                     end
                 end
             end
