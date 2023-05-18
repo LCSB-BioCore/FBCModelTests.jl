@@ -37,10 +37,10 @@ Test.filter_errors(ts::QuietTestSet) = Test.filter_errors(ts.inner)
 Test.get_test_counts(ts::QuietTestSet) = Test.get_test_counts(ts.inner)
 Test.print_counts(ts::QuietTestSet, args...) = Test.print_counts(ts.inner, args...)
 
-macro atest(ex, desc)
+macro atest(ex, nice, actually = nothing)
     result = quote
         try
-            $(Test.Returned)($(esc(ex)), nothing, $(QuoteNode(__source__)))
+            $(Test.Returned)($(esc(ex)), $(esc(actually)), $(QuoteNode(__source__)))
         catch _e
             _e isa InterruptException && rethrow()
             $(Test.Threw)(_e, Base.current_exceptions(), $(QuoteNode(__source__)))
@@ -48,7 +48,7 @@ macro atest(ex, desc)
     end
     Base.remove_linenums!(result)
     quote
-        $(Test.do_test)($result, $(esc(desc)))
+        $(Test.do_test)($result, $(esc(nice)))
     end
 end
 
