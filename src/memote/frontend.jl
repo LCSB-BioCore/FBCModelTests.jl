@@ -325,7 +325,7 @@ function run_tests(
                     workers,
                 )
                 for rid in reactions(model)
-                    @atest rid ∉ blocked_rxns "$rid is not a universially blocked reaction."
+                    @atest rid ∉ blocked_rxns "$rid is not a universally blocked reaction."
                 end
             end
         end

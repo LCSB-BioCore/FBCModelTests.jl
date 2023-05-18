@@ -55,3 +55,4 @@ optimizer = @eval $solver.Optimizer
 
 # run the Memote
 Memote.run_tests_toplevel(model_file, optimizer; workers=Distributed.workers())
+exit(0)
