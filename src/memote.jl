@@ -14,6 +14,7 @@ using Test
 using JuMP
 using Distributed
 
+include(joinpath("common.jl")) # quiet tests
 include(joinpath("memote", "utils.jl")) # memote utils
 include(joinpath("memote", "config.jl")) # memote test parameters
 include.(

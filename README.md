@@ -77,25 +77,27 @@ FBCModelTests.Memote.run_tests("e_coli_core.json", GLPK.Optimizer; workers=worke
 Any optimizer supported by [JuMP](https://jump.dev/) can be used. The output of
 `run_tests` is the standard Julia unit testing scheme. However, in the repl the
 full output is usually truncated, and only a summary is shown. If you want more
-details about where/why your model failed certain tests, it is best to capture the
-output, and save it to a file. A convenient way to do this is with
-[ansi2html](https://github.com/agnoster/ansi2html).
+details about where/why your model failed certain tests, it is best to capture
+the output, and save it to a file. A convenient way to do this is with
+[ansi2html](https://github.com/agnoster/ansi2html). Additionally, to make the
+output more display friendly, we recommend `run_tests_toplevel` is used instead
+of `run_tests`.
 
 An example workflow entails using the scripts located in `bin/`:
 ```
-fbcmt-memote-run --color=yes -s GLPK -w 6 e_coli_core.xml > e_coli_core.test.out
+julia --color=yes fbcmt-memote-run -s GLPK -w 6 e_coli_core.xml > e_coli_core.test.out
 ansi2html < e_coli_core.test.out > e_coli_core.test.html
 ```
 The resultant `html` can be inspected in any browser.
 
 See the function documentation for additional test configuration information.
 Note, the tests implemented here are significantly more conservative than in the
-original Memote. In particular, no heuristics are used to guess reactions types,
-e.g. biomass, atp maintenance, transporters, exchanges, etc. Only [SBO
+original Memote. In particular, no heuristics are used to guess reaction types,
+e.g. biomass, atp maintenance, transporter, exchange, etc. Only [SBO
 annotations](https://github.com/EBI-BioModels/SBO/blob/master/SBO_OBO.obo) are
 used for this purpose, because only these are actually standardized.
 Consequently, all tests that rely on properly annotated reactions will fail if
-this is not incorporated in a model.
+this is not incorporated into the model being tested.
 
 The implementation in FBCModelTests.jl is mostly authored by
 St. Elmo Wilken ([@stelmo](https://github.com/stelmo))
