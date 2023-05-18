@@ -189,7 +189,7 @@ function run_tests(
         end
 
         @info "Testing the biomass function(s)..."
-        @testset "Biomass" begin
+        @testset "Biomass reaction(s)" begin
             @atest length(Biomass.findall_biomass_reactions(model)) > 0 "At least 1 biomass reaction is in the model"
 
             @testset "ATP + H2O -> ADP + Pi + H included" begin
@@ -202,7 +202,7 @@ function run_tests(
                     @atest Biomass.biomass_reaction_is_consistent(model, rid) "$rid (biomass reaction) is consistent"
                 end
             end
-            @testset "Has common precursors" begin
+            @testset "Has all common precursors" begin
                 for rid in Biomass.findall_biomass_reactions(model)
                     @atest Biomass.biomass_missing_essential_precursors(model, rid; config) "$rid (biomass reaction) contains all the common precursors"
                 end
