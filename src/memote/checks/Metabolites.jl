@@ -18,33 +18,24 @@ $(TYPEDSIGNATURES)
 Test if metabolites `m1` and `m2` are different by comparing their
 `config.metabolite.test_annotation` field in the annotations of each
 metabolite. Note, if no annotations are present for one or both of the
-metabolites, then return `true`.
+metabolites, then return `false`.
 """
-function metabolites_are_duplicated(
-    model::MetabolicModel,
-    m1,
-    m2;
-    config = Config.memote_config,
-)
-    k1s = get(
-        parse_annotations(metabolite_annotations(model, m1)),
-        config.metabolite.test_annotation,
-        nothing,
-    )
-    isnothing(k1s) && return true
-    k2s = get(
-        parse_annotations(metabolite_annotations(model, m2)),
-        config.metabolite.test_annotation,
-        nothing,
-    )
-    isnothing(k2s) && return true
+function metabolites_are_duplicated(model::MetabolicModel, m1, m2, test_annotation)
+    k1s =
+        get(parse_annotations(metabolite_annotations(model, m1)), test_annotation, nothing)
+    isnothing(k1s) && return false
+    k2s =
+        get(parse_annotations(metabolite_annotations(model, m2)), test_annotation, nothing)
+    isnothing(k2s) && return false
     any(in.(k1s, Ref(k2s)))
 end
 
 """
 $(TYPEDSIGNATURES)
 
-Return a dictionary of metabolites that are duplicated in their compartment.
+Return a dictionary of metabolites that are duplicated in their compartment. If
+any of the test annotations, stored in `config.metabolite.test_annotations`, are
+repeated, then the metabolite is counted as duplicated. Missing annotations are ignored.
 """
 function metabolites_duplicated_in_compartment(
     model::MetabolicModel;
@@ -55,7 +46,12 @@ function metabolites_duplicated_in_compartment(
         c1 = metabolite_compartment(model, m1)
         for m2 in metabolites(model)
             c2 = metabolite_compartment(model, m2)
-            if c1 == c2 && m1 != m2 && metabolites_are_duplicated(model, m1, m2; config)
+            if c1 == c2 &&
+               m1 != m2 &&
+               any(
+                   metabolites_are_duplicated(model, m1, m2, test_annotation) for
+                   test_annotation in config.metabolite.test_annotations
+               )
                 push!(unique_metabolites, m1)
             end
         end

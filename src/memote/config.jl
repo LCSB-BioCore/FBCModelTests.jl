@@ -319,10 +319,11 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct MetaboliteConfig
-    test_annotation::String
+    test_annotations::Vector{String}
 end
 
-metabolite_config = MetaboliteConfig(test_annotation = "inchi_key")
+metabolite_config =
+    MetaboliteConfig(test_annotations = ["inchi_key", "chebi", "metanetx.chemical"])
 
 """
 $(TYPEDEF)
