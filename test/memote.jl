@@ -129,9 +129,11 @@ end
 
 @testset "Metabolite" begin
     @test isempty(Metabolites.metabolites_duplicated_in_compartment(model))
-    @test isempty(Metabolites.find_orphan_metabolites(model))
+    @test "mal__L_e" in Metabolites.find_orphan_metabolites(model)
     @test isempty(Metabolites.find_deadend_metabolites(model))
     @test isempty(Metabolites.find_disconnected_metabolites(model))
+    @test length(Metabolites.find_orphan_metabolites(iML1515)) == 65
+    @test length(Metabolites.find_deadend_metabolites(iML1515)) == 63    
 
     negative_model = convert(StandardModel, deepcopy(model))
     dup = deepcopy(negative_model.metabolites["atp_c"])

@@ -62,28 +62,32 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Helper function to find orphan or deadend metabolites. Specify `consumed=true`
-to consider orphan metabolites or `false` to consider deadend metabolites. Set
-`complete_medium=true` to open all boundary reactions to simulate a complete
-medium.
+Helper function to find orphan or deadend metabolites. Specify
+`only_consumed=true` to consider orphan metabolites or `false` to consider
+deadend metabolites.
 """
-function _find_orphan_or_deadend_metabolites(model::MetabolicModel; consumed = true)
+function _find_orphan_or_deadend_metabolites(model::MetabolicModel; only_consumed = true)
     mids = metabolites(model)
+    rids = reactions(model)
     mets = String[]
     S = stoichiometry(model)
     lbs, ubs = bounds(model)
     for idx in axes(S, 1)
-        rids, vals = findnz(S[idx, :])
-        if length(vals) == 1 && (consumed ? first(vals) < 0 : first(vals) > 0)
-            ridx = first(rids)
-            rid = reactions(model)[ridx]
-            met = mids[idx]
-            v = reaction_stoichiometry(model, rid)[met]
-            # check if reaction can actually make or consume the metabolite
-            lbs[ridx] < 0 < ubs[ridx] && continue # ignore reversible reactions
-            consumed && lbs[ridx] * v <= 0 && push!(mets, met)
-            !consumed && ubs[ridx] * v >= 0 && push!(mets, met)
+        mid = mids[idx]
+        one_sided_metabolite = true
+        for (ridx, _) in zip(findnz(S[idx, :])...)
+            lbs[ridx] < 0 < ubs[ridx] && (one_sided_metabolite = false; break) # can be produced or consumed
+            rid = rids[ridx]
+            rs = reaction_stoichiometry(model, rid)[mid]
+            if only_consumed # consumed only
+                (rs < 0 && lbs[ridx] >= 0) ||
+                (rs > 0 && ubs[ridx] <= 0) || (one_sided_metabolite=false; break)
+            else # produced only
+                (rs > 0 && lbs[ridx] >= 0) ||
+                (rs < 0 && ubs[ridx] <= 0) || (one_sided_metabolite=false; break)
+            end
         end
+        one_sided_metabolite && push!(mets, mid)
     end
     return mets
 end
@@ -92,20 +96,19 @@ end
 $(TYPEDSIGNATURES)
 
 Find all metabolites that can only (excludes reversible reactions) be consumed
-in the `model` by inspecting the stoichiometric matrix.
+in the `model` by inspecting the stoichiometric matrix and reaction bounds.
 """
 find_orphan_metabolites(model::MetabolicModel) =
-    _find_orphan_or_deadend_metabolites(model, consumed = true)
+    _find_orphan_or_deadend_metabolites(model, only_consumed = true)
 
 """
 $(TYPEDSIGNATURES)
 
 Find all metabolites that can only (excludes reversible reactions) be produced
-in the `model` by inspecting the stoichiometric matrix.
+in the `model` by inspecting the stoichiometric matrix and reaction bounds.
 """
 find_deadend_metabolites(model::MetabolicModel) =
-    _find_orphan_or_deadend_metabolites(model, consumed = false)
-
+    _find_orphan_or_deadend_metabolites(model, only_consumed = false)
 
 """
 $(TYPEDSIGNATURES)
@@ -114,6 +117,5 @@ Returns a list of all metabolites that aren't part of any reactions.
 """
 find_disconnected_metabolites(model::MetabolicModel) =
     metabolites(model)[all(stoichiometry(model) .== 0, dims = 2)[:]]
-
 
 end # module
