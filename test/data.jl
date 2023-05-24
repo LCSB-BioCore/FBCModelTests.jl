@@ -44,6 +44,11 @@ model_file = Dict(
             "http://bigg.ucsd.edu/static/models/iML1515.json",
             "b0f9199f048779bb08a14dfa6c09ec56d35b8750d2f99681980d0f098355fbf5",
         ),
+        (
+            "yeast-GEM.xml",
+            "https://raw.githubusercontent.com/SysBioChalmers/yeast-GEM/main/model/yeast-GEM.xml",
+            "c728b09d849b744ec7640cbf15776d40fb2d9cbd0b76a840a8661b626c1bd4be",
+        ),
     ]
 )
 
@@ -51,3 +56,4 @@ model_file = Dict(
 model = load_model(model_file["e_coli_core.json"])
 iJN746 = load_model(model_file["iJN746.json"])
 iML1515 = load_model(StandardModel, model_file["iML1515.json"])
+yeastgem = load_model(StandardModel, model_file["yeast-GEM.xml"])

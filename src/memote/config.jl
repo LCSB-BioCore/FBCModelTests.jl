@@ -108,8 +108,8 @@ Base.@kwdef mutable struct AnnotationConfig
     metabolite_annotation_regexes::Dict{String,Regex}
     reaction_annotation_keywords::Vector{String}
     reaction_annotation_regexes::Dict{String,Regex}
-    maximum_nonconformal_references::Int64
-    maximum_missing_databases::Int64
+    minimum_conformal_crossreferences::Int64
+    minimum_crossreferences::Int64
 end
 
 annotation_config = AnnotationConfig(
@@ -190,8 +190,8 @@ annotation_config = AnnotationConfig(
             r"^\d+\.-\.-\.-|\d+\.\d+\.-\.-|\d+\.\d+\.\d+\.-|\d+\.\d+\.\d+\.(n)?\d+$",
         "biocyc" => r"^[A-Z-0-9]+(?<!CHEBI)(\:)?[A-Za-z0-9+_.%-]+$",
     ),
-    maximum_nonconformal_references = 5,
-    maximum_missing_databases = 6,
+    minimum_conformal_crossreferences = 3,
+    minimum_crossreferences = 4,
 )
 
 """
@@ -319,10 +319,11 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef mutable struct MetaboliteConfig
-    test_annotation::String
+    test_annotations::Vector{String}
 end
 
-metabolite_config = MetaboliteConfig(test_annotation = "inchi_key")
+metabolite_config =
+    MetaboliteConfig(test_annotations = ["inchi_key", "chebi", "metanetx.chemical"])
 
 """
 $(TYPEDEF)
@@ -340,7 +341,7 @@ end
 network_config = NetworkConfig(
     condition_number = 1e9,
     cycle_tol = 1e-3,
-    blocked_tol = 1e-3,
+    blocked_tol = 1e-8,
     optimizer_modifications = [silence],
 )
 
