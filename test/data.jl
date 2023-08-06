@@ -46,8 +46,8 @@ model_file = Dict(
         ),
         (
             "yeast-GEM.xml",
-            "https://raw.githubusercontent.com/SysBioChalmers/yeast-GEM/main/model/yeast-GEM.xml",
-            "c728b09d849b744ec7640cbf15776d40fb2d9cbd0b76a840a8661b626c1bd4be",
+            "https://raw.githubusercontent.com/SysBioChalmers/yeast-GEM/v8.7.0/model/yeast-GEM.xml",
+            "260a8efeaa4686fbf6251abecc2b4c2917e91d024615728307d1664c6d276be0",
         ),
     ]
 )
