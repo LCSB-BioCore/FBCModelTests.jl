@@ -1,0 +1,21 @@
+<tool id="fbc_model_tests_frog" name="FBCModelTests-FROG" version="0.1.0">
+  <description>FROG reproducibility report generator</description>
+  <command>docker run -ti --rm -v \$PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-run-frog -s GLPK '${model_xml}' generated_report</command>
+  <inputs>
+    <param format="xml" name="model_xml" type="data" label="SBML model"/>
+  </inputs>
+
+  <outputs>
+    <data name="report_tsv" format="tsv">
+      <discover_datasets pattern="\.tsv" directory="generated_report" visible="true" />
+    </data>
+    <data name="report_metadata_json" format="json">
+      <discover_datasets pattern="\.json" directory="generated_report" visible="true" />
+    </data>
+  </outputs>
+
+  <help>
+This tool creates a FROG reproducibility report from a constraint-based model stored in SBML FBC format.
+  </help>
+
+</tool>
