@@ -61,6 +61,13 @@ $ docker run -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmode
 $ docker run -ti --rm -v $PWD:/data -w /data ghcr.io/lcsb-biocore/docker/fbcmodeltests-compare-frog report_dir other_dir
 ```
 
+Docker containers may be re-used and executed in many other environments: using
+[podman](https://podman.io/) allows you to run in without installation in some
+HPC setups; using the [Dockerized tool
+capability](https://training.galaxyproject.org/training-material/topics/admin/tutorials/galaxy-docker/slides-plain.html)
+of [Galaxy](https://usegalaxy.org/) allows you to run the model tests in many
+institutional cloud-computing services and local Galaxy instances.
+
 ## MEMOTE-style tests
 
 The primary entry point for the [MEMOTE](https://memote.readthedocs.io/) test
