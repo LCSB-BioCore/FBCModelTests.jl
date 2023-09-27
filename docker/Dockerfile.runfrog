@@ -2,8 +2,8 @@ FROM julia
 
 ADD README.md Project.toml LICENSE /pkg/
 ADD src/ /pkg/src/
-ADD bin/fbcmt-run-frog /usr/bin
+ADD bin/ /usr/bin/
 
-RUN julia -e 'import Pkg; Pkg.add(["GLPK", "Tulip", "Clarabel", "OSQP", "Clp"]); Pkg.develop(path="/pkg/"); Pkg.resolve(); Pkg.status(); Pkg.instantiate(); Pkg.precompile()'
+RUN julia -e 'import Pkg; Pkg.add(["GLPK", "Tulip", "Clarabel", "OSQP", "Clp", "SCIP"]); Pkg.develop(path="/pkg/"); Pkg.resolve(); Pkg.status(); Pkg.instantiate(); Pkg.precompile()'
 
 ENTRYPOINT ["/usr/bin/fbcmt-run-frog"]
