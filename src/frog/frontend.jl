@@ -45,6 +45,7 @@ function compare_reports(report_dir_a::String, report_dir_b::String; kwargs...)
     @testset "Objectives and solution values" begin
         ReportTests.test_report_compatibility(a.report, b.report; kwargs...)
     end
+    nothing
 end
 
 """
